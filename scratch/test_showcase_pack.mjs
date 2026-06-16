@@ -126,9 +126,14 @@ function testDemoPropsUseSharedThreeScene() {
 
 function testDemoStagesPhysicalContactAndGaze() {
   const demo = readFileSync(DEMO_PATH, 'utf8');
+  const crouchBlock = demo.match(/crouch_touch:\s*{([\s\S]*?)\n\s*},\n\s*kick_forward:/)?.[1] || '';
+  const hipsY = [...crouchBlock.matchAll(/pos:\s*\[[^,\]]+,\s*([^,\]]+)/g)]
+    .map((match) => Number(match[1]))
+    .filter(Number.isFinite);
 
   assert.match(demo, /crouch_touch/);
   assert.match(demo, /hipsPosition:\s*\[/);
+  assert.ok(Math.min(...hipsY) <= -0.18, 'crouch_touch should visibly lower Alicia, not just bend slightly');
   assert.match(demo, /nudgeContact\(event = \{\}, propLayer = null\)/);
   assert.match(demo, /getPropWorldPosition\(name\)/);
   assert.match(demo, /getLookAtPoint\(name, fallback/);
@@ -136,6 +141,8 @@ function testDemoStagesPhysicalContactAndGaze() {
   assert.match(demo, /mouseOverrideUntil = performance\.now\(\) \+ 1150/);
   assert.match(demo, /gazeDirector\.focusEvent\(event\)/);
   assert.match(demo, /aliciaGazeDirector\?\.handleMouseMove/);
+  assert.match(demo, /this\.mascot\.dispatch\?\.\('talking'/);
+  assert.doesNotMatch(demo, /this\.mascot\.performIntent\(\{[\s\S]*?motion:\s*event\.motion/);
   assert.match(demo, /sceneAction} \$\{event\.prop\}\$\{contact \? ' \+ contact' : ''\}/);
 }
 

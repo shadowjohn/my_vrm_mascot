@@ -1389,27 +1389,28 @@ $serverChecks = [
         },
       },
       crouch_touch: {
-        durationMs: 1900,
+        durationMs: 2400,
         fps: 10,
         hipsPosition: [
           { time_ms: 0, pos: [0, 0, 0] },
-          { time_ms: 360, pos: [0.004, -0.075, 0.012] },
-          { time_ms: 1120, pos: [0.008, -0.092, 0.018] },
-          { time_ms: 1500, pos: [0.004, -0.045, 0.006] },
-          { time_ms: 1900, pos: [0, 0, 0] },
+          { time_ms: 420, pos: [0.004, -0.145, 0.018] },
+          { time_ms: 980, pos: [0.008, -0.225, 0.032] },
+          { time_ms: 1560, pos: [0.01, -0.215, 0.03] },
+          { time_ms: 1980, pos: [0.004, -0.08, 0.012] },
+          { time_ms: 2400, pos: [0, 0, 0] },
         ],
         bones: {
-          spine: [[0, { x: 0 }], [360, { x: 13, z: -2 }], [1120, { x: 15, z: -2 }], [1900, { x: 0 }]],
-          chest: [[0, { x: 0 }], [360, { x: 8, y: -7 }], [1120, { x: 9, y: -8 }], [1900, { x: 0 }]],
-          leftUpperLeg: [[0, { x: 0 }], [360, { x: -18, z: 3 }], [1120, { x: -22, z: 4 }], [1900, { x: 0 }]],
-          rightUpperLeg: [[0, { x: 0 }], [360, { x: -18, z: -3 }], [1120, { x: -22, z: -4 }], [1900, { x: 0 }]],
-          leftLowerLeg: [[0, { x: 0 }], [360, { x: 34 }], [1120, { x: 40 }], [1900, { x: 0 }]],
-          rightLowerLeg: [[0, { x: 0 }], [360, { x: 34 }], [1120, { x: 40 }], [1900, { x: 0 }]],
-          rightUpperArm: [[0, { z: 0 }], [300, { x: -18, y: -24, z: -58 }], [1040, { x: -20, y: -28, z: -62 }], [1900, { z: 0 }]],
-          rightLowerArm: [[0, { y: 0 }], [300, { y: 48, z: -10 }], [1040, { y: 54, z: -12 }], [1900, { y: 0 }]],
-          rightHand: [[0, { x: 0 }], [520, { x: -18, z: -10 }], [760, { x: -8, z: 9 }], [1080, { x: -16, z: -8 }], [1900, { x: 0 }]],
-          leftUpperArm: [[0, { z: 0 }], [360, { z: 18, x: 10 }], [1120, { z: 20, x: 12 }], [1900, { z: 0 }]],
-          leftLowerArm: [[0, { y: 0 }], [360, { y: -18 }], [1120, { y: -20 }], [1900, { y: 0 }]],
+          spine: [[0, { x: 0 }], [420, { x: 20, z: -2 }], [980, { x: 24, z: -3 }], [1560, { x: 23, z: -2 }], [2400, { x: 0 }]],
+          chest: [[0, { x: 0 }], [420, { x: 12, y: -8 }], [980, { x: 16, y: -10 }], [1560, { x: 15, y: -10 }], [2400, { x: 0 }]],
+          leftUpperLeg: [[0, { x: 0 }], [420, { x: -32, z: 4 }], [980, { x: -48, z: 6 }], [1560, { x: -46, z: 6 }], [2400, { x: 0 }]],
+          rightUpperLeg: [[0, { x: 0 }], [420, { x: -32, z: -4 }], [980, { x: -48, z: -6 }], [1560, { x: -46, z: -6 }], [2400, { x: 0 }]],
+          leftLowerLeg: [[0, { x: 0 }], [420, { x: 54 }], [980, { x: 78 }], [1560, { x: 76 }], [2400, { x: 0 }]],
+          rightLowerLeg: [[0, { x: 0 }], [420, { x: 54 }], [980, { x: 78 }], [1560, { x: 76 }], [2400, { x: 0 }]],
+          rightUpperArm: [[0, { z: 0 }], [360, { x: -24, y: -26, z: -62 }], [1180, { x: -28, y: -32, z: -68 }], [1680, { x: -24, y: -28, z: -64 }], [2400, { z: 0 }]],
+          rightLowerArm: [[0, { y: 0 }], [360, { y: 52, z: -12 }], [1180, { y: 62, z: -14 }], [1680, { y: 54, z: -12 }], [2400, { y: 0 }]],
+          rightHand: [[0, { x: 0 }], [620, { x: -20, z: -12 }], [880, { x: -8, z: 10 }], [1220, { x: -18, z: -10 }], [1580, { x: -8, z: 8 }], [2400, { x: 0 }]],
+          leftUpperArm: [[0, { z: 0 }], [420, { z: 20, x: 12 }], [1180, { z: 24, x: 14 }], [1560, { z: 22, x: 12 }], [2400, { z: 0 }]],
+          leftLowerArm: [[0, { y: 0 }], [420, { y: -20 }], [1180, { y: -24 }], [1560, { y: -20 }], [2400, { y: 0 }]],
         },
       },
       kick_forward: {
@@ -2586,6 +2587,14 @@ $serverChecks = [
         return 'pending';
       }
 
+      emotionFor(event) {
+        if (event.emotion) return event.emotion;
+        if (event.intent === 'warning') return 'angry';
+        if (event.intent === 'error') return 'sorrow';
+        if (event.intent === 'searching') return 'fun';
+        return 'joy';
+      }
+
       playCustomAnimation(name) {
         const animationData = buildCustomAnimation(name, this.mascot);
         if (!animationData) return false;
@@ -2623,11 +2632,11 @@ $serverChecks = [
           source: 'scene_playground',
         });
         await sleep(80);
-        this.mascot.performIntent({
-          intent: event.intent,
-          motion: event.motion,
+        // Showcase demo 的身體動作交給 event.animation，對白只負責文字/表情/嘴型，
+        // 避免 performIntent 的 preset motion 蓋掉 crouch_touch / kick / point。
+        this.mascot.dispatch?.('talking', {
           text: event.text,
-          source: 'scene_playground',
+          emotion: this.emotionFor(event),
         });
         if (event.animation) {
           await sleep(160);

@@ -218,6 +218,16 @@ v0.1.4 強化近距離物件互動：
 - ScenePropLayer 加入 touch recoil / contact flash，物件被碰到時會有短暫受力回饋。
 - GazeDirector 會讓頭部追蹤目前互動物件；使用者移動滑鼠時短暫改看滑鼠，停止後回到物件。
 
+v0.1.5 修正 `crouch_touch` 蹲姿辨識度：
+
+- 將 hips 下沉幅度從小幅示意提高到可視蹲姿，並加大膝蓋彎曲與上身前傾。
+- 延長蹲姿停留時間，讓使用者能清楚看到靠近、蹲下、碰觸、站回來的節奏。
+
+v0.1.6 修正 demo 對白蓋掉互動動作：
+
+- Showcase Director 改用 `dispatch('talking')` 播對白，不再用 `performIntent()` 的 preset motion。
+- 對白只負責文字、表情與嘴型，身體動作由 `event.animation` 單獨控制，避免 `wave` / `warning` 覆蓋 `crouch_touch`。
+
 目前資料集狀態：
 
 | 項目 | 數量 |
