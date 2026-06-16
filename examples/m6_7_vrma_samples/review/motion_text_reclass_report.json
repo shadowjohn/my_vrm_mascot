@@ -1,0 +1,5249 @@
+{
+  "schemaVersion": 1,
+  "phase": "M6.7.6A Text Mining Classifier",
+  "source": "motion_profiles.json",
+  "generatedAt": "2026-06-16T01:10:35.556+08:00",
+  "summary": {
+    "totalProfiles": 172,
+    "reclassCandidateCount": 76,
+    "currentCategoryCounts": {
+      "warning": 47,
+      "think": 23,
+      "success": 7,
+      "point": 50,
+      "candidate_future": 11,
+      "present": 28,
+      "reject": 6
+    },
+    "suggestedCategoryCounts": {
+      "warning": 16,
+      "think": 20,
+      "present": 17,
+      "point": 23,
+      "candidate_future": 81,
+      "success": 8,
+      "reject": 7
+    }
+  },
+  "reclassCandidates": [
+    {
+      "source": "Clapping.vrma",
+      "currentCategory": "success",
+      "currentLabel": "成功",
+      "suggestedCategory": "warning",
+      "suggestedLabel": "警告",
+      "confidence": 0.96,
+      "shouldReclassify": true,
+      "score": 11,
+      "matchedSignals": [
+        "not_allowed"
+      ],
+      "matchedTerms": [
+        "不對",
+        "不行",
+        "禁止",
+        "不能",
+        "嚴格"
+      ],
+      "reason": "文字描述命中「不對、不行、禁止、不能、嚴格」，較符合「警告」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_golfPrePutt.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.95,
+      "shouldReclassify": true,
+      "score": 9.8,
+      "matchedSignals": [
+        "requires_lower_body",
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "站起",
+        "蹲",
+        "走",
+        "往前",
+        "高爾夫"
+      ],
+      "reason": "文字描述命中「站起、蹲、走、往前、高爾夫」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_praying.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.93,
+      "shouldReclassify": true,
+      "score": 9.2,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "站起",
+        "起身",
+        "跪",
+        "膝"
+      ],
+      "reason": "文字描述命中「站起、起身、跪、膝」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_militarySignaling.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.91,
+      "shouldReclassify": true,
+      "score": 8.3,
+      "matchedSignals": [
+        "requires_lower_body",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "蹲",
+        "跪",
+        "膝",
+        "打籃球"
+      ],
+      "reason": "文字描述命中「蹲、跪、膝、打籃球」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_jumping.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.91,
+      "shouldReclassify": true,
+      "score": 8.3,
+      "matchedSignals": [
+        "requires_lower_body",
+        "requires_locomotion",
+        "requires_weight_shift"
+      ],
+      "matchedTerms": [
+        "站起",
+        "蹲",
+        "跳",
+        "落地"
+      ],
+      "reason": "文字描述命中「站起、蹲、跳、落地」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_sitToStand.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.86,
+      "shouldReclassify": true,
+      "score": 6.5,
+      "matchedSignals": [
+        "requires_lower_body",
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "坐",
+        "站起",
+        "往前"
+      ],
+      "reason": "文字描述命中「坐、站起、往前」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_dropKick.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.86,
+      "shouldReclassify": true,
+      "score": 6.5,
+      "matchedSignals": [
+        "requires_lower_body",
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "蹲",
+        "腳",
+        "跳"
+      ],
+      "reason": "文字描述命中「蹲、腳、跳」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_breakdanceEnding1.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.83,
+      "shouldReclassify": true,
+      "score": 5.6,
+      "matchedSignals": [
+        "requires_lower_body",
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "蹲",
+        "跳",
+        "跳舞"
+      ],
+      "reason": "文字描述命中「蹲、跳、跳舞」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_breakdanceFootwork1.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.83,
+      "shouldReclassify": true,
+      "score": 5.6,
+      "matchedSignals": [
+        "requires_lower_body",
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "蹲",
+        "跳",
+        "跳舞"
+      ],
+      "reason": "文字描述命中「蹲、跳、跳舞」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_golfBadShot.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.81,
+      "shouldReclassify": true,
+      "score": 5.2,
+      "matchedSignals": [
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "走",
+        "往前",
+        "高爾夫"
+      ],
+      "reason": "文字描述命中「走、往前、高爾夫」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_pacingAndTalkingOnAPhone.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.8,
+      "shouldReclassify": true,
+      "score": 5.7,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "走",
+        "退著走",
+        "往前"
+      ],
+      "reason": "文字描述命中「走、退著走、往前」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "think",
+          "label": "思考",
+          "score": 1.5,
+          "matchedSignals": [
+            "face_touch"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci2_kneeling.vrma",
+      "currentCategory": "reject",
+      "currentLabel": "淘汰",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.79,
+      "shouldReclassify": true,
+      "score": 4.6,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "蹲",
+        "膝"
+      ],
+      "reason": "文字描述命中「蹲、膝」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_standToSit.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.79,
+      "shouldReclassify": true,
+      "score": 4.6,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "坐",
+        "站起"
+      ],
+      "reason": "文字描述命中「坐、站起」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_snatch.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.79,
+      "shouldReclassify": true,
+      "score": 4.6,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "站起",
+        "蹲"
+      ],
+      "reason": "文字描述命中「站起、蹲」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_entry.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.76,
+      "shouldReclassify": true,
+      "score": 5.7,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "走",
+        "退著走",
+        "行進"
+      ],
+      "reason": "文字描述命中「走、退著走、行進」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "present",
+          "label": "介紹",
+          "score": 3.4,
+          "matchedSignals": [
+            "greeting_stage"
+          ]
+        },
+        {
+          "category": "think",
+          "label": "思考",
+          "score": 1.1,
+          "matchedSignals": [
+            "searching_motion"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci2_standingJump.vrma",
+      "currentCategory": "success",
+      "currentLabel": "成功",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.76,
+      "shouldReclassify": true,
+      "score": 4.2,
+      "matchedSignals": [
+        "requires_lower_body",
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "站起",
+        "跳"
+      ],
+      "reason": "文字描述命中「站起、跳」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_zombieStandUp.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.76,
+      "shouldReclassify": true,
+      "score": 4.1,
+      "matchedSignals": [
+        "requires_lower_body",
+        "requires_weight_shift"
+      ],
+      "matchedTerms": [
+        "站起",
+        "躺"
+      ],
+      "reason": "文字描述命中「站起、躺」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_doubleDaggerStab.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.76,
+      "shouldReclassify": true,
+      "score": 4.2,
+      "matchedSignals": [
+        "requires_lower_body",
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "蹲",
+        "往前"
+      ],
+      "reason": "文字描述命中「蹲、往前」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_situps.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.76,
+      "shouldReclassify": true,
+      "score": 4.1,
+      "matchedSignals": [
+        "requires_lower_body",
+        "requires_weight_shift"
+      ],
+      "matchedTerms": [
+        "坐",
+        "躺"
+      ],
+      "reason": "文字描述命中「坐、躺」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_sitting.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.75,
+      "shouldReclassify": true,
+      "score": 4.6,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "坐",
+        "膝"
+      ],
+      "reason": "文字描述命中「坐、膝」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "think",
+          "label": "思考",
+          "score": 1.1,
+          "matchedSignals": [
+            "searching_motion"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci3_sillyDancing.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.75,
+      "shouldReclassify": true,
+      "score": 5.2,
+      "matchedSignals": [
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "跳",
+        "往前",
+        "跳舞"
+      ],
+      "reason": "文字描述命中「跳、往前、跳舞」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "point",
+          "label": "指向",
+          "score": 1.8,
+          "matchedSignals": [
+            "guide_direction"
+          ]
+        },
+        {
+          "category": "present",
+          "label": "介紹",
+          "score": 1.2,
+          "matchedSignals": [
+            "open_body"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci2_catch.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.74,
+      "shouldReclassify": true,
+      "score": 3.8,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "跳",
+        "往前"
+      ],
+      "reason": "文字描述命中「跳、往前」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_walking.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.74,
+      "shouldReclassify": true,
+      "score": 3.8,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "走",
+        "往前"
+      ],
+      "reason": "文字描述命中「走、往前」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_breakdanceFreezes.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.74,
+      "shouldReclassify": true,
+      "score": 3.8,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "跑",
+        "跳"
+      ],
+      "reason": "文字描述命中「跑、跳」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_sambaDancing.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.74,
+      "shouldReclassify": true,
+      "score": 4.7,
+      "matchedSignals": [
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "跳",
+        "跳舞",
+        "舞步"
+      ],
+      "reason": "文字描述命中「跳、跳舞、舞步」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "success",
+          "label": "成功",
+          "score": 1.6,
+          "matchedSignals": [
+            "happy_state"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci3_breakdanceSwipes.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.73,
+      "shouldReclassify": true,
+      "score": 3.7,
+      "matchedSignals": [
+        "requires_locomotion",
+        "requires_weight_shift"
+      ],
+      "matchedTerms": [
+        "跳",
+        "躺"
+      ],
+      "reason": "文字描述命中「跳、躺」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_kipUp.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.73,
+      "shouldReclassify": true,
+      "score": 3.7,
+      "matchedSignals": [
+        "requires_locomotion",
+        "requires_weight_shift"
+      ],
+      "matchedTerms": [
+        "跳",
+        "躺"
+      ],
+      "reason": "文字描述命中「跳、躺」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_crosslegFreeze.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.73,
+      "shouldReclassify": true,
+      "score": 3.7,
+      "matchedSignals": [
+        "requires_locomotion",
+        "requires_weight_shift"
+      ],
+      "matchedTerms": [
+        "跳",
+        "躺"
+      ],
+      "reason": "文字描述命中「跳、躺」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "Sleepy.vrma",
+      "currentCategory": "candidate_future",
+      "currentLabel": "未來候選",
+      "suggestedCategory": "think",
+      "suggestedLabel": "思考",
+      "confidence": 0.72,
+      "shouldReclassify": true,
+      "score": 3.5,
+      "matchedSignals": [
+        "thinking_state",
+        "face_touch"
+      ],
+      "matchedTerms": [
+        "想",
+        "哈欠"
+      ],
+      "reason": "文字描述命中「想、哈欠」，較符合「思考」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_VRMA_02.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.71,
+      "shouldReclassify": true,
+      "score": 4.6,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "站起",
+        "蹲"
+      ],
+      "reason": "文字描述命中「站起、蹲」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "present",
+          "label": "介紹",
+          "score": 1.7,
+          "matchedSignals": [
+            "greeting_stage"
+          ]
+        },
+        {
+          "category": "success",
+          "label": "成功",
+          "score": 1.6,
+          "matchedSignals": [
+            "happy_state"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci3_breakdance1990.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.7,
+      "shouldReclassify": true,
+      "score": 3.3,
+      "matchedSignals": [
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "跳",
+        "跳舞"
+      ],
+      "reason": "文字描述命中「跳、跳舞」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_singing.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.7,
+      "shouldReclassify": true,
+      "score": 3.3,
+      "matchedSignals": [
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "跳",
+        "跳舞"
+      ],
+      "reason": "文字描述命中「跳、跳舞」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "test157t_motion_pose.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.7,
+      "shouldReclassify": true,
+      "score": 3.3,
+      "matchedSignals": [
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "跳",
+        "跳舞"
+      ],
+      "reason": "文字描述命中「跳、跳舞」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_crouchToStand.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.69,
+      "shouldReclassify": true,
+      "score": 4,
+      "matchedSignals": [
+        "point_target"
+      ],
+      "matchedTerms": [
+        "指著",
+        "指"
+      ],
+      "reason": "文字描述命中「指著、指」，較符合「指向」。",
+      "alternativeCategories": [
+        {
+          "category": "think",
+          "label": "思考",
+          "score": 2,
+          "matchedSignals": [
+            "thinking_state"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "test157t_greeting.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.69,
+      "shouldReclassify": true,
+      "score": 4.2,
+      "matchedSignals": [
+        "requires_lower_body",
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "蹲",
+        "跳"
+      ],
+      "reason": "文字描述命中「蹲、跳」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "present",
+          "label": "介紹",
+          "score": 1.7,
+          "matchedSignals": [
+            "greeting_stage"
+          ]
+        },
+        {
+          "category": "success",
+          "label": "成功",
+          "score": 1.4,
+          "matchedSignals": [
+            "farewell_thanks"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci_nervouslyLookAround.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "warning",
+      "suggestedLabel": "警告",
+      "confidence": 0.68,
+      "shouldReclassify": true,
+      "score": 4.1,
+      "matchedSignals": [
+        "not_allowed",
+        "angry_attitude"
+      ],
+      "matchedTerms": [
+        "不要",
+        "阻止"
+      ],
+      "reason": "文字描述命中「不要、阻止」，較符合「警告」。",
+      "alternativeCategories": [
+        {
+          "category": "candidate_future",
+          "label": "未來候選",
+          "score": 1.9,
+          "matchedSignals": [
+            "requires_locomotion"
+          ]
+        },
+        {
+          "category": "present",
+          "label": "介紹",
+          "score": 1.2,
+          "matchedSignals": [
+            "open_body"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci3_backflip.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.65,
+      "shouldReclassify": true,
+      "score": 3.8,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "跳",
+        "往前"
+      ],
+      "reason": "文字描述命中「跳、往前」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "point",
+          "label": "指向",
+          "score": 3.5,
+          "matchedSignals": [
+            "guide_direction",
+            "invite_or_follow"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci3_hipHopDancing.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.65,
+      "shouldReclassify": true,
+      "score": 3.3,
+      "matchedSignals": [
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "跳",
+        "跳舞"
+      ],
+      "reason": "文字描述命中「跳、跳舞」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "success",
+          "label": "成功",
+          "score": 1.4,
+          "matchedSignals": [
+            "farewell_thanks"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci3_golfPuttVictory.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "success",
+      "suggestedLabel": "成功",
+      "confidence": 0.64,
+      "shouldReclassify": true,
+      "score": 3.6,
+      "matchedSignals": [
+        "success_state",
+        "happy_state"
+      ],
+      "matchedTerms": [
+        "勝利",
+        "高興"
+      ],
+      "reason": "文字描述命中「勝利、高興」，較符合「成功」。",
+      "alternativeCategories": [
+        {
+          "category": "candidate_future",
+          "label": "未來候選",
+          "score": 3.3,
+          "matchedSignals": [
+            "requires_locomotion",
+            "dance_or_scene_motion"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci3_rumbaDancing.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.64,
+      "shouldReclassify": true,
+      "score": 3.3,
+      "matchedSignals": [
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "跳",
+        "跳舞"
+      ],
+      "reason": "文字描述命中「跳、跳舞」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "point",
+          "label": "指向",
+          "score": 1.8,
+          "matchedSignals": [
+            "guide_direction"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "test157t_hello.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.64,
+      "shouldReclassify": true,
+      "score": 3.7,
+      "matchedSignals": [
+        "requires_locomotion",
+        "requires_weight_shift"
+      ],
+      "matchedTerms": [
+        "跳",
+        "轉身"
+      ],
+      "reason": "文字描述命中「跳、轉身」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "think",
+          "label": "思考",
+          "score": 1.8,
+          "matchedSignals": [
+            "confused_or_shy"
+          ]
+        },
+        {
+          "category": "present",
+          "label": "介紹",
+          "score": 1.7,
+          "matchedSignals": [
+            "greeting_stage"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci_beingCocky.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "present",
+      "suggestedLabel": "介紹",
+      "confidence": 0.62,
+      "shouldReclassify": true,
+      "score": 2.4,
+      "matchedSignals": [
+        "open_body"
+      ],
+      "matchedTerms": [
+        "張開",
+        "往外"
+      ],
+      "reason": "文字描述命中「張開、往外」，較符合「介紹」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_bodyBlock.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "think",
+      "suggestedLabel": "思考",
+      "confidence": 0.62,
+      "shouldReclassify": true,
+      "score": 3.5,
+      "matchedSignals": [
+        "thinking_state",
+        "face_touch"
+      ],
+      "matchedTerms": [
+        "想",
+        "臉"
+      ],
+      "reason": "文字描述命中「想、臉」，較符合「思考」。",
+      "alternativeCategories": [
+        {
+          "category": "candidate_future",
+          "label": "未來候選",
+          "score": 1.9,
+          "matchedSignals": [
+            "requires_locomotion"
+          ]
+        },
+        {
+          "category": "warning",
+          "label": "警告",
+          "score": 1.9,
+          "matchedSignals": [
+            "angry_attitude"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "test157t_show_full_body.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.62,
+      "shouldReclassify": true,
+      "score": 3.3,
+      "matchedSignals": [
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "跳",
+        "跳舞"
+      ],
+      "reason": "文字描述命中「跳、跳舞」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "present",
+          "label": "介紹",
+          "score": 3.2,
+          "matchedSignals": [
+            "presentation",
+            "open_body"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci2_sittingClap.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.61,
+      "shouldReclassify": true,
+      "score": 2.3,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "坐"
+      ],
+      "reason": "文字描述命中「坐」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_sittingTalking.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.61,
+      "shouldReclassify": true,
+      "score": 2.3,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "坐"
+      ],
+      "reason": "文字描述命中「坐」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_typing.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.61,
+      "shouldReclassify": true,
+      "score": 2.3,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "坐"
+      ],
+      "reason": "文字描述命中「坐」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_vaultOverBox.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.61,
+      "shouldReclassify": true,
+      "score": 2.3,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "坐"
+      ],
+      "reason": "文字描述命中「坐」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_paddling.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.61,
+      "shouldReclassify": true,
+      "score": 2.3,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "坐"
+      ],
+      "reason": "文字描述命中「坐」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_pianoPlaying.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.61,
+      "shouldReclassify": true,
+      "score": 2.3,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "坐"
+      ],
+      "reason": "文字描述命中「坐」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_playingDrums.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.61,
+      "shouldReclassify": true,
+      "score": 2.3,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "坐"
+      ],
+      "reason": "文字描述命中「坐」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_standing2HMagicAttack01.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.61,
+      "shouldReclassify": true,
+      "score": 2.3,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "蹲"
+      ],
+      "reason": "文字描述命中「蹲」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_VRMA_07.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.61,
+      "shouldReclassify": true,
+      "score": 2.3,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "蹲"
+      ],
+      "reason": "文字描述命中「蹲」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_lookOverShoulder.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "warning",
+      "suggestedLabel": "警告",
+      "confidence": 0.6,
+      "shouldReclassify": true,
+      "score": 2.2,
+      "matchedSignals": [
+        "danger_or_surprise"
+      ],
+      "matchedTerms": [
+        "危險",
+        "嚇"
+      ],
+      "reason": "文字描述命中「危險、嚇」，較符合「警告」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_standingGreeting.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "success",
+      "suggestedLabel": "成功",
+      "confidence": 0.59,
+      "shouldReclassify": true,
+      "score": 2.8,
+      "matchedSignals": [
+        "farewell_thanks"
+      ],
+      "matchedTerms": [
+        "再見",
+        "揮手"
+      ],
+      "reason": "文字描述命中「再見、揮手」，較符合「成功」。",
+      "alternativeCategories": [
+        {
+          "category": "point",
+          "label": "指向",
+          "score": 1.7,
+          "matchedSignals": [
+            "invite_or_follow"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci_victoryIdle.vrma",
+      "currentCategory": "success",
+      "currentLabel": "成功",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.58,
+      "shouldReclassify": true,
+      "score": 2,
+      "matchedSignals": [
+        "point_target"
+      ],
+      "matchedTerms": [
+        "指"
+      ],
+      "reason": "文字描述命中「指」，較符合「指向」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_defeatIdle.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.58,
+      "shouldReclassify": true,
+      "score": 2,
+      "matchedSignals": [
+        "point_target"
+      ],
+      "matchedTerms": [
+        "指"
+      ],
+      "reason": "文字描述命中「指」，較符合「指向」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "test157t_model_pose.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "present",
+      "suggestedLabel": "介紹",
+      "confidence": 0.58,
+      "shouldReclassify": true,
+      "score": 2,
+      "matchedSignals": [
+        "presentation"
+      ],
+      "matchedTerms": [
+        "介紹"
+      ],
+      "reason": "文字描述命中「介紹」，較符合「介紹」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_buttonPushing.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "往前"
+      ],
+      "reason": "文字描述命中「往前」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_dismissingGesture.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "往前"
+      ],
+      "reason": "文字描述命中「往前」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_shrugging.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "往前"
+      ],
+      "reason": "文字描述命中「往前」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_talking.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "往前"
+      ],
+      "reason": "文字描述命中「往前」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_floating.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "present",
+      "suggestedLabel": "介紹",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 2.9,
+      "matchedSignals": [
+        "greeting_stage",
+        "open_body"
+      ],
+      "matchedTerms": [
+        "打招呼",
+        "往外"
+      ],
+      "reason": "文字描述命中「打招呼、往外」，較符合「介紹」。",
+      "alternativeCategories": [
+        {
+          "category": "reject",
+          "label": "淘汰",
+          "score": 1.8,
+          "matchedSignals": [
+            "not_agentic"
+          ]
+        },
+        {
+          "category": "success",
+          "label": "成功",
+          "score": 1.6,
+          "matchedSignals": [
+            "happy_state"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci2_push.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "移動"
+      ],
+      "reason": "文字描述命中「移動」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_startWalking.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "走"
+      ],
+      "reason": "文字描述命中「走」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_catwalkWalkForwardHighKnees.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "走"
+      ],
+      "reason": "文字描述命中「走」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_jumpingDown.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "跳"
+      ],
+      "reason": "文字描述命中「跳」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_jumpingJacks.vrma",
+      "currentCategory": "success",
+      "currentLabel": "成功",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "跳"
+      ],
+      "reason": "文字描述命中「跳」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_runningUpStairs.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "跳"
+      ],
+      "reason": "文字描述命中「跳」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_standardRun.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "跑"
+      ],
+      "reason": "文字描述命中「跑」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_startClimbingLadder.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "跳"
+      ],
+      "reason": "文字描述命中「跳」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_aimingGun.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "跳"
+      ],
+      "reason": "文字描述命中「跳」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_flyingKneePunchCombo.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "跳"
+      ],
+      "reason": "文字描述命中「跳」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_reloading.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "走"
+      ],
+      "reason": "文字描述命中「走」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_singing_1.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "移動"
+      ],
+      "reason": "文字描述命中「移動」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_VRMA_06.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "往前"
+      ],
+      "reason": "文字描述命中「往前」，較符合「未來候選」。",
+      "alternativeCategories": []
+    }
+  ],
+  "entries": [
+    {
+      "source": "Angry.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "warning",
+      "suggestedLabel": "警告",
+      "confidence": 0.87,
+      "shouldReclassify": false,
+      "score": 6.8,
+      "matchedSignals": [
+        "angry_attitude",
+        "negative_response"
+      ],
+      "matchedTerms": [
+        "生氣",
+        "氣噗噗",
+        "晃頭",
+        "犯錯"
+      ],
+      "reason": "文字描述命中「生氣、氣噗噗、晃頭、犯錯」，較符合「警告」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "Blush.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "think",
+      "suggestedLabel": "思考",
+      "confidence": 0.86,
+      "shouldReclassify": false,
+      "score": 7.3,
+      "matchedSignals": [
+        "thinking_state",
+        "confused_or_shy",
+        "face_touch"
+      ],
+      "matchedTerms": [
+        "想事情",
+        "想",
+        "不好意思",
+        "後腦"
+      ],
+      "reason": "文字描述命中「想事情、想、不好意思、後腦」，較符合「思考」。",
+      "alternativeCategories": [
+        {
+          "category": "warning",
+          "label": "警告",
+          "score": 1.5,
+          "matchedSignals": [
+            "negative_response"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "Clapping.vrma",
+      "currentCategory": "success",
+      "currentLabel": "成功",
+      "suggestedCategory": "warning",
+      "suggestedLabel": "警告",
+      "confidence": 0.96,
+      "shouldReclassify": true,
+      "score": 11,
+      "matchedSignals": [
+        "not_allowed"
+      ],
+      "matchedTerms": [
+        "不對",
+        "不行",
+        "禁止",
+        "不能",
+        "嚴格"
+      ],
+      "reason": "文字描述命中「不對、不行、禁止、不能、嚴格」，較符合「警告」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_acknowledging.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "present",
+      "suggestedLabel": "介紹",
+      "confidence": 0.54,
+      "shouldReclassify": false,
+      "score": 1.7,
+      "matchedSignals": [
+        "greeting_stage"
+      ],
+      "matchedTerms": [
+        "打招呼"
+      ],
+      "reason": "文字描述命中「打招呼」，較符合「介紹」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_angryGesture.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "warning",
+      "suggestedLabel": "警告",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_annoyedHeadShake.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "think",
+      "suggestedLabel": "思考",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_bashful.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "warning",
+      "suggestedLabel": "警告",
+      "confidence": 0.51,
+      "shouldReclassify": false,
+      "score": 1.5,
+      "matchedSignals": [
+        "negative_response"
+      ],
+      "matchedTerms": [
+        "犯錯"
+      ],
+      "reason": "文字描述命中「犯錯」，較符合「警告」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_beckoning.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.81,
+      "shouldReclassify": false,
+      "score": 5.1,
+      "matchedSignals": [
+        "invite_or_follow"
+      ],
+      "matchedTerms": [
+        "靠近",
+        "過來",
+        "come"
+      ],
+      "reason": "文字描述命中「靠近、過來、come」，較符合「指向」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_beingCocky.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "present",
+      "suggestedLabel": "介紹",
+      "confidence": 0.62,
+      "shouldReclassify": true,
+      "score": 2.4,
+      "matchedSignals": [
+        "open_body"
+      ],
+      "matchedTerms": [
+        "張開",
+        "往外"
+      ],
+      "reason": "文字描述命中「張開、往外」，較符合「介紹」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_boredmelancholyIdle_1.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "warning",
+      "suggestedLabel": "警告",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_bowing.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_buttonPushing.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "往前"
+      ],
+      "reason": "文字描述命中「往前」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_cockyHeadTurn.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "think",
+      "suggestedLabel": "思考",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_disappointed.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_dismissingGesture.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "往前"
+      ],
+      "reason": "文字描述命中「往前」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_happyHandGesture.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.55,
+      "shouldReclassify": false,
+      "score": 1.8,
+      "matchedSignals": [
+        "guide_direction"
+      ],
+      "matchedTerms": [
+        "位置"
+      ],
+      "reason": "文字描述命中「位置」，較符合「指向」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_happyIdle.vrma",
+      "currentCategory": "candidate_future",
+      "currentLabel": "未來候選",
+      "suggestedCategory": "success",
+      "suggestedLabel": "成功",
+      "confidence": 0.45,
+      "shouldReclassify": false,
+      "score": 1.6,
+      "matchedSignals": [
+        "happy_state"
+      ],
+      "matchedTerms": [
+        "開心"
+      ],
+      "reason": "文字描述命中「開心」，較符合「成功」。",
+      "alternativeCategories": [
+        {
+          "category": "present",
+          "label": "介紹",
+          "score": 1.2,
+          "matchedSignals": [
+            "open_body"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci_hardHeadNod.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "think",
+      "suggestedLabel": "思考",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_headNod.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "think",
+      "suggestedLabel": "思考",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_idle.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "think",
+      "suggestedLabel": "思考",
+      "confidence": 0.45,
+      "shouldReclassify": false,
+      "score": 1.1,
+      "matchedSignals": [
+        "searching_motion"
+      ],
+      "matchedTerms": [
+        "找"
+      ],
+      "reason": "文字描述命中「找」，較符合「思考」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_lengthyHeadNod.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "think",
+      "suggestedLabel": "思考",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_lookAround.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.44,
+      "shouldReclassify": false,
+      "score": 1.7,
+      "matchedSignals": [
+        "invite_or_follow"
+      ],
+      "matchedTerms": [
+        "靠近"
+      ],
+      "reason": "文字描述命中「靠近」，較符合「指向」。",
+      "alternativeCategories": [
+        {
+          "category": "present",
+          "label": "介紹",
+          "score": 1.2,
+          "matchedSignals": [
+            "open_body"
+          ]
+        },
+        {
+          "category": "think",
+          "label": "思考",
+          "score": 1.1,
+          "matchedSignals": [
+            "searching_motion"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci_lookAwayGesture.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_nervouslyLookAround.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "warning",
+      "suggestedLabel": "警告",
+      "confidence": 0.68,
+      "shouldReclassify": true,
+      "score": 4.1,
+      "matchedSignals": [
+        "not_allowed",
+        "angry_attitude"
+      ],
+      "matchedTerms": [
+        "不要",
+        "阻止"
+      ],
+      "reason": "文字描述命中「不要、阻止」，較符合「警告」。",
+      "alternativeCategories": [
+        {
+          "category": "candidate_future",
+          "label": "未來候選",
+          "score": 1.9,
+          "matchedSignals": [
+            "requires_locomotion"
+          ]
+        },
+        {
+          "category": "present",
+          "label": "介紹",
+          "score": 1.2,
+          "matchedSignals": [
+            "open_body"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci_plotting.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_pointing.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.75,
+      "shouldReclassify": false,
+      "score": 4,
+      "matchedSignals": [
+        "point_target"
+      ],
+      "matchedTerms": [
+        "指示",
+        "指"
+      ],
+      "reason": "文字描述命中「指示、指」，較符合「指向」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_relievedSigh.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "think",
+      "suggestedLabel": "思考",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_sadIdle.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "warning",
+      "suggestedLabel": "警告",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_salute.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.58,
+      "shouldReclassify": false,
+      "score": 2,
+      "matchedSignals": [
+        "point_target"
+      ],
+      "matchedTerms": [
+        "指"
+      ],
+      "reason": "文字描述命中「指」，較符合「指向」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_sarcasticHeadNod.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "think",
+      "suggestedLabel": "思考",
+      "confidence": 0.69,
+      "shouldReclassify": false,
+      "score": 4,
+      "matchedSignals": [
+        "thinking_state"
+      ],
+      "matchedTerms": [
+        "想事情",
+        "想"
+      ],
+      "reason": "文字描述命中「想事情、想」，較符合「思考」。",
+      "alternativeCategories": [
+        {
+          "category": "candidate_future",
+          "label": "未來候選",
+          "score": 1.9,
+          "matchedSignals": [
+            "requires_locomotion"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci_shakingHeadNo.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "think",
+      "suggestedLabel": "思考",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_shrugging.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "往前"
+      ],
+      "reason": "文字描述命中「往前」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_standingArguing.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "present",
+      "suggestedLabel": "介紹",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_standingClap.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "warning",
+      "suggestedLabel": "警告",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_standingGreeting.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "success",
+      "suggestedLabel": "成功",
+      "confidence": 0.59,
+      "shouldReclassify": true,
+      "score": 2.8,
+      "matchedSignals": [
+        "farewell_thanks"
+      ],
+      "matchedTerms": [
+        "再見",
+        "揮手"
+      ],
+      "reason": "文字描述命中「再見、揮手」，較符合「成功」。",
+      "alternativeCategories": [
+        {
+          "category": "point",
+          "label": "指向",
+          "score": 1.7,
+          "matchedSignals": [
+            "invite_or_follow"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci_strongGesture.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "reject",
+      "suggestedLabel": "淘汰",
+      "confidence": 0.55,
+      "shouldReclassify": false,
+      "score": 1.8,
+      "matchedSignals": [
+        "not_agentic"
+      ],
+      "matchedTerms": [
+        "怪"
+      ],
+      "reason": "文字描述命中「怪」，較符合「淘汰」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_talking.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "往前"
+      ],
+      "reason": "文字描述命中「往前」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_thinking.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "think",
+      "suggestedLabel": "思考",
+      "confidence": 0.68,
+      "shouldReclassify": false,
+      "score": 3,
+      "matchedSignals": [
+        "face_touch"
+      ],
+      "matchedTerms": [
+        "下巴",
+        "臉"
+      ],
+      "reason": "文字描述命中「下巴、臉」，較符合「思考」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_thoughtfulHeadShake.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "think",
+      "suggestedLabel": "思考",
+      "confidence": 0.5,
+      "shouldReclassify": false,
+      "score": 2,
+      "matchedSignals": [
+        "thinking_state"
+      ],
+      "matchedTerms": [
+        "想"
+      ],
+      "reason": "文字描述命中「想」，較符合「思考」。",
+      "alternativeCategories": [
+        {
+          "category": "warning",
+          "label": "警告",
+          "score": 1.5,
+          "matchedSignals": [
+            "negative_response"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci_victory.vrma",
+      "currentCategory": "success",
+      "currentLabel": "成功",
+      "suggestedCategory": "success",
+      "suggestedLabel": "成功",
+      "confidence": 0.71,
+      "shouldReclassify": false,
+      "score": 4,
+      "matchedSignals": [
+        "success_state"
+      ],
+      "matchedTerms": [
+        "成功",
+        "勝利"
+      ],
+      "reason": "文字描述命中「成功、勝利」，較符合「成功」。",
+      "alternativeCategories": [
+        {
+          "category": "present",
+          "label": "介紹",
+          "score": 1.2,
+          "matchedSignals": [
+            "open_body"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci_victoryIdle.vrma",
+      "currentCategory": "success",
+      "currentLabel": "成功",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.58,
+      "shouldReclassify": true,
+      "score": 2,
+      "matchedSignals": [
+        "point_target"
+      ],
+      "matchedTerms": [
+        "指"
+      ],
+      "reason": "文字描述命中「指」，較符合「指向」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_waving.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "success",
+      "suggestedLabel": "成功",
+      "confidence": 0.5,
+      "shouldReclassify": false,
+      "score": 1.4,
+      "matchedSignals": [
+        "farewell_thanks"
+      ],
+      "matchedTerms": [
+        "再見"
+      ],
+      "reason": "文字描述命中「再見」，較符合「成功」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_weightShift.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "success",
+      "suggestedLabel": "成功",
+      "confidence": 0.53,
+      "shouldReclassify": false,
+      "score": 1.6,
+      "matchedSignals": [
+        "happy_state"
+      ],
+      "matchedTerms": [
+        "可愛"
+      ],
+      "reason": "文字描述命中「可愛」，較符合「成功」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci_yawn.vrma",
+      "currentCategory": "candidate_future",
+      "currentLabel": "未來候選",
+      "suggestedCategory": "think",
+      "suggestedLabel": "思考",
+      "confidence": 0.51,
+      "shouldReclassify": false,
+      "score": 1.5,
+      "matchedSignals": [
+        "face_touch"
+      ],
+      "matchedTerms": [
+        "哈欠"
+      ],
+      "reason": "文字描述命中「哈欠」，較符合「思考」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_blowAKiss.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.45,
+      "shouldReclassify": false,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "往前"
+      ],
+      "reason": "文字描述命中「往前」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "point",
+          "label": "指向",
+          "score": 1.7,
+          "matchedSignals": [
+            "invite_or_follow"
+          ]
+        },
+        {
+          "category": "think",
+          "label": "思考",
+          "score": 1.5,
+          "matchedSignals": [
+            "face_touch"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci2_bodyBlock.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "think",
+      "suggestedLabel": "思考",
+      "confidence": 0.62,
+      "shouldReclassify": true,
+      "score": 3.5,
+      "matchedSignals": [
+        "thinking_state",
+        "face_touch"
+      ],
+      "matchedTerms": [
+        "想",
+        "臉"
+      ],
+      "reason": "文字描述命中「想、臉」，較符合「思考」。",
+      "alternativeCategories": [
+        {
+          "category": "candidate_future",
+          "label": "未來候選",
+          "score": 1.9,
+          "matchedSignals": [
+            "requires_locomotion"
+          ]
+        },
+        {
+          "category": "warning",
+          "label": "警告",
+          "score": 1.9,
+          "matchedSignals": [
+            "angry_attitude"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci2_catch.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.74,
+      "shouldReclassify": true,
+      "score": 3.8,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "跳",
+        "往前"
+      ],
+      "reason": "文字描述命中「跳、往前」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_crouchToStand.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.69,
+      "shouldReclassify": true,
+      "score": 4,
+      "matchedSignals": [
+        "point_target"
+      ],
+      "matchedTerms": [
+        "指著",
+        "指"
+      ],
+      "reason": "文字描述命中「指著、指」，較符合「指向」。",
+      "alternativeCategories": [
+        {
+          "category": "think",
+          "label": "思考",
+          "score": 2,
+          "matchedSignals": [
+            "thinking_state"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci2_defeatIdle.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.58,
+      "shouldReclassify": true,
+      "score": 2,
+      "matchedSignals": [
+        "point_target"
+      ],
+      "matchedTerms": [
+        "指"
+      ],
+      "reason": "文字描述命中「指」，較符合「指向」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_entry.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.76,
+      "shouldReclassify": true,
+      "score": 5.7,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "走",
+        "退著走",
+        "行進"
+      ],
+      "reason": "文字描述命中「走、退著走、行進」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "present",
+          "label": "介紹",
+          "score": 3.4,
+          "matchedSignals": [
+            "greeting_stage"
+          ]
+        },
+        {
+          "category": "think",
+          "label": "思考",
+          "score": 1.1,
+          "matchedSignals": [
+            "searching_motion"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci2_floating.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "present",
+      "suggestedLabel": "介紹",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 2.9,
+      "matchedSignals": [
+        "greeting_stage",
+        "open_body"
+      ],
+      "matchedTerms": [
+        "打招呼",
+        "往外"
+      ],
+      "reason": "文字描述命中「打招呼、往外」，較符合「介紹」。",
+      "alternativeCategories": [
+        {
+          "category": "reject",
+          "label": "淘汰",
+          "score": 1.8,
+          "matchedSignals": [
+            "not_agentic"
+          ]
+        },
+        {
+          "category": "success",
+          "label": "成功",
+          "score": 1.6,
+          "matchedSignals": [
+            "happy_state"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci2_gettingUp.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "reject",
+      "suggestedLabel": "淘汰",
+      "confidence": 0.55,
+      "shouldReclassify": false,
+      "score": 1.8,
+      "matchedSignals": [
+        "not_agentic"
+      ],
+      "matchedTerms": [
+        "用途不明"
+      ],
+      "reason": "文字描述命中「用途不明」，較符合「淘汰」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_guitarPlaying.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "present",
+      "suggestedLabel": "介紹",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_kneeling.vrma",
+      "currentCategory": "reject",
+      "currentLabel": "淘汰",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.79,
+      "shouldReclassify": true,
+      "score": 4.6,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "蹲",
+        "膝"
+      ],
+      "reason": "文字描述命中「蹲、膝」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_lookOverShoulder.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "warning",
+      "suggestedLabel": "警告",
+      "confidence": 0.6,
+      "shouldReclassify": true,
+      "score": 2.2,
+      "matchedSignals": [
+        "danger_or_surprise"
+      ],
+      "matchedTerms": [
+        "危險",
+        "嚇"
+      ],
+      "reason": "文字描述命中「危險、嚇」，較符合「警告」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_militarySignaling.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.91,
+      "shouldReclassify": true,
+      "score": 8.3,
+      "matchedSignals": [
+        "requires_lower_body",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "蹲",
+        "跪",
+        "膝",
+        "打籃球"
+      ],
+      "reason": "文字描述命中「蹲、跪、膝、打籃球」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_openingDoorInwards.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_pacingAndTalkingOnAPhone.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.8,
+      "shouldReclassify": true,
+      "score": 5.7,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "走",
+        "退著走",
+        "往前"
+      ],
+      "reason": "文字描述命中「走、退著走、往前」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "think",
+          "label": "思考",
+          "score": 1.5,
+          "matchedSignals": [
+            "face_touch"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci2_patting.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "present",
+      "suggestedLabel": "介紹",
+      "confidence": 0.47,
+      "shouldReclassify": false,
+      "score": 1.2,
+      "matchedSignals": [
+        "open_body"
+      ],
+      "matchedTerms": [
+        "往外"
+      ],
+      "reason": "文字描述命中「往外」，較符合「介紹」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_petting.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "present",
+      "suggestedLabel": "介紹",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_pettingAnimal.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "present",
+      "suggestedLabel": "介紹",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_praying.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.93,
+      "shouldReclassify": true,
+      "score": 9.2,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "站起",
+        "起身",
+        "跪",
+        "膝"
+      ],
+      "reason": "文字描述命中「站起、起身、跪、膝」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_push.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "移動"
+      ],
+      "reason": "文字描述命中「移動」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_rummaging.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "think",
+      "suggestedLabel": "思考",
+      "confidence": 0.64,
+      "shouldReclassify": false,
+      "score": 2.6,
+      "matchedSignals": [
+        "face_touch",
+        "searching_motion"
+      ],
+      "matchedTerms": [
+        "下巴",
+        "找"
+      ],
+      "reason": "文字描述命中「下巴、找」，較符合「思考」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_searchingPockets.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "warning",
+      "suggestedLabel": "警告",
+      "confidence": 0.5,
+      "shouldReclassify": false,
+      "score": 2.2,
+      "matchedSignals": [
+        "not_allowed"
+      ],
+      "matchedTerms": [
+        "不對"
+      ],
+      "reason": "文字描述命中「不對」，較符合「警告」。",
+      "alternativeCategories": [
+        {
+          "category": "candidate_future",
+          "label": "未來候選",
+          "score": 1.8,
+          "matchedSignals": [
+            "requires_weight_shift"
+          ]
+        },
+        {
+          "category": "think",
+          "label": "思考",
+          "score": 1.1,
+          "matchedSignals": [
+            "searching_motion"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci2_shakingHands1.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_sitting.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.75,
+      "shouldReclassify": true,
+      "score": 4.6,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "坐",
+        "膝"
+      ],
+      "reason": "文字描述命中「坐、膝」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "think",
+          "label": "思考",
+          "score": 1.1,
+          "matchedSignals": [
+            "searching_motion"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci2_sittingClap.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.61,
+      "shouldReclassify": true,
+      "score": 2.3,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "坐"
+      ],
+      "reason": "文字描述命中「坐」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_sittingDisapproval.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.49,
+      "shouldReclassify": false,
+      "score": 2.3,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "坐"
+      ],
+      "reason": "文字描述命中「坐」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "think",
+          "label": "思考",
+          "score": 2,
+          "matchedSignals": [
+            "thinking_state"
+          ]
+        },
+        {
+          "category": "warning",
+          "label": "警告",
+          "score": 1.5,
+          "matchedSignals": [
+            "negative_response"
+          ]
+        },
+        {
+          "category": "success",
+          "label": "成功",
+          "score": 1.4,
+          "matchedSignals": [
+            "farewell_thanks"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci2_sittingTalking.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.61,
+      "shouldReclassify": true,
+      "score": 2.3,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "坐"
+      ],
+      "reason": "文字描述命中「坐」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_sitToStand.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.86,
+      "shouldReclassify": true,
+      "score": 6.5,
+      "matchedSignals": [
+        "requires_lower_body",
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "坐",
+        "站起",
+        "往前"
+      ],
+      "reason": "文字描述命中「坐、站起、往前」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_standingJump.vrma",
+      "currentCategory": "success",
+      "currentLabel": "成功",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.76,
+      "shouldReclassify": true,
+      "score": 4.2,
+      "matchedSignals": [
+        "requires_lower_body",
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "站起",
+        "跳"
+      ],
+      "reason": "文字描述命中「站起、跳」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_standToCover.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.47,
+      "shouldReclassify": false,
+      "score": 1.8,
+      "matchedSignals": [
+        "requires_weight_shift"
+      ],
+      "matchedTerms": [
+        "轉身"
+      ],
+      "reason": "文字描述命中「轉身」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "think",
+          "label": "思考",
+          "score": 1.5,
+          "matchedSignals": [
+            "face_touch"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci2_standToSit.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.79,
+      "shouldReclassify": true,
+      "score": 4.6,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "坐",
+        "站起"
+      ],
+      "reason": "文字描述命中「坐、站起」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_startWalking.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "走"
+      ],
+      "reason": "文字描述命中「走」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_typing.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.61,
+      "shouldReclassify": true,
+      "score": 2.3,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "坐"
+      ],
+      "reason": "文字描述命中「坐」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_unarmedTurnLeft90.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_walking.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.74,
+      "shouldReclassify": true,
+      "score": 3.8,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "走",
+        "往前"
+      ],
+      "reason": "文字描述命中「走、往前」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci2_yelling.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "think",
+      "suggestedLabel": "思考",
+      "confidence": 0.51,
+      "shouldReclassify": false,
+      "score": 2,
+      "matchedSignals": [
+        "thinking_state"
+      ],
+      "matchedTerms": [
+        "想"
+      ],
+      "reason": "文字描述命中「想」，較符合「思考」。",
+      "alternativeCategories": [
+        {
+          "category": "present",
+          "label": "介紹",
+          "score": 1.2,
+          "matchedSignals": [
+            "open_body"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci3_backflip.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.65,
+      "shouldReclassify": true,
+      "score": 3.8,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "跳",
+        "往前"
+      ],
+      "reason": "文字描述命中「跳、往前」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "point",
+          "label": "指向",
+          "score": 3.5,
+          "matchedSignals": [
+            "guide_direction",
+            "invite_or_follow"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci3_ballet.vrma",
+      "currentCategory": "reject",
+      "currentLabel": "淘汰",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.5,
+      "shouldReclassify": false,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "移動"
+      ],
+      "reason": "文字描述命中「移動」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "present",
+          "label": "介紹",
+          "score": 1.2,
+          "matchedSignals": [
+            "open_body"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci3_balletsplit.vrma",
+      "currentCategory": "reject",
+      "currentLabel": "淘汰",
+      "suggestedCategory": "reject",
+      "suggestedLabel": "淘汰",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_breakdance1990.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.7,
+      "shouldReclassify": true,
+      "score": 3.3,
+      "matchedSignals": [
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "跳",
+        "跳舞"
+      ],
+      "reason": "文字描述命中「跳、跳舞」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_breakdanceEnding1.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.83,
+      "shouldReclassify": true,
+      "score": 5.6,
+      "matchedSignals": [
+        "requires_lower_body",
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "蹲",
+        "跳",
+        "跳舞"
+      ],
+      "reason": "文字描述命中「蹲、跳、跳舞」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_breakdanceFootwork1.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.83,
+      "shouldReclassify": true,
+      "score": 5.6,
+      "matchedSignals": [
+        "requires_lower_body",
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "蹲",
+        "跳",
+        "跳舞"
+      ],
+      "reason": "文字描述命中「蹲、跳、跳舞」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_breakdanceFreezes.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.74,
+      "shouldReclassify": true,
+      "score": 3.8,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "跑",
+        "跳"
+      ],
+      "reason": "文字描述命中「跑、跳」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_breakdanceReady.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "warning",
+      "suggestedLabel": "警告",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_breakdanceSwipes.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.73,
+      "shouldReclassify": true,
+      "score": 3.7,
+      "matchedSignals": [
+        "requires_locomotion",
+        "requires_weight_shift"
+      ],
+      "matchedTerms": [
+        "跳",
+        "躺"
+      ],
+      "reason": "文字描述命中「跳、躺」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_breakdanceUprock.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.5,
+      "shouldReclassify": false,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "跳"
+      ],
+      "reason": "文字描述命中「跳」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "present",
+          "label": "介紹",
+          "score": 1.2,
+          "matchedSignals": [
+            "open_body"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci3_brooklynUprock.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.5,
+      "shouldReclassify": false,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "跳"
+      ],
+      "reason": "文字描述命中「跳」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "present",
+          "label": "介紹",
+          "score": 1.2,
+          "matchedSignals": [
+            "open_body"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci3_cartwheel.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_catwalkWalkForwardHighKnees.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "走"
+      ],
+      "reason": "文字描述命中「走」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_catwalkWalking.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_climbingToTop.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "warning",
+      "suggestedLabel": "警告",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_dancingTwerk.vrma",
+      "currentCategory": "candidate_future",
+      "currentLabel": "未來候選",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.79,
+      "shouldReclassify": false,
+      "score": 4.7,
+      "matchedSignals": [
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "跳",
+        "跳舞",
+        "舞步"
+      ],
+      "reason": "文字描述命中「跳、跳舞、舞步」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_dropKick.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.86,
+      "shouldReclassify": true,
+      "score": 6.5,
+      "matchedSignals": [
+        "requires_lower_body",
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "蹲",
+        "腳",
+        "跳"
+      ],
+      "reason": "文字描述命中「蹲、腳、跳」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_flair.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "warning",
+      "suggestedLabel": "警告",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_golfBadShot.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.81,
+      "shouldReclassify": true,
+      "score": 5.2,
+      "matchedSignals": [
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "走",
+        "往前",
+        "高爾夫"
+      ],
+      "reason": "文字描述命中「走、往前、高爾夫」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_golfDrive.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.48,
+      "shouldReclassify": false,
+      "score": 1.8,
+      "matchedSignals": [
+        "guide_direction"
+      ],
+      "matchedTerms": [
+        "方向"
+      ],
+      "reason": "文字描述命中「方向」，較符合「指向」。",
+      "alternativeCategories": [
+        {
+          "category": "candidate_future",
+          "label": "未來候選",
+          "score": 1.4,
+          "matchedSignals": [
+            "dance_or_scene_motion"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci3_golfPrePutt.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.95,
+      "shouldReclassify": true,
+      "score": 9.8,
+      "matchedSignals": [
+        "requires_lower_body",
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "站起",
+        "蹲",
+        "走",
+        "往前",
+        "高爾夫"
+      ],
+      "reason": "文字描述命中「站起、蹲、走、往前、高爾夫」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_golfPuttVictory.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "success",
+      "suggestedLabel": "成功",
+      "confidence": 0.64,
+      "shouldReclassify": true,
+      "score": 3.6,
+      "matchedSignals": [
+        "success_state",
+        "happy_state"
+      ],
+      "matchedTerms": [
+        "勝利",
+        "高興"
+      ],
+      "reason": "文字描述命中「勝利、高興」，較符合「成功」。",
+      "alternativeCategories": [
+        {
+          "category": "candidate_future",
+          "label": "未來候選",
+          "score": 3.3,
+          "matchedSignals": [
+            "requires_locomotion",
+            "dance_or_scene_motion"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci3_hipHopDance.vrma",
+      "currentCategory": "candidate_future",
+      "currentLabel": "未來候選",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.79,
+      "shouldReclassify": false,
+      "score": 4.7,
+      "matchedSignals": [
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "跳",
+        "跳舞",
+        "舞步"
+      ],
+      "reason": "文字描述命中「跳、跳舞、舞步」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_hipHopDancing.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.65,
+      "shouldReclassify": true,
+      "score": 3.3,
+      "matchedSignals": [
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "跳",
+        "跳舞"
+      ],
+      "reason": "文字描述命中「跳、跳舞」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "success",
+          "label": "成功",
+          "score": 1.4,
+          "matchedSignals": [
+            "farewell_thanks"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci3_jumping.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.91,
+      "shouldReclassify": true,
+      "score": 8.3,
+      "matchedSignals": [
+        "requires_lower_body",
+        "requires_locomotion",
+        "requires_weight_shift"
+      ],
+      "matchedTerms": [
+        "站起",
+        "蹲",
+        "跳",
+        "落地"
+      ],
+      "reason": "文字描述命中「站起、蹲、跳、落地」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_jumpingDown.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "跳"
+      ],
+      "reason": "文字描述命中「跳」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_jumpingJacks.vrma",
+      "currentCategory": "success",
+      "currentLabel": "成功",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "跳"
+      ],
+      "reason": "文字描述命中「跳」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_kipUp.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.73,
+      "shouldReclassify": true,
+      "score": 3.7,
+      "matchedSignals": [
+        "requires_locomotion",
+        "requires_weight_shift"
+      ],
+      "matchedTerms": [
+        "跳",
+        "躺"
+      ],
+      "reason": "文字描述命中「跳、躺」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_lowCrawl.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "present",
+      "suggestedLabel": "介紹",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_rumbaDancing.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.64,
+      "shouldReclassify": true,
+      "score": 3.3,
+      "matchedSignals": [
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "跳",
+        "跳舞"
+      ],
+      "reason": "文字描述命中「跳、跳舞」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "point",
+          "label": "指向",
+          "score": 1.8,
+          "matchedSignals": [
+            "guide_direction"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci3_runningUpStairs.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "跳"
+      ],
+      "reason": "文字描述命中「跳」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_sambaDancing.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.74,
+      "shouldReclassify": true,
+      "score": 4.7,
+      "matchedSignals": [
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "跳",
+        "跳舞",
+        "舞步"
+      ],
+      "reason": "文字描述命中「跳、跳舞、舞步」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "success",
+          "label": "成功",
+          "score": 1.6,
+          "matchedSignals": [
+            "happy_state"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci3_sillyDancing.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.75,
+      "shouldReclassify": true,
+      "score": 5.2,
+      "matchedSignals": [
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "跳",
+        "往前",
+        "跳舞"
+      ],
+      "reason": "文字描述命中「跳、往前、跳舞」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "point",
+          "label": "指向",
+          "score": 1.8,
+          "matchedSignals": [
+            "guide_direction"
+          ]
+        },
+        {
+          "category": "present",
+          "label": "介紹",
+          "score": 1.2,
+          "matchedSignals": [
+            "open_body"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci3_skateboarding.vrma",
+      "currentCategory": "candidate_future",
+      "currentLabel": "未來候選",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_slowJogBackwards.vrma",
+      "currentCategory": "reject",
+      "currentLabel": "淘汰",
+      "suggestedCategory": "reject",
+      "suggestedLabel": "淘汰",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_sneakingForward.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "warning",
+      "suggestedLabel": "警告",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_sneakyWalking.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.55,
+      "shouldReclassify": false,
+      "score": 2.3,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "腳"
+      ],
+      "reason": "文字描述命中「腳」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "present",
+          "label": "介紹",
+          "score": 1.2,
+          "matchedSignals": [
+            "open_body"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci3_standardRun.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "跑"
+      ],
+      "reason": "文字描述命中「跑」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_startClimbingLadder.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "跳"
+      ],
+      "reason": "文字描述命中「跳」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_Swagger_Walk.vrma",
+      "currentCategory": "reject",
+      "currentLabel": "淘汰",
+      "suggestedCategory": "reject",
+      "suggestedLabel": "淘汰",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_swimming.vrma",
+      "currentCategory": "success",
+      "currentLabel": "成功",
+      "suggestedCategory": "success",
+      "suggestedLabel": "成功",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_twistDance.vrma",
+      "currentCategory": "candidate_future",
+      "currentLabel": "未來候選",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.7,
+      "shouldReclassify": false,
+      "score": 3.3,
+      "matchedSignals": [
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "跳",
+        "跳舞"
+      ],
+      "reason": "文字描述命中「跳、跳舞」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_vaultOverBox.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.61,
+      "shouldReclassify": true,
+      "score": 2.3,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "坐"
+      ],
+      "reason": "文字描述命中「坐」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci3_zombieStandUp.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.76,
+      "shouldReclassify": true,
+      "score": 4.1,
+      "matchedSignals": [
+        "requires_lower_body",
+        "requires_weight_shift"
+      ],
+      "matchedTerms": [
+        "站起",
+        "躺"
+      ],
+      "reason": "文字描述命中「站起、躺」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_aimingGun.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "跳"
+      ],
+      "reason": "文字描述命中「跳」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_backbendsplit.vrma",
+      "currentCategory": "reject",
+      "currentLabel": "淘汰",
+      "suggestedCategory": "reject",
+      "suggestedLabel": "淘汰",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_bodyBlock.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "warning",
+      "suggestedLabel": "警告",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_centerBlock.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "warning",
+      "suggestedLabel": "警告",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_crosslegFreeze.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.73,
+      "shouldReclassify": true,
+      "score": 3.7,
+      "matchedSignals": [
+        "requires_locomotion",
+        "requires_weight_shift"
+      ],
+      "matchedTerms": [
+        "跳",
+        "躺"
+      ],
+      "reason": "文字描述命中「跳、躺」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_doubleDaggerStab.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.76,
+      "shouldReclassify": true,
+      "score": 4.2,
+      "matchedSignals": [
+        "requires_lower_body",
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "蹲",
+        "往前"
+      ],
+      "reason": "文字描述命中「蹲、往前」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_fishingCast.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_flyingKneePunchCombo.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "跳"
+      ],
+      "reason": "文字描述命中「跳」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_paddling.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.61,
+      "shouldReclassify": true,
+      "score": 2.3,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "坐"
+      ],
+      "reason": "文字描述命中「坐」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_pianoPlaying.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.61,
+      "shouldReclassify": true,
+      "score": 2.3,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "坐"
+      ],
+      "reason": "文字描述命中「坐」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_playingDrums.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.61,
+      "shouldReclassify": true,
+      "score": 2.3,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "坐"
+      ],
+      "reason": "文字描述命中「坐」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_playingTheViolin.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_punch.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_pushStart.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "present",
+      "suggestedLabel": "介紹",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_reloading.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "走"
+      ],
+      "reason": "文字描述命中「走」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_roar.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.5,
+      "shouldReclassify": false,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "跳"
+      ],
+      "reason": "文字描述命中「跳」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "present",
+          "label": "介紹",
+          "score": 1.2,
+          "matchedSignals": [
+            "open_body"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci4_singing_1.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "移動"
+      ],
+      "reason": "文字描述命中「移動」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_singing.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.7,
+      "shouldReclassify": true,
+      "score": 3.3,
+      "matchedSignals": [
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "跳",
+        "跳舞"
+      ],
+      "reason": "文字描述命中「跳、跳舞」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_situps.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.76,
+      "shouldReclassify": true,
+      "score": 4.1,
+      "matchedSignals": [
+        "requires_lower_body",
+        "requires_weight_shift"
+      ],
+      "matchedTerms": [
+        "坐",
+        "躺"
+      ],
+      "reason": "文字描述命中「坐、躺」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_smoking.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "present",
+      "suggestedLabel": "介紹",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_snatch.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.79,
+      "shouldReclassify": true,
+      "score": 4.6,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "站起",
+        "蹲"
+      ],
+      "reason": "文字描述命中「站起、蹲」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_standing2HMagicAttack01.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.61,
+      "shouldReclassify": true,
+      "score": 2.3,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "蹲"
+      ],
+      "reason": "文字描述命中「蹲」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_swinging.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.54,
+      "shouldReclassify": false,
+      "score": 1.7,
+      "matchedSignals": [
+        "invite_or_follow"
+      ],
+      "matchedTerms": [
+        "過來"
+      ],
+      "reason": "文字描述命中「過來」，較符合「指向」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_Thriller_Part_2.vrma",
+      "currentCategory": "candidate_future",
+      "currentLabel": "未來候選",
+      "suggestedCategory": "reject",
+      "suggestedLabel": "淘汰",
+      "confidence": 0.55,
+      "shouldReclassify": false,
+      "score": 1.8,
+      "matchedSignals": [
+        "not_agentic"
+      ],
+      "matchedTerms": [
+        "用途不明"
+      ],
+      "reason": "文字描述命中「用途不明」，較符合「淘汰」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_Thriller_Part_3_1_.vrma",
+      "currentCategory": "candidate_future",
+      "currentLabel": "未來候選",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.79,
+      "shouldReclassify": false,
+      "score": 4.7,
+      "matchedSignals": [
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "跳",
+        "跳舞",
+        "舞步"
+      ],
+      "reason": "文字描述命中「跳、跳舞、舞步」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_throwing.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "present",
+      "suggestedLabel": "介紹",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_VRMA_02.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.71,
+      "shouldReclassify": true,
+      "score": 4.6,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "站起",
+        "蹲"
+      ],
+      "reason": "文字描述命中「站起、蹲」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "present",
+          "label": "介紹",
+          "score": 1.7,
+          "matchedSignals": [
+            "greeting_stage"
+          ]
+        },
+        {
+          "category": "success",
+          "label": "成功",
+          "score": 1.6,
+          "matchedSignals": [
+            "happy_state"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci4_VRMA_03.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "present",
+      "suggestedLabel": "介紹",
+      "confidence": 0.47,
+      "shouldReclassify": false,
+      "score": 1.2,
+      "matchedSignals": [
+        "open_body"
+      ],
+      "matchedTerms": [
+        "往外"
+      ],
+      "reason": "文字描述命中「往外」，較符合「介紹」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_VRMA_04.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "point",
+      "suggestedLabel": "指向",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_VRMA_05.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.48,
+      "shouldReclassify": false,
+      "score": 1.8,
+      "matchedSignals": [
+        "requires_weight_shift"
+      ],
+      "matchedTerms": [
+        "轉身"
+      ],
+      "reason": "文字描述命中「轉身」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "present",
+          "label": "介紹",
+          "score": 1.2,
+          "matchedSignals": [
+            "open_body"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "davinci4_VRMA_06.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": true,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "往前"
+      ],
+      "reason": "文字描述命中「往前」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "davinci4_VRMA_07.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.61,
+      "shouldReclassify": true,
+      "score": 2.3,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "蹲"
+      ],
+      "reason": "文字描述命中「蹲」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "Goodbye.vrma",
+      "currentCategory": "success",
+      "currentLabel": "成功",
+      "suggestedCategory": "success",
+      "suggestedLabel": "成功",
+      "confidence": 0.66,
+      "shouldReclassify": false,
+      "score": 2.8,
+      "matchedSignals": [
+        "farewell_thanks"
+      ],
+      "matchedTerms": [
+        "再見",
+        "揮手"
+      ],
+      "reason": "文字描述命中「再見、揮手」，較符合「成功」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "Jump.vrma",
+      "currentCategory": "candidate_future",
+      "currentLabel": "未來候選",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.57,
+      "shouldReclassify": false,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "跳"
+      ],
+      "reason": "文字描述命中「跳」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "LookAround.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "think",
+      "suggestedLabel": "思考",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "Relax.vrma",
+      "currentCategory": "present",
+      "currentLabel": "介紹",
+      "suggestedCategory": "present",
+      "suggestedLabel": "介紹",
+      "confidence": 0.47,
+      "shouldReclassify": false,
+      "score": 1.2,
+      "matchedSignals": [
+        "open_body"
+      ],
+      "matchedTerms": [
+        "張開"
+      ],
+      "reason": "文字描述命中「張開」，較符合「介紹」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "Sad.vrma",
+      "currentCategory": "candidate_future",
+      "currentLabel": "未來候選",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.25,
+      "shouldReclassify": false,
+      "score": 0,
+      "matchedSignals": [],
+      "matchedTerms": [],
+      "reason": "文字描述未命中明確語意，暫時維持原分類。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "Sleepy.vrma",
+      "currentCategory": "candidate_future",
+      "currentLabel": "未來候選",
+      "suggestedCategory": "think",
+      "suggestedLabel": "思考",
+      "confidence": 0.72,
+      "shouldReclassify": true,
+      "score": 3.5,
+      "matchedSignals": [
+        "thinking_state",
+        "face_touch"
+      ],
+      "matchedTerms": [
+        "想",
+        "哈欠"
+      ],
+      "reason": "文字描述命中「想、哈欠」，較符合「思考」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "Surprised.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.5,
+      "shouldReclassify": false,
+      "score": 1.9,
+      "matchedSignals": [
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "跳"
+      ],
+      "reason": "文字描述命中「跳」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "warning",
+          "label": "警告",
+          "score": 1.1,
+          "matchedSignals": [
+            "danger_or_surprise"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "test157t_greeting.vrma",
+      "currentCategory": "warning",
+      "currentLabel": "警告",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.69,
+      "shouldReclassify": true,
+      "score": 4.2,
+      "matchedSignals": [
+        "requires_lower_body",
+        "requires_locomotion"
+      ],
+      "matchedTerms": [
+        "蹲",
+        "跳"
+      ],
+      "reason": "文字描述命中「蹲、跳」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "present",
+          "label": "介紹",
+          "score": 1.7,
+          "matchedSignals": [
+            "greeting_stage"
+          ]
+        },
+        {
+          "category": "success",
+          "label": "成功",
+          "score": 1.4,
+          "matchedSignals": [
+            "farewell_thanks"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "test157t_greeting2.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "present",
+      "suggestedLabel": "介紹",
+      "confidence": 0.46,
+      "shouldReclassify": false,
+      "score": 1.7,
+      "matchedSignals": [
+        "greeting_stage"
+      ],
+      "matchedTerms": [
+        "打招呼"
+      ],
+      "reason": "文字描述命中「打招呼」，較符合「介紹」。",
+      "alternativeCategories": [
+        {
+          "category": "success",
+          "label": "成功",
+          "score": 1.4,
+          "matchedSignals": [
+            "farewell_thanks"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "test157t_hello.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.64,
+      "shouldReclassify": true,
+      "score": 3.7,
+      "matchedSignals": [
+        "requires_locomotion",
+        "requires_weight_shift"
+      ],
+      "matchedTerms": [
+        "跳",
+        "轉身"
+      ],
+      "reason": "文字描述命中「跳、轉身」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "think",
+          "label": "思考",
+          "score": 1.8,
+          "matchedSignals": [
+            "confused_or_shy"
+          ]
+        },
+        {
+          "category": "present",
+          "label": "介紹",
+          "score": 1.7,
+          "matchedSignals": [
+            "greeting_stage"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "test157t_model_pose.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "present",
+      "suggestedLabel": "介紹",
+      "confidence": 0.58,
+      "shouldReclassify": true,
+      "score": 2,
+      "matchedSignals": [
+        "presentation"
+      ],
+      "matchedTerms": [
+        "介紹"
+      ],
+      "reason": "文字描述命中「介紹」，較符合「介紹」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "test157t_motion_pose.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.7,
+      "shouldReclassify": true,
+      "score": 3.3,
+      "matchedSignals": [
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "跳",
+        "跳舞"
+      ],
+      "reason": "文字描述命中「跳、跳舞」，較符合「未來候選」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "test157t_peace_sign.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.5,
+      "shouldReclassify": false,
+      "score": 2.3,
+      "matchedSignals": [
+        "requires_lower_body"
+      ],
+      "matchedTerms": [
+        "腳"
+      ],
+      "reason": "文字描述命中「腳」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "success",
+          "label": "成功",
+          "score": 1.6,
+          "matchedSignals": [
+            "happy_state"
+          ]
+        },
+        {
+          "category": "think",
+          "label": "思考",
+          "score": 1.5,
+          "matchedSignals": [
+            "face_touch"
+          ]
+        },
+        {
+          "category": "present",
+          "label": "介紹",
+          "score": 1.2,
+          "matchedSignals": [
+            "open_body"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "test157t_shoot.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "think",
+      "suggestedLabel": "思考",
+      "confidence": 0.51,
+      "shouldReclassify": false,
+      "score": 1.5,
+      "matchedSignals": [
+        "face_touch"
+      ],
+      "matchedTerms": [
+        "臉"
+      ],
+      "reason": "文字描述命中「臉」，較符合「思考」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "test157t_show_full_body.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "candidate_future",
+      "suggestedLabel": "未來候選",
+      "confidence": 0.62,
+      "shouldReclassify": true,
+      "score": 3.3,
+      "matchedSignals": [
+        "requires_locomotion",
+        "dance_or_scene_motion"
+      ],
+      "matchedTerms": [
+        "跳",
+        "跳舞"
+      ],
+      "reason": "文字描述命中「跳、跳舞」，較符合「未來候選」。",
+      "alternativeCategories": [
+        {
+          "category": "present",
+          "label": "介紹",
+          "score": 3.2,
+          "matchedSignals": [
+            "presentation",
+            "open_body"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "test157t_spin.vrma",
+      "currentCategory": "point",
+      "currentLabel": "指向",
+      "suggestedCategory": "present",
+      "suggestedLabel": "介紹",
+      "confidence": 0.54,
+      "shouldReclassify": false,
+      "score": 1.7,
+      "matchedSignals": [
+        "greeting_stage"
+      ],
+      "matchedTerms": [
+        "登場"
+      ],
+      "reason": "文字描述命中「登場」，較符合「介紹」。",
+      "alternativeCategories": []
+    },
+    {
+      "source": "Thinking.vrma",
+      "currentCategory": "think",
+      "currentLabel": "思考",
+      "suggestedCategory": "think",
+      "suggestedLabel": "思考",
+      "confidence": 0.75,
+      "shouldReclassify": false,
+      "score": 4,
+      "matchedSignals": [
+        "thinking_state"
+      ],
+      "matchedTerms": [
+        "想事情",
+        "想"
+      ],
+      "reason": "文字描述命中「想事情、想」，較符合「思考」。",
+      "alternativeCategories": []
+    }
+  ]
+}

@@ -1,0 +1,300 @@
+# VRM Mascot — 可互動 3D 吉祥物
+
+Phase 1 MVP：載入 VRM 模型，實現 idle / blink / mouse look / wave / dance 等互動。
+
+## 快速開始
+
+```bash
+cd /d D:\mytools\my_vrm_mascot
+run_server.bat
+
+# 開啟瀏覽器
+# http://127.0.0.1:8765/
+```
+
+如果是第一次在新環境啟動，先安裝本專案自己的最小後端相依：
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+> **注意**：ES Module 需要 HTTP server，不支援 `file://` 協定。
+
+正式首頁是 Workbench / Portal：
+
+```text
+http://127.0.0.1:8765/
+```
+
+原本 Agent Runtime 主展示：
+
+```text
+http://127.0.0.1:8765/mascot_runtime.html
+```
+
+開啟 Alicia Motion Mine：
+
+```text
+http://127.0.0.1:8765/motion_template_lab.html
+```
+
+## 目錄結構
+
+```
+./
+  index.html                  # Workbench 正式入口 / Alicia Motion Studio
+  mascot_runtime.html         # 原 Agent Runtime + VRM 主展示頁
+  portal.html                 # Workbench 相容入口
+  run_server.bat              # 啟動本機 server.py
+  open_portal.bat             # 開啟正式 Workbench 首頁
+  stop_server.bat             # 停止 8765 本機服務
+  js/
+    VrmMascot.js              # 主控制器（Three.js + VRM）
+    MotionController.js       # 動作控制器（natural pose / idle / semantic motions / clip playback）
+    MotionClips.js            # 短動作 clip 定義（wave/victory/warning_nod/shake_head/dance_short/punch_short）
+    ExpressionProfiles.js     # 語意表情 profile 定義（neutral/happy/thinking/surprised/sad/angry）
+    ActingBridge.js           # Conversation / runtime event -> mascot.act(state) bridge
+    ActingPolicy.js           # Semantic acting state -> expression + clip + gaze 的演出策略
+    ExpressionController.js   # 眨眼 + 表情控制
+    MascotStateMachine.js     # 狀態機（dispatch / do / say / emote）
+    LookAtController.js       # 滑鼠注視（EMA 平滑）
+  css/
+    mascot.css                # 深色主題 + glassmorphism
+  vendor/                     # Three.js r149 + three-vrm 0.6.7（離線化）
+  models/                     # VRM 模型
+  motions/                    # Phase 2 用：VRMA / FBX 動畫檔
+```
+
+## API
+
+### 基本用法
+
+```javascript
+const mascot = new VrmMascot(document.getElementById('container'));
+await mascot.load('models/mascot.vrm');
+```
+
+### 狀態機 — dispatch（主要 API，與 LLM intent 對齊）
+
+```javascript
+// 支援直接傳入物件格式 (與 LLM 輸出意圖對接)
+mascot.dispatch({ type: 'do',    name: 'wave' });
+mascot.dispatch({ type: 'say',   text: '部署完成了！', emotion: 'joy', motion: 'wave' });
+mascot.dispatch({ type: 'emote', name: 'happy', duration: 2000 });
+mascot.dispatch({ type: 'lookAt', target: 'mouse' });
+mascot.dispatch({ type: 'reset' });
+
+// 也支援方法參數呼叫：
+mascot.dispatch('talking', { text: '你好', emotion: 'joy', motion: 'wave' });
+```
+
+### 代理意圖對接 — Agent Bridge (Phase 4)
+
+為方便對接 LLM 代理（如 OpenAI、Gemini、Claude），可以利用 `performIntent` API 發送抽象的高階意圖，系統會自動轉譯為預置動作序列：
+
+```javascript
+// 執行成功意圖 (使用預設文字、表情與動作)
+mascot.performIntent('success');
+
+// 執行思考意圖 (覆蓋文字)
+mascot.performIntent({
+  intent: 'thinking',
+  text: '讓我想想，怎麼寫程式才最優美...'
+});
+
+// 意圖參數完全覆蓋 (Override)
+mascot.performIntent({
+  intent: 'success',
+  text: '我們成功搞定 Agent Bridge 了！',
+  emotion: 'fun',
+  motion: 'dance_short'
+});
+
+// 未知意圖防錯自動 Fallback (自動降級為 explain 並輸出控制台 Warning 警告)
+mascot.performIntent({
+  intent: 'unknown_action_name',
+  text: '這是一個未定義的意圖，但安全防護會將其降級並照常說明。'
+});
+```
+
+### 行為佇列 — ActionQueue (Phase 3)
+
+讓角色可以排程連續行為，例如：`看向滑鼠` -> `招手說話` -> `開心跳躍`：
+
+```javascript
+mascot.enqueue([
+  { type: 'lookAt', target: 'mouse' },
+  { type: 'wait', duration: 500 },
+  {
+    type: 'say',
+    text: '羽山哥，動畫與排程佇列載入成功！',
+    emotion: 'joy',
+    motion: 'wave',
+    timeout: 6000 // Timeout Guard 防護 (毫秒)
+  },
+  { type: 'do', name: 'happy', timeout: 3000 }
+]);
+
+// 中斷並清空佇列
+mascot.clearQueue();
+```
+
+### 便捷 API
+
+```javascript
+mascot.state.do('wave');
+mascot.state.say('你好');
+mascot.state.emote('happy');
+mascot.state.lookAt('mouse');
+mascot.state.reset();
+```
+
+### 子系統直接存取
+
+```javascript
+mascot.motion.play('dance_short');   // MotionController
+mascot.motion.playClip('victory');    // Short Motion Clips
+mascot.setExpression('happy', { intensity: 0.8, duration: 1200 }); // Expression Layer
+mascot.clearExpression();
+mascot.act('success');          // Acting Policy: happy + victory + mouse gaze
+mascot.motion.playCustom(animData, { loop: true }); // 播放自訂 JSON 動畫
+mascot.expression.set('joy', 0.8);  // ExpressionController
+mascot.lookAt.setTarget('none');     // LookAtController
+mascot.resetCamera();                // 重置 3D 視角
+```
+
+### 語意姿勢綁定 — PoseDirector (Phase M1)
+
+Agent Runtime 不直接碰骨架，改透過語意姿勢 API 交給 VRM 表現層：
+
+```javascript
+mascot.poseForState('running');              // presenting
+mascot.poseForIntentResult('done', intent);  // wave
+```
+
+`updateIntentTrace()` 會把 tool trace 更新餵給 ActingBridge；再由 `ActingPolicy.js`、`PoseDirector.js` 與底層 controllers 決定實際表演：
+`pending/thinking`、`running/presenting`、`done/success`、`blocked/warning`、`failed/error`。
+
+MotionController 會在 VRM 載入後立即套用 Natural Pose；所有內建程序式動作都建立在這個自然站姿上，再疊加呼吸、展示、警告或揮手動作，避免回到模型 bind/rest pose 的 T-Pose。
+
+M2 Idle Micro Motion 只強化待機層：idle 會疊加胸口/脊椎/重心分層呼吸、肩膀放鬆、前臂與手腕微擺；LookAt `none` 時會加小幅頭部 drift，目標注視時不啟用這個漂移。
+
+M3 Short Motion Clips 把短動作集中在 `MotionClips.js`：`wave`、`victory`、`warning_nod`、`shake_head`、`dance_short`、`punch_short` 都是短、可預期、可恢復的 clip。`MotionController.play(name)` 會自動路由 clip name，`playClip(name)` 可直接播放；clip 結束後會回到 idle 並重套 Natural Pose，避免殘留骨骼偏移。
+
+M4 Expression Layer 把語意表情集中在 `ExpressionProfiles.js`，目前提供 `neutral`、`happy`、`thinking`、`surprised`、`sad`、`angry`。Expression layer 只控制 VRM blendshape 權重與 blink 疊加，不寫骨架 rotation / position；因此可和 `MotionController.playClip('victory')` 這類短動作同時存在。
+
+M5 Attention & Acting Policy 把演出決策集中在 `ActingPolicy.js`：`success -> happy + victory + mouse`、`running -> thinking + presenting + point`、`blocked -> angry + warning_nod + mouse`。這層只產生 policy result，實際執行仍交給 Expression / Motion / LookAt controllers，且不進 `contextDigest`。
+
+M6 Conversation Acting Bridge 讓 `ActingBridge.js` 接收 tool trace 與 talking lifecycle 事件，依 priority 裁決目前 acting state，並只呼叫 `mascot.act(state)`；runtime 仍持續更新 trace，expression / clip / gaze / pose 的細節留在 `ActingPolicy.js`、`PoseDirector.js` 與底層 controllers。
+
+M6.7 Motion Template Importer 提供獨立開發工具 `motion_template_lab.html`：載入 Alicia 與本機 `.vrma`，取樣第一幀或指定時間點的 upper-body humanoid rotation，匯出可貼回 Character Inspector 的 NaturalPose preset JSON。這個 lab 不進 production runtime、不改 Agent、不寫 `contextDigest`。
+
+M6.7.5～M6.13 讓 `motion_template_lab.html` 從 importer 升級成 Alicia Motion Mine：
+
+- Motion-first 採礦：先定義整支 VRMA 的主分類，再釘選值得保留的 moment。
+- Description-first 資料：人工撰寫「動作描述 / 用途描述 / Agent 用途」，分類可留給後續 LLM 或規則分析。
+- Text Mining Classifier：由文字描述產出 `motion_text_reclass_report.json`，不改原始資料。
+- Pose Style Recipe Generator：由描述萃取 `pose_style_recipes.json` 與 `pose_style_recipe_report.md`。
+- Semantic Motion Library：整理出 `semantic_motion_library.json`，目前有 10 組 semantic motion 種子。
+- Semantic Motion Picker / Registry / Variant Selector：可從 intent/trigger 選出 semantic motion，再找 preferred variant。
+- Semantic Motion Preview Bridge：只在 Lab 內安全預覽 variant 對應的 VRMA，不接正式 Acting runtime。
+
+目前資料集狀態：
+
+| 項目 | 數量 |
+|------|------|
+| git 內實體 VRMA binary | 0 |
+| 本機 demo VRMA（可選還原） | 11 |
+| motion profile 覆蓋的 VRMA 名稱 | 172 |
+| motion profiles | 172 |
+| 已有人類描述 profiles | 172 |
+| mining log entries | 173 |
+| pose style recipes | 10 |
+| semantic motions | 10 |
+
+VRMA binary 維持 local mining only，目前 git 內只保留 manifest 與衍生描述資料；若要重新預覽樣本，需依 `examples/m6_7_vrma_samples/SOURCES.md` 與 `docs/local-vrma-setup.md` 重新取回來源檔並再次確認授權。
+
+資料位置：
+
+```text
+examples/m6_7_vrma_samples/
+  SOURCES.md                       # VRMA 來源與授權狀態總表
+  README.md                        # local-only demo sample 來源
+  external/**/source_manifest.json # 外部礦區批次 manifest
+  review/
+    motion_profiles.json           # 172 筆人工描述與主分類
+    mining_log.json                 # 採礦紀錄
+    motion_text_reclass_report.json
+    pose_style_recipes.json
+    pose_style_recipe_report.md
+    semantic_motion_library.json
+    semantic_motion_library_report.md
+    semantic_motion_registry.json
+    semantic_motion_registry_report.md
+```
+
+Base pose preset 會依模型載入：
+
+- `models/mascot.vrm` -> `motions/poses/alicia_solid.json`
+- 未知或上傳模型 -> `motions/poses/default.json`
+- Character Inspector 的本機設定只在有 localStorage preset 時覆蓋模型預設。
+
+## 可用動作
+
+| 名稱 | 說明 | 持續時間 |
+|------|------|---------|
+| `idle` | 呼吸微動（預設） | 持續 |
+| `wave` | 右手短揮手 clip | 1.2s |
+| `victory` | 短勝利 YA clip | 1.0s |
+| `warning_nod` | 警示點頭 clip | 0.9s |
+| `shake_head` | 否定式上身搖動 clip | 0.8s |
+| `dance_short` | 短舞彩蛋 clip | 1.6s |
+| `punch_short` | 輕吐槽短拳 clip | 0.7s |
+| `think` | 托下巴沉思（已修正方向） | 3.0s |
+| `happy` | 雙手舉高跳躍（已修正方向） | 2.0s |
+| `presenting` | 伸手介紹面板 | 3.2s |
+| `warning` | 警示姿勢 | 2.4s |
+| `custom_animation` / `custom` | 播放自訂 JSON 動作 | 視動畫檔而定 |
+
+## 可用表情
+
+| 名稱 | VRM Preset |
+|------|-----------|
+| `happy` / `joy` | joy |
+| `thinking` | fun + sorrow |
+| `surprised` | fun |
+| `sad` / `sorrow` | sorrow |
+| `angry` | angry |
+| `fun` | fun |
+
+## 升級策略
+
+VRM 版本相關 API 集中在 `VrmMascot.js` 的 `_vrm*` helper：
+
+| Helper | 0.6.7 | 3.x (Phase 2) |
+|--------|-------|---------------|
+| `_vrmFromGltf()` | `VRM.from(gltf)` | `VRMLoaderPlugin` |
+| `_getBlendShapeProxy()` | `blendShapeProxy` | `expressionManager` |
+| `_getBoneNode()` | `getBoneNode()` | `getNormalizedBoneNode()` |
+| `_vrmUpdate()` | `vrm.update(dt)` | `vrm.update(dt)` |
+| `_vrmDispose()` | `VRMUtils.deepDispose()` | `VRMUtils.deepDispose()` |
+
+升級時只改這 5 個 method，其餘模組不動。
+
+## 與 my_yolo_train_tool 的關係
+
+本專案已獨立在 `D:\mytools\my_vrm_mascot`，不再放在 `my_yolo_train_tool` 子目錄內。兩邊可以各自開發、測試與提交。
+
+| 專案 | 責任 | 技術 |
+|------|------|------|
+| `my_yolo_train_tool` | 影片→骨架→motion draft | YOLO / Python |
+| `my_vrm_mascot` | 可互動吉祥物 runtime | Three.js / ES Module |
+
+兩者完全獨立運作。未來動作管線：
+```
+影片 → YOLO Pose → pose_record.json → pose_vrm_mapper → 手修 → .vrma → D:\mytools\my_vrm_mascot
+```
+
+## 作者
+
+羽山 (https://3wa.tw)

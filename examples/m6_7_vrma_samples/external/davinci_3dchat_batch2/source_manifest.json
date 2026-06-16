@@ -1,0 +1,326 @@
+{
+  "sourceName": "3dchat batch 2",
+  "sourceUrl": "https://github.com/DavinciDreams/3dchat",
+  "retrievedAt": "2026-06-14T00:00:00+08:00",
+  "usageStatus": "local_mining_only_license_not_verified",
+  "upstreamLicense": "",
+  "upstreamCommit": "25f22f42f3f2d3f92a979e9710a2d5cf4d0f7d00",
+  "note": "Second selected VRMA batch for local Alicia Motion Mine review. This batch intentionally includes future/reject candidates to improve mining data distribution. Verify upstream license and redistribution terms before committing or shipping VRMA binaries.",
+  "files": [
+    {
+      "localFile": "davinci2_blowAKiss.vrma",
+      "sourcePath": "public/animations/vrma/blowAKiss.vrma",
+      "sourceSize": 807984,
+      "size": 807984,
+      "format": "json_gltf_vrma",
+      "sha256": "b29951f6159d3ecafc7c7e0be4474277624bf0dba1b8cfc1fc91780a100f1e8c",
+      "suggestedMiningUse": "success"
+    },
+    {
+      "localFile": "davinci2_bodyBlock.vrma",
+      "sourcePath": "public/animations/vrma/bodyBlock.vrma",
+      "sourceSize": 2676714,
+      "size": 2676714,
+      "format": "json_gltf_vrma",
+      "sha256": "3e596b8782de37bbecf8dec2c13716db37a877662ca4696db8a37e26b2f89593",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_catch.vrma",
+      "sourcePath": "public/animations/vrma/catch.vrma",
+      "sourceSize": 2617802,
+      "size": 2617802,
+      "format": "json_gltf_vrma",
+      "sha256": "b3dc3ceca4a0af1ace092f65c8dee496004f4164a41e2cd21778adb27985895b",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_crouchToStand.vrma",
+      "sourcePath": "public/animations/vrma/crouchToStand.vrma",
+      "sourceSize": 776855,
+      "size": 776855,
+      "format": "json_gltf_vrma",
+      "sha256": "8d013777e191424824c257360ad3d56c67e6894ef633d29e55d8c3692271951e",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_defeatIdle.vrma",
+      "sourcePath": "public/animations/vrma/defeatIdle.vrma",
+      "sourceSize": 750863,
+      "size": 750863,
+      "format": "json_gltf_vrma",
+      "sha256": "8c9ad48e22e8707c9daefb367d9283adce240c1c9e8c6f01ea10adf72ea55d43",
+      "suggestedMiningUse": "warning_or_reject"
+    },
+    {
+      "localFile": "davinci2_entry.vrma",
+      "sourcePath": "public/animations/vrma/entry.vrma",
+      "sourceSize": 911785,
+      "size": 911785,
+      "format": "json_gltf_vrma",
+      "sha256": "47aa1ce55abdc21fb0f2b4704cc2a08f8c546a0a8ade844e2f6e1ed51e7685a9",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_floating.vrma",
+      "sourcePath": "public/animations/vrma/floating.vrma",
+      "sourceSize": 790774,
+      "size": 790774,
+      "format": "json_gltf_vrma",
+      "sha256": "e3d0a71d6b2d8772c711ef44ef4f1c7cb5a212909949c9f361b254c5de9db018",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_gettingUp.vrma",
+      "sourcePath": "public/animations/vrma/gettingUp.vrma",
+      "sourceSize": 774341,
+      "size": 774341,
+      "format": "json_gltf_vrma",
+      "sha256": "1ab6ec445685b64a2c1b0f23c6ef233bccda0d2436e43aa0d55c6f3609fd86a6",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_guitarPlaying.vrma",
+      "sourcePath": "public/animations/vrma/guitarPlaying.vrma",
+      "sourceSize": 811668,
+      "size": 811668,
+      "format": "json_gltf_vrma",
+      "sha256": "f1d80f156a31a3911b34a913a02ec0c5c2ee420bd767dc5750c714cf06655e92",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_kneeling.vrma",
+      "sourcePath": "public/animations/vrma/kneeling.vrma",
+      "sourceSize": 810224,
+      "size": 810224,
+      "format": "json_gltf_vrma",
+      "sha256": "5e0753698814738e13aac2c2ac8e2ecaa80f761f930be3ea9a1c92438c0dbb7e",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_lookOverShoulder.vrma",
+      "sourcePath": "public/animations/vrma/lookOverShoulder.vrma",
+      "sourceSize": 793711,
+      "size": 793711,
+      "format": "json_gltf_vrma",
+      "sha256": "ea4977d2aa88ae8099bf1f86a9061bc4efbad38c65106024dff415e4b136fb69",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_militarySignaling.vrma",
+      "sourcePath": "public/animations/vrma/militarySignaling.vrma",
+      "sourceSize": 843026,
+      "size": 843026,
+      "format": "json_gltf_vrma",
+      "sha256": "12ec701c1dc2c5dd50cf108d29ae1550361596fa1cb171380c3d88a273509672",
+      "suggestedMiningUse": "warning_or_reject"
+    },
+    {
+      "localFile": "davinci2_openingDoorInwards.vrma",
+      "sourcePath": "public/animations/vrma/openingDoorInwards.vrma",
+      "sourceSize": 2755929,
+      "size": 2755929,
+      "format": "json_gltf_vrma",
+      "sha256": "bc5a5060c090bfb72b7c5d91aa13e839a94890355aa5f1257108a85892b32998",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_pacingAndTalkingOnAPhone.vrma",
+      "sourcePath": "public/animations/vrma/pacingAndTalkingOnAPhone.vrma",
+      "sourceSize": 1400870,
+      "size": 1400870,
+      "format": "json_gltf_vrma",
+      "sha256": "6645232ed1dcc1d5cc1979fba7a4b2f4e2cf265064e054e8e4ab775b7e99b8a5",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_patting.vrma",
+      "sourcePath": "public/animations/vrma/patting.vrma",
+      "sourceSize": 786293,
+      "size": 786293,
+      "format": "json_gltf_vrma",
+      "sha256": "d8984cc279adc70bb5598850133914c36059c766ab3ba4f4701e549ff130cf01",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_petting.vrma",
+      "sourcePath": "public/animations/vrma/petting.vrma",
+      "sourceSize": 826653,
+      "size": 826653,
+      "format": "json_gltf_vrma",
+      "sha256": "ee83fcf0530bdcb36a76032b5626d7e2f3aca5ae7f389b8ee72c1b694630fb8f",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_pettingAnimal.vrma",
+      "sourcePath": "public/animations/vrma/pettingAnimal.vrma",
+      "sourceSize": 980487,
+      "size": 980487,
+      "format": "json_gltf_vrma",
+      "sha256": "515adeab9100a729ccd590a4cef6a0059f1ff9229e5b0d4119d7cf76865fe71a",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_praying.vrma",
+      "sourcePath": "public/animations/vrma/praying.vrma",
+      "sourceSize": 1657025,
+      "size": 1657025,
+      "format": "json_gltf_vrma",
+      "sha256": "75ec1ff120b58050d64804f47ea1a8b59e73298b26b701134428bab40ab4e52f",
+      "suggestedMiningUse": "success"
+    },
+    {
+      "localFile": "davinci2_push.vrma",
+      "sourcePath": "public/animations/vrma/push.vrma",
+      "sourceSize": 756380,
+      "size": 756380,
+      "format": "json_gltf_vrma",
+      "sha256": "478243c3c21a1c00b8ee1b65b066f18e1fde5a9dac4fafcfa1455f9407a98a0f",
+      "suggestedMiningUse": "warning_or_reject"
+    },
+    {
+      "localFile": "davinci2_rummaging.vrma",
+      "sourcePath": "public/animations/vrma/rummaging.vrma",
+      "sourceSize": 813212,
+      "size": 813212,
+      "format": "json_gltf_vrma",
+      "sha256": "24b26f76b9627d60697f9752306948ef01139b8a3330f3c5937fa36e3ee2a519",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_searchingPockets.vrma",
+      "sourcePath": "public/animations/vrma/searchingPockets.vrma",
+      "sourceSize": 816136,
+      "size": 816136,
+      "format": "json_gltf_vrma",
+      "sha256": "d7fd0cb22975acfe765f85ef1ff38a2b7c4ac57a1f5f156093ec997ba6727950",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_shakingHands1.vrma",
+      "sourcePath": "public/animations/vrma/shakingHands1.vrma",
+      "sourceSize": 804252,
+      "size": 804252,
+      "format": "json_gltf_vrma",
+      "sha256": "ddfd076a77d68ae3bd3bbad5fda5781d520ca815885702746c9b6e6149ddb07b",
+      "suggestedMiningUse": "success"
+    },
+    {
+      "localFile": "davinci2_sitting.vrma",
+      "sourcePath": "public/animations/vrma/sitting.vrma",
+      "sourceSize": 851978,
+      "size": 851978,
+      "format": "json_gltf_vrma",
+      "sha256": "2d4e6df3055deb69563b2068d813374b8d15be2c77c4c17bdf51e7799a09d951",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_sittingClap.vrma",
+      "sourcePath": "public/animations/vrma/sittingClap.vrma",
+      "sourceSize": 786293,
+      "size": 786293,
+      "format": "json_gltf_vrma",
+      "sha256": "ed3213a2e3e9a6fa88811a12a49e74557e571fa19b14206e895c7071051dbe7a",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_sittingDisapproval.vrma",
+      "sourcePath": "public/animations/vrma/sittingDisapproval.vrma",
+      "sourceSize": 796747,
+      "size": 796747,
+      "format": "json_gltf_vrma",
+      "sha256": "882be7629e15d3c62d98ca0e04059ccf7bdb310b98d0155f8fc865f9512e2f97",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_sittingTalking.vrma",
+      "sourcePath": "public/animations/vrma/sittingTalking.vrma",
+      "sourceSize": 1515935,
+      "size": 1515935,
+      "format": "json_gltf_vrma",
+      "sha256": "5baa17a7db38956201eac1aa783c94f17e34eabd36a95378030702180edfedbf",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_sitToStand.vrma",
+      "sourcePath": "public/animations/vrma/sitToStand.vrma",
+      "sourceSize": 766788,
+      "size": 766788,
+      "format": "json_gltf_vrma",
+      "sha256": "3b3a366de5367b5f411b0dd52c822003e7783d8696a6f5c9cb099baa2917bae5",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_standingJump.vrma",
+      "sourcePath": "public/animations/vrma/standingJump.vrma",
+      "sourceSize": 769825,
+      "size": 769825,
+      "format": "json_gltf_vrma",
+      "sha256": "45ea6c8f31f485899fb7653c6144ef67e0da083e99d08dc9c6478c7a07a70ffc",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_standToCover.vrma",
+      "sourcePath": "public/animations/vrma/standToCover.vrma",
+      "sourceSize": 2613366,
+      "size": 2613366,
+      "format": "json_gltf_vrma",
+      "sha256": "0e2dc4e6372eec8c64b16ce55d6ae26c31001ff764e9ecadabd56aeea9d9bc85",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_standToSit.vrma",
+      "sourcePath": "public/animations/vrma/standToSit.vrma",
+      "sourceSize": 766092,
+      "size": 766092,
+      "format": "json_gltf_vrma",
+      "sha256": "6e599aa8a4b73ef84368fef850820ed0e2f1ab427fbcb86ae44e42b44d968559",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_startWalking.vrma",
+      "sourcePath": "public/animations/vrma/startWalking.vrma",
+      "sourceSize": 778822,
+      "size": 778822,
+      "format": "json_gltf_vrma",
+      "sha256": "da2942f9e23b3cfb8ac222ed1fe0f7c2e43f17027ea5ad108cc7b33aa675eeca",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_typing.vrma",
+      "sourcePath": "public/animations/vrma/typing.vrma",
+      "sourceSize": 1012657,
+      "size": 1012657,
+      "format": "json_gltf_vrma",
+      "sha256": "e25e660767ca50ecfa70125c59aae3aea5d4f3a297a0614b6f844b811b9aa2c2",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_unarmedTurnLeft90.vrma",
+      "sourcePath": "public/animations/vrma/unarmedTurnLeft90.vrma",
+      "sourceSize": 2624587,
+      "size": 2624587,
+      "format": "json_gltf_vrma",
+      "sha256": "32210eee8abca61adfd0534c94527cbe6c14165ffad48fa172d6614c300555e2",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_walking.vrma",
+      "sourcePath": "public/animations/vrma/walking.vrma",
+      "sourceSize": 2622378,
+      "size": 2622378,
+      "format": "json_gltf_vrma",
+      "sha256": "60a8b78c3611bb7e1bd1d293ce0582142b11e3bf97cd81a245f6baabe20aa8e4",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci2_yelling.vrma",
+      "sourcePath": "public/animations/vrma/yelling.vrma",
+      "sourceSize": 866976,
+      "size": 866976,
+      "format": "json_gltf_vrma",
+      "sha256": "8902cdb5546be35de5b9b1a3798d7a82f48053dedc331ce9a46f3b60b1544339",
+      "suggestedMiningUse": "warning_or_reject"
+    }
+  ]
+}

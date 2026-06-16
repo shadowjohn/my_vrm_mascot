@@ -1,0 +1,1268 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VRM Mascot — Interactive Character</title>
+  <meta name="description" content="VRM 吉祥物：可互動的 3D 角色，支援狀態機、眨眼、滑鼠注視、揮手、跳舞、說話等。">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+  <link rel="stylesheet" href="css/mascot.css">
+</head>
+<body>
+
+  <div class="app-shell">
+    <!-- ── Header ───────────────────────────── -->
+    <header class="header">
+      <div>
+        <div class="header-title">
+          <span class="dot"></span>
+          VRM Mascot
+        </div>
+        <div class="header-subtitle">Phase 12 — Action Intent Layer</div>
+      </div>
+      <div class="header-actions">
+        <select id="modelSelector" class="model-select">
+          <option value="models/mascot.vrm" selected>Alicia Solid</option>
+        </select>
+        <button id="btnUploadVRM" class="btn btn--upload" type="button">📂 上傳 VRM</button>
+        <input id="vrmFileInput" type="file" accept=".vrm" class="sr-only">
+
+        <span class="divider">|</span>
+
+        <button id="btnDownloadReport" class="btn btn--blue" style="padding: 6px 12px; font-size: 0.78rem;" type="button">📥 下載報表</button>
+
+        <span class="divider">|</span>
+
+        <select id="motionSelector" class="model-select">
+          <option value="" disabled selected>選擇錄製動作...</option>
+          <option value="motions/smoke_dance.json">YOLO 舞步 (smoke_dance)</option>
+        </select>
+        <button id="btnUploadMotion" class="btn btn--upload" type="button">📂 上傳動作</button>
+        <input id="motionFileInput" type="file" accept=".json" class="sr-only">
+      </div>
+    </header>
+
+    <!-- ── Stage Container (3D + GIS Split) ── -->
+    <div class="stage-container">
+      <div class="viewport" id="viewport">
+        <div id="speechBubble" class="speech-bubble"></div>
+        <div id="loadingOverlay" class="loading-overlay">
+          <div class="loading-spinner"></div>
+          <div class="loading-text" id="loadingText">正在載入 VRM 模型...</div>
+        </div>
+      </div>
+
+      <!-- Mock GIS Map Panel -->
+      <div class="gis-panel" id="gisPanel">
+        <div class="gis-header">
+          <span class="gis-dot"></span>
+          GIS MAP SIMULATION
+        </div>
+        <div class="gis-map" id="gisMap">
+          <div class="gis-grid"></div>
+          <svg class="gis-svg" id="gisSvg">
+            <!-- Neon pipeline line will be drawn here -->
+            <line id="gisPipeLine" x1="10%" y1="90%" x2="10%" y2="90%" class="gis-pipe-line" />
+          </svg>
+          <div class="gis-marker" id="gisMarker">📍</div>
+        </div>
+        <div class="gis-info" id="gisInfo">GIS Idle. Waiting for query_pipe...</div>
+        <div class="gis-suggested-actions" id="suggestedActionsPanel" hidden>
+          <div class="gis-form-title">可執行動作</div>
+          <div class="suggested-actions-list" id="suggestedActionsList"></div>
+        </div>
+
+        <!-- 設備維護回報單 (Phase 11) -->
+        <form class="gis-form-panel" id="gisReportForm" novalidate>
+          <div class="gis-form-title">🛠️ 設備維護回報單</div>
+          <div class="gis-input-group">
+            <label for="reportAddress">維護地址 (必填)</label>
+            <input type="text" id="reportAddress" name="address" class="gis-input" placeholder="請輸入地址..." required>
+          </div>
+          <div class="gis-input-group">
+            <label for="reportEmail">聯絡信箱 (必填)</label>
+            <input type="email" id="reportEmail" name="email" class="gis-input" placeholder="abc@example.com" required>
+          </div>
+          <div class="gis-input-group">
+            <label for="reportDesc">異常說明</label>
+            <textarea id="reportDesc" name="description" class="gis-input" style="resize: vertical; min-height: 50px;" placeholder="請描述設備異常狀態..."></textarea>
+          </div>
+          <button class="btn btn--accent" id="btnSubmitReport" type="button">送出報告</button>
+        </form>
+
+        <!-- 資料匯出面板 (Phase 11) -->
+        <div class="gis-export-panel" id="exportPanel">
+          <div class="gis-form-title">📥 資料匯出面板</div>
+          <div style="display: flex; gap: var(--gap-sm); align-items: center;">
+            <select id="exportFormat" name="exportFormat" class="model-select" style="flex: 1; min-height: 32px;">
+              <option value="geojson">GeoJSON</option>
+              <option value="csv">CSV</option>
+            </select>
+            <button class="btn btn--blue" id="btnExportFeature" type="button" style="padding: 6px 14px;">匯出物件</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Mock LLM Connector ───────────────── -->
+    <div class="llm-connector">
+      <div class="section-title">Mock LLM Connector (Phase 5A)</div>
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" class="chat-input" placeholder="對角色說點什麼... (例如：你好、部署失敗但修好了、完成、警告)">
+        <button id="btnSendChat" class="btn btn--accent" type="button">傳送指令</button>
+      </div>
+      <div class="json-preview-container">
+        <span class="json-label">Mock LLM Response JSON:</span>
+        <pre class="json-preview" id="jsonPreview">{}</pre>
+      </div>
+    </div>
+
+    <!-- ── Intent Playground ────────────────── -->
+    <div class="intent-playground">
+      <div class="section-title">Intent Playground (Agent Bridge)</div>
+      <div class="intent-bar">
+        <button class="btn btn--intent" data-intent="greeting" type="button">👋 Greeting</button>
+        <button class="btn btn--intent btn--success" data-intent="success" type="button">🎉 Success</button>
+        <button class="btn btn--intent btn--error" data-intent="error" type="button">🚨 Error</button>
+        <button class="btn btn--intent btn--warning" data-intent="warning" type="button">⚠️ Warning</button>
+        <button class="btn btn--intent btn--thinking" data-intent="thinking" type="button">💡 Thinking</button>
+        <button class="btn btn--intent btn--searching" data-intent="searching" type="button">🔍 Searching</button>
+        <button class="btn btn--intent btn--explain" data-intent="explain" type="button">📖 Explain</button>
+      </div>
+    </div>
+
+    <!-- ── Action Bar ───────────────────────── -->
+    <div class="action-bar">
+      <button class="btn btn--accent" data-state="greeting" type="button">
+        <span class="emoji">👋</span> 揮手
+      </button>
+      <button class="btn btn--accent" data-state="dancing" type="button">
+        <span class="emoji">💃</span> 跳舞
+      </button>
+      <button class="btn" data-state="thinking" type="button">
+        <span class="emoji">🤔</span> 思考
+      </button>
+      <button class="btn" data-state="happy" type="button">
+        <span class="emoji">😊</span> 開心
+      </button>
+      <button class="btn" id="btnSay" type="button">
+        <span class="emoji">💬</span> 說話
+      </button>
+      <button class="btn btn--blue" id="btnShowQueue" type="button">
+        <span class="emoji">⛓️</span> 序列展示
+      </button>
+      <button class="btn btn--blue" id="btnResetCamera" type="button">
+        <span class="emoji">🎥</span> 視角
+      </button>
+      <button class="btn" data-state="idle" type="button">
+        <span class="emoji">⏹</span> 重設
+      </button>
+      <button class="btn btn--pink" id="btnClearMemory" type="button">
+        <span class="emoji">🧹</span> 清除記憶
+      </button>
+      <button class="btn btn--blue" id="btnResetContext" type="button">
+        <span class="emoji">🗺️</span> 重設空間
+      </button>
+    </div>
+
+    <!-- ── Debug Panel ──────────────────────── -->
+    <div class="debug-panel" id="debugPanel">
+      <button class="debug-toggle" id="debugToggle" type="button">
+        <span>▸ Debug Panel</span>
+        <span class="arrow">▾</span>
+      </button>
+      <div class="debug-content" id="debugContent">
+        <div class="debug-row">
+          <span class="label">state</span>
+          <span class="value state" id="dbgState">idle</span>
+        </div>
+        <div class="debug-row">
+          <span class="label">motion</span>
+          <span class="value" id="dbgMotion">idle</span>
+        </div>
+        <div class="debug-row">
+          <span class="label">fps</span>
+          <span class="value" id="dbgFps">--</span>
+        </div>
+        <div class="debug-row">
+          <span class="label">blink</span>
+          <span class="value" id="dbgBlink">0.00</span>
+        </div>
+        <div class="debug-row">
+          <span class="label">lookAt yaw</span>
+          <span class="value" id="dbgYaw">0.0</span>
+        </div>
+        <div class="debug-row">
+          <span class="label">lookAt pitch</span>
+          <span class="value" id="dbgPitch">0.0</span>
+        </div>
+        <div class="debug-row">
+          <span class="label">expression</span>
+          <span class="value" id="dbgExpr">--</span>
+        </div>
+        <div class="debug-row">
+          <span class="label">curr intent</span>
+          <span class="value" id="dbgCurrentIntent">idle</span>
+        </div>
+        <div class="debug-row">
+          <span class="label">last intent</span>
+          <span class="value" id="dbgLastIntent">none</span>
+        </div>
+        <div class="debug-row">
+          <span class="label">last speech</span>
+          <span class="value" id="dbgLastSpeech">--</span>
+        </div>
+        <div class="debug-row">
+          <span class="label">queue len</span>
+          <span class="value" id="dbgQueueLength">0</span>
+        </div>
+        <div class="debug-row">
+          <span class="label">capabilities</span>
+          <span class="value" id="dbgTools">--</span>
+        </div>
+        <div class="debug-row">
+          <span class="label">last tool</span>
+          <span class="value" id="dbgLastTool">none</span>
+        </div>
+        <div class="debug-row">
+          <span class="label">last result</span>
+          <span class="value" id="dbgLastResult">none</span>
+        </div>
+        <div class="debug-row">
+          <span class="label">memory count</span>
+          <span class="value" id="dbgMemoryCount">0</span>
+        </div>
+        <div class="debug-row">
+          <span class="label">selected feat</span>
+          <span class="value" id="dbgSelectedFeature">none</span>
+        </div>
+        <div class="debug-row">
+          <span class="label">active layer</span>
+          <span class="value" id="dbgActiveLayer">none</span>
+        </div>
+        <div class="debug-row">
+          <span class="label">map center</span>
+          <span class="value" id="dbgMapCenter">[120.6, 24.1]</span>
+        </div>
+        <div class="debug-row">
+          <span class="label">active elem</span>
+          <span class="value" id="dbgActiveElement">none</span>
+        </div>
+        <div class="debug-row">
+          <span class="label">last clicked</span>
+          <span class="value" id="dbgLastClicked">none</span>
+        </div>
+        <div class="debug-row">
+          <span class="label">form keys</span>
+          <span class="value" id="dbgFormKeys">none</span>
+        </div>
+        <div class="debug-row">
+          <span class="label">act intent</span>
+          <span class="value" id="dbgActionIntent">none</span>
+        </div>
+        <div class="debug-row">
+          <span class="label">act target</span>
+          <span class="value" id="dbgActionTarget">none</span>
+        </div>
+        <div class="debug-row">
+          <span class="label">act conf</span>
+          <span class="value" id="dbgActionConfidence">0.00</span>
+        </div>
+        <div class="debug-row">
+          <span class="label">act status</span>
+          <span class="value" id="dbgActionStatus">idle</span>
+        </div>
+        <!-- History Container (spans all columns) -->
+        <div class="debug-history-container">
+          <div class="debug-history-header">Intent History</div>
+          <div class="debug-history-list" id="dbgHistory">
+            <!-- Dynamically populated timeline items -->
+          </div>
+        </div>
+        <div class="debug-history-container debug-trace-container">
+          <div class="debug-history-header">Action Trace Timeline</div>
+          <div class="debug-history-list debug-trace-list" id="dbgTrace">
+            <!-- Dynamically populated trace steps -->
+          </div>
+        </div>
+        <div class="character-inspector-container" id="characterInspectorPanel">
+          <div class="character-inspector-stage-note">
+            <span>角色檢查器</span>
+            <span>VRM Developer Mode</span>
+          </div>
+
+          <section class="character-inspector-deck" aria-label="角色檢查器">
+            <div class="character-inspector-header">
+              <div>
+                <div class="character-inspector-title">角色檢查器</div>
+                <div class="character-inspector-subtitle">Character Inspector</div>
+              </div>
+              <span class="character-inspector-mode">開發者模式</span>
+            </div>
+
+            <div class="character-inspector-tabs" id="characterInspectorTabs"></div>
+            <div class="character-inspector-groups" id="characterInspectorGroups"></div>
+
+            <div class="character-inspector-toolbar">
+              <select id="characterInspectorBoneSelect" class="model-select character-inspector-bone-select"></select>
+              <label class="character-inspector-mirror">
+                <input id="characterInspectorMirrorMode" type="checkbox" checked>
+                <span>鏡像調整</span>
+              </label>
+            </div>
+
+            <div class="character-inspector-slider-list" id="characterInspectorSliderList"></div>
+
+            <pre class="character-inspector-json" id="characterInspectorJsonPreview">{}</pre>
+
+            <div class="character-inspector-actions">
+              <button class="btn btn--blue" id="btnInspectorCopyJson" type="button">複製 JSON</button>
+              <button class="btn btn--accent" id="btnInspectorSaveLocal" type="button">儲存本機</button>
+              <button class="btn btn--upload" id="btnInspectorResetBone" type="button">重設骨骼</button>
+              <button class="btn btn--upload" id="btnInspectorResetAll" type="button">全部重設</button>
+              <span class="character-inspector-status" id="characterInspectorStatus">預設姿勢</span>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Vendor Libraries (UMD globals) ═════════ -->
+  <script src="vendor/three.min.js"></script>
+  <script src="vendor/GLTFLoader.js"></script>
+  <script src="vendor/OrbitControls.js"></script>
+  <script src="vendor/three-vrm.min.js"></script>
+
+  <!-- ══ VRM 0.6.7 Compatibility Shim ═══════════ -->
+  <script>
+    (function () {
+      if (typeof THREE === 'undefined') return;
+      if (!THREE.VRMHumanoidBoneName) {
+        if (typeof THREE_VRM !== 'undefined' && THREE_VRM.VRMSchema && THREE_VRM.VRMSchema.HumanoidBoneName) {
+          THREE.VRMHumanoidBoneName = THREE_VRM.VRMSchema.HumanoidBoneName;
+        } else {
+          THREE.VRMHumanoidBoneName = {
+            Head: "head", Neck: "neck", Spine: "spine", Chest: "chest", Hips: "hips",
+            LeftUpperArm: "leftUpperArm", LeftLowerArm: "leftLowerArm",
+            RightUpperArm: "rightUpperArm", RightLowerArm: "rightLowerArm",
+            LeftHand: "leftHand", RightHand: "rightHand",
+            LeftUpperLeg: "leftUpperLeg", RightUpperLeg: "rightUpperLeg",
+            LeftShoulder: "leftShoulder", RightShoulder: "rightShoulder",
+          };
+        }
+      }
+      if (!THREE.VRM && typeof THREE_VRM !== 'undefined') THREE.VRM = THREE_VRM.VRM;
+      if (!THREE.VRMUtils && typeof THREE_VRM !== 'undefined') THREE.VRMUtils = THREE_VRM.VRMUtils;
+    })();
+  </script>
+
+  <!-- ══ App Entry (ES Module) ══════════════════ -->
+  <script type="module">
+    import { VrmMascot } from './js/VrmMascot.js';
+    import { POSE_CALIBRATION_BONES } from './js/MotionController.js';
+    import {
+      CHARACTER_INSPECTOR_SECTIONS,
+      CHARACTER_INSPECTOR_BONE_GROUPS,
+      getInspectorBoneLabel,
+      getInspectorBonesForGroup,
+    } from './js/CharacterInspectorLabels.js';
+
+    // ── 初始化 ──────────────────────────────
+    const viewport   = document.getElementById('viewport');
+    const overlay    = document.getElementById('loadingOverlay');
+    const loadingTxt = document.getElementById('loadingText');
+    const bubble     = document.getElementById('speechBubble');
+
+    const mascot = new VrmMascot(viewport);
+
+    // ── Debug ───────────────────────────────
+    const dbg = {
+      state:      document.getElementById('dbgState'),
+      motion:     document.getElementById('dbgMotion'),
+      fps:        document.getElementById('dbgFps'),
+      blink:      document.getElementById('dbgBlink'),
+      yaw:        document.getElementById('dbgYaw'),
+      pitch:      document.getElementById('dbgPitch'),
+      expr:       document.getElementById('dbgExpr'),
+      currIntent: document.getElementById('dbgCurrentIntent'),
+      lastIntent: document.getElementById('dbgLastIntent'),
+      lastSpeech: document.getElementById('dbgLastSpeech'),
+      queueLen:   document.getElementById('dbgQueueLength'),
+      history:    document.getElementById('dbgHistory'),
+      trace:      document.getElementById('dbgTrace'),
+      tools:      document.getElementById('dbgTools'),
+      lastTool:   document.getElementById('dbgLastTool'),
+      lastResult: document.getElementById('dbgLastResult'),
+      memoryCount: document.getElementById('dbgMemoryCount'),
+      selectedFeature: document.getElementById('dbgSelectedFeature'),
+      activeLayer: document.getElementById('dbgActiveLayer'),
+      mapCenter: document.getElementById('dbgMapCenter'),
+      activeElement: document.getElementById('dbgActiveElement'),
+      lastClicked: document.getElementById('dbgLastClicked'),
+      formKeys: document.getElementById('dbgFormKeys'),
+      actionIntent: document.getElementById('dbgActionIntent'),
+      actionTarget: document.getElementById('dbgActionTarget'),
+      actionConfidence: document.getElementById('dbgActionConfidence'),
+      actionStatus: document.getElementById('dbgActionStatus'),
+      suggestedPanel: document.getElementById('suggestedActionsPanel'),
+      suggestedList: document.getElementById('suggestedActionsList'),
+      inspectorTabs: document.getElementById('characterInspectorTabs'),
+      inspectorGroups: document.getElementById('characterInspectorGroups'),
+      inspectorBoneSelect: document.getElementById('characterInspectorBoneSelect'),
+      inspectorMirrorMode: document.getElementById('characterInspectorMirrorMode'),
+      inspectorSliderList: document.getElementById('characterInspectorSliderList'),
+      inspectorResetBone: document.getElementById('btnInspectorResetBone'),
+      inspectorResetAll: document.getElementById('btnInspectorResetAll'),
+      inspectorCopyJson: document.getElementById('btnInspectorCopyJson'),
+      inspectorSaveLocal: document.getElementById('btnInspectorSaveLocal'),
+      inspectorStatus: document.getElementById('characterInspectorStatus'),
+      inspectorJsonPreview: document.getElementById('characterInspectorJsonPreview'),
+    };
+    let currentSuggestedActions = [];
+
+    const INSPECTOR_STORAGE_PREFIX = 'vrmMascot.posePreset.v2.';
+    const INSPECTOR_POSITION_BONES = new Set(['hips']);
+    const INSPECTOR_MIRROR_PAIRS = {
+      leftUpperArm: 'rightUpperArm',
+      rightUpperArm: 'leftUpperArm',
+      leftLowerArm: 'rightLowerArm',
+      rightLowerArm: 'leftLowerArm',
+      leftHand: 'rightHand',
+      rightHand: 'leftHand',
+    };
+    const INSPECTOR_MIRROR_INVERT_AXES = new Set(['y', 'z']);
+    let currentInspectorGroup = 'arms';
+
+    mascot.onFpsUpdate = (fps) => {
+      dbg.fps.textContent = fps;
+      dbg.motion.textContent = mascot.motion.currentAction;
+      dbg.blink.textContent = mascot.expression.blinkWeight.toFixed(2);
+      dbg.expr.textContent = mascot.expression.currentExpression || '--';
+      const look = mascot.lookAt.debugValues;
+      dbg.yaw.textContent = look.yaw;
+      dbg.pitch.textContent = look.pitch;
+    };
+
+    mascot.state.onStateChange = (name) => {
+      dbg.state.textContent = name;
+    };
+
+    mascot.onIntentUpdate = (info) => {
+      if (dbg.currIntent) dbg.currIntent.textContent = info.currentIntent;
+      if (dbg.lastIntent) dbg.lastIntent.textContent = info.lastIntent;
+      if (dbg.lastSpeech) dbg.lastSpeech.textContent = info.lastSpeech || '--';
+      if (dbg.queueLen) dbg.queueLen.textContent = info.queueLength;
+      if (dbg.tools) {
+        dbg.tools.textContent = info.registeredTools.map(t => t.name).join(', ') || 'none';
+      }
+      if (dbg.lastTool) dbg.lastTool.textContent = info.lastTool || 'none';
+      if (dbg.lastResult) dbg.lastResult.textContent = info.lastResult || 'none';
+      if (dbg.memoryCount) dbg.memoryCount.textContent = info.memoryCount || '0';
+      if (dbg.selectedFeature) dbg.selectedFeature.textContent = info.selectedFeature || 'none';
+      if (dbg.activeLayer) dbg.activeLayer.textContent = info.activeLayer || 'none';
+      if (dbg.mapCenter) dbg.mapCenter.textContent = info.mapCenter || '[120.6, 24.1]';
+      if (dbg.activeElement) dbg.activeElement.textContent = info.activeElement || 'none';
+      if (dbg.lastClicked) dbg.lastClicked.textContent = info.lastClicked || 'none';
+      if (dbg.formKeys) dbg.formKeys.textContent = info.formKeys || 'none';
+      if (dbg.actionIntent) dbg.actionIntent.textContent = info.actionIntent?.action || 'none';
+      if (dbg.actionTarget) dbg.actionTarget.textContent = info.actionIntent?.target || 'none';
+      if (dbg.actionConfidence) dbg.actionConfidence.textContent = info.actionIntent?.confidence !== undefined ? info.actionIntent.confidence.toFixed(2) : '0.00';
+      if (dbg.actionStatus) dbg.actionStatus.textContent = info.actionIntent?.status || 'idle';
+      renderSuggestedActions(info.suggestedActions);
+
+      if (dbg.history) {
+        dbg.history.innerHTML = info.history.map(item => {
+          return `
+            <div class="debug-history-item">
+              <span class="time">${item.time}</span>
+              <span class="intent intent-${item.intent}">${item.intent}</span>
+              <span class="text">${escapeHtml(item.text)}</span>
+            </div>
+          `;
+        }).join('');
+      }
+
+      if (dbg.trace) {
+        const trace = Array.isArray(info.actionIntent?.trace) ? info.actionIntent.trace : [];
+        dbg.trace.innerHTML = trace.length > 0
+          ? trace.map(item => renderTraceItem(item)).join('')
+          : '<div class="debug-trace-empty">no trace</div>';
+      }
+    };
+
+    if (dbg.suggestedList) {
+      dbg.suggestedList.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-suggested-action-id]');
+        if (!btn) return;
+
+        const action = currentSuggestedActions.find(item => item.id === btn.dataset.suggestedActionId);
+        if (!action || !action.intentPayload) return;
+
+        mascot.performIntent(action.intentPayload);
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function traceStatusClass(status) {
+      return String(status || 'none').replace(/[^a-z0-9_-]/gi, '_');
+    }
+
+    function renderTraceItem(item) {
+      const args = Array.isArray(item.args) && item.args.length > 0
+        ? `args=${item.args.join(',')}`
+        : '';
+      const reason = item.reason ? `reason=${item.reason}` : '';
+      const detail = [args, reason].filter(Boolean).join(' ');
+      const status = item.status || 'none';
+      return `
+        <div class="debug-trace-item">
+          <span class="trace-step">${escapeHtml(item.step)}</span>
+          <span class="trace-status trace-status-${traceStatusClass(status)}">${escapeHtml(status)}</span>
+          ${detail ? `<span class="trace-detail">${escapeHtml(detail)}</span>` : ''}
+        </div>
+      `;
+    }
+
+    function renderSuggestedActions(actions) {
+      currentSuggestedActions = Array.isArray(actions) ? actions : [];
+      if (!dbg.suggestedPanel || !dbg.suggestedList) return;
+
+      if (currentSuggestedActions.length === 0) {
+        dbg.suggestedPanel.hidden = true;
+        dbg.suggestedList.innerHTML = '';
+        return;
+      }
+
+      dbg.suggestedPanel.hidden = false;
+      dbg.suggestedList.innerHTML = currentSuggestedActions.map(action => `
+        <button class="suggested-action-chip" type="button" data-suggested-action-id="${escapeHtml(action.id)}">
+          <span class="suggested-action-label">${escapeHtml(action.label)}</span>
+          <span class="suggested-action-tool">${escapeHtml(action.tool)}</span>
+        </button>
+      `).join('');
+    }
+
+    function inspectorStorageKey() {
+      const selectedModel = document.getElementById('modelSelector')?.value || 'default';
+      return `${INSPECTOR_STORAGE_PREFIX}${selectedModel}`;
+    }
+
+    function getInspectorMode(bone) {
+      return INSPECTOR_POSITION_BONES.has(bone) ? 'position' : 'rotation';
+    }
+
+    function getInspectorAxisConfig(bone) {
+      if (getInspectorMode(bone) === 'position') {
+        return { min: -0.08, max: 0.08, step: 0.001 };
+      }
+      return { min: -120, max: 120, step: 1 };
+    }
+
+    function formatInspectorValue(value, mode) {
+      const number = Number(value) || 0;
+      return mode === 'position' ? number.toFixed(3) : `${Math.round(number)}°`;
+    }
+
+    function setInspectorStatus(message) {
+      if (dbg.inspectorStatus) dbg.inspectorStatus.textContent = message;
+    }
+
+    function renderInspectorTabs() {
+      if (!dbg.inspectorTabs) return;
+      dbg.inspectorTabs.innerHTML = CHARACTER_INSPECTOR_SECTIONS.map(section => `
+        <button
+          class="character-inspector-tab${section.id === 'pose' ? ' active' : ''}${section.enabled ? '' : ' disabled'}"
+          type="button"
+          data-inspector-section="${escapeHtml(section.id)}"
+          ${section.enabled ? '' : 'disabled'}
+          title="${escapeHtml(section.subtitle)}"
+        >
+          ${escapeHtml(section.label)}
+        </button>
+      `).join('');
+    }
+
+    function renderInspectorGroups() {
+      if (!dbg.inspectorGroups) return;
+      dbg.inspectorGroups.innerHTML = Object.entries(CHARACTER_INSPECTOR_BONE_GROUPS).map(([groupId, group]) => `
+        <button
+          class="character-inspector-group${groupId === currentInspectorGroup ? ' active' : ''}"
+          type="button"
+          data-inspector-group="${escapeHtml(groupId)}"
+        >
+          ${escapeHtml(group.label)}
+        </button>
+      `).join('');
+    }
+
+    function ensureInspectorBoneOptions() {
+      if (!dbg.inspectorBoneSelect) return;
+      const groupBones = getInspectorBonesForGroup(currentInspectorGroup);
+      const bones = groupBones.length > 0 ? groupBones : POSE_CALIBRATION_BONES;
+      const currentValue = dbg.inspectorBoneSelect.value;
+
+      dbg.inspectorBoneSelect.innerHTML = bones.map(bone => (
+        `<option value="${escapeHtml(bone)}">${escapeHtml(getInspectorBoneLabel(bone))}</option>`
+      )).join('');
+
+      if (bones.includes(currentValue)) {
+        dbg.inspectorBoneSelect.value = currentValue;
+      }
+    }
+
+    function readInspectorValue(preset, bone, axis) {
+      const mode = getInspectorMode(bone);
+      const source = mode === 'position'
+        ? preset.basePose?.position?.[bone]
+        : preset.basePose?.rotation?.[bone];
+      return Number(source?.[axis] ?? 0);
+    }
+
+    function renderCharacterInspectorPreview() {
+      if (!dbg.inspectorJsonPreview) return;
+      dbg.inspectorJsonPreview.textContent = JSON.stringify(mascot.motion.getPosePreset(), null, 2);
+    }
+
+    function renderCharacterInspector() {
+      if (!dbg.inspectorBoneSelect || !dbg.inspectorSliderList) return;
+      renderInspectorTabs();
+      renderInspectorGroups();
+      ensureInspectorBoneOptions();
+
+      const preset = mascot.motion.getPosePreset();
+      const selectedBone = dbg.inspectorBoneSelect.value || getInspectorBonesForGroup(currentInspectorGroup)[0] || POSE_CALIBRATION_BONES[0];
+      const mode = getInspectorMode(selectedBone);
+      const config = getInspectorAxisConfig(selectedBone);
+
+      dbg.inspectorSliderList.innerHTML = ['x', 'y', 'z'].map(axis => {
+        const value = readInspectorValue(preset, selectedBone, axis);
+        return `
+          <label class="character-inspector-slider-row">
+            <span class="character-inspector-axis">${axis}</span>
+            <input
+              class="character-inspector-slider"
+              type="range"
+              min="${config.min}"
+              max="${config.max}"
+              step="${config.step}"
+              value="${value}"
+              data-inspector-axis="${axis}"
+            >
+            <span class="character-inspector-value" data-inspector-value="${axis}">${formatInspectorValue(value, mode)}</span>
+          </label>
+        `;
+      }).join('');
+
+      renderCharacterInspectorPreview();
+    }
+
+    function applyInspectorMirror(bone, axis, value) {
+      if (!dbg.inspectorMirrorMode?.checked || getInspectorMode(bone) === 'position') return;
+      const mirrorBone = INSPECTOR_MIRROR_PAIRS[bone];
+      if (!mirrorBone) return;
+
+      const mirroredValue = INSPECTOR_MIRROR_INVERT_AXES.has(axis) ? -value : value;
+      mascot.motion.setBasePoseRotation(mirrorBone, axis, mirroredValue);
+    }
+
+    function handleInspectorSliderInput(e) {
+      const input = e.target.closest('[data-inspector-axis]');
+      if (!input || !dbg.inspectorBoneSelect) return;
+
+      const bone = dbg.inspectorBoneSelect.value;
+      const axis = input.dataset.inspectorAxis;
+      const value = Number(input.value);
+      const mode = getInspectorMode(bone);
+
+      if (mode === 'position') {
+        mascot.motion.setBasePosePosition(bone, axis, value);
+      } else {
+        mascot.motion.setBasePoseRotation(bone, axis, value);
+        applyInspectorMirror(bone, axis, value);
+      }
+
+      const valueEl = dbg.inspectorSliderList.querySelector(`[data-inspector-value="${axis}"]`);
+      if (valueEl) valueEl.textContent = formatInspectorValue(value, mode);
+      renderCharacterInspectorPreview();
+      setInspectorStatus('編輯中');
+    }
+
+    function loadInspectorPresetFromLocal() {
+      try {
+        const raw = localStorage.getItem(inspectorStorageKey());
+        if (raw) {
+          mascot.motion.loadPosePreset(JSON.parse(raw));
+          setInspectorStatus('已載入本機設定');
+        } else {
+          setInspectorStatus('模型預設姿勢');
+        }
+      } catch (err) {
+        console.warn('Failed to load local pose preset:', err);
+        localStorage.removeItem(inspectorStorageKey());
+        mascot.motion.resetBasePoseAll();
+        setInspectorStatus('本機設定無效');
+      }
+      renderCharacterInspector();
+    }
+
+    async function copyInspectorJson() {
+      const text = JSON.stringify(mascot.motion.getPosePreset(), null, 2);
+      try {
+        let copied = false;
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(text);
+          copied = true;
+        } else if (dbg.inspectorJsonPreview) {
+          const range = document.createRange();
+          range.selectNodeContents(dbg.inspectorJsonPreview);
+          const selection = window.getSelection();
+          if (selection) {
+            selection.removeAllRanges();
+            selection.addRange(range);
+            copied = document.execCommand('copy');
+            selection.removeAllRanges();
+          }
+        }
+
+        if (!copied) {
+          throw new Error('No clipboard path available');
+        }
+        setInspectorStatus('已複製 JSON');
+      } catch (err) {
+        console.warn('Failed to copy pose preset:', err);
+        setInspectorStatus('複製失敗');
+      }
+    }
+
+    function saveInspectorPresetLocal() {
+      try {
+        localStorage.setItem(inspectorStorageKey(), JSON.stringify(mascot.motion.getPosePreset(), null, 2));
+        setInspectorStatus('已儲存本機');
+      } catch (err) {
+        console.warn('Failed to save pose preset:', err);
+        setInspectorStatus('儲存失敗');
+      }
+    }
+
+    if (dbg.inspectorGroups) {
+      dbg.inspectorGroups.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-inspector-group]');
+        if (!btn) return;
+        currentInspectorGroup = btn.dataset.inspectorGroup;
+        renderCharacterInspector();
+      });
+    }
+
+    if (dbg.inspectorBoneSelect) {
+      dbg.inspectorBoneSelect.addEventListener('change', renderCharacterInspector);
+    }
+    if (dbg.inspectorSliderList) {
+      dbg.inspectorSliderList.addEventListener('input', handleInspectorSliderInput);
+    }
+    if (dbg.inspectorResetBone) {
+      dbg.inspectorResetBone.addEventListener('click', () => {
+        mascot.motion.resetBasePoseBone(dbg.inspectorBoneSelect.value);
+        renderCharacterInspector();
+        setInspectorStatus('已重設骨骼');
+      });
+    }
+    if (dbg.inspectorResetAll) {
+      dbg.inspectorResetAll.addEventListener('click', () => {
+        mascot.motion.resetBasePoseAll();
+        renderCharacterInspector();
+        setInspectorStatus('已全部重設');
+      });
+    }
+    if (dbg.inspectorCopyJson) {
+      dbg.inspectorCopyJson.addEventListener('click', copyInspectorJson);
+    }
+    if (dbg.inspectorSaveLocal) {
+      dbg.inspectorSaveLocal.addEventListener('click', saveInspectorPresetLocal);
+    }
+
+    // ── 載入 ────────────────────────────────
+    mascot.onLoadProgress = (pct) => {
+      loadingTxt.textContent = `正在載入 VRM 模型... ${pct}%`;
+    };
+
+    mascot.onLoaded = () => {
+      overlay.classList.add('hidden');
+      setTimeout(() => { overlay.style.display = 'none'; }, 500);
+      loadInspectorPresetFromLocal();
+    };
+
+    mascot.onLoadError = (err) => {
+      loadingTxt.textContent = `載入失敗: ${err.message || err}`;
+      console.error('VRM load error:', err);
+    };
+
+    const selector = document.getElementById('modelSelector');
+    loadInspectorPresetFromLocal();
+    mascot.load(selector.value);
+
+    selector.addEventListener('change', () => {
+      overlay.style.display = '';
+      overlay.classList.remove('hidden');
+      loadingTxt.textContent = '正在載入 VRM 模型...';
+      loadInspectorPresetFromLocal();
+      mascot.load(selector.value);
+    });
+
+    // ── 上傳 VRM ──────────────────────────
+    const fileInput = document.getElementById('vrmFileInput');
+    document.getElementById('btnUploadVRM').addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      overlay.style.display = '';
+      overlay.classList.remove('hidden');
+      loadingTxt.textContent = `正在載入 ${file.name}...`;
+      try {
+        await mascot.loadFromFile(file);
+      } catch (err) {
+        console.error(err);
+        loadingTxt.textContent = `載入失敗: ${err.message}`;
+      }
+      fileInput.value = '';
+    });
+
+    // ── 載入自訂動作 ──────────────────────
+    const motionSelector = document.getElementById('motionSelector');
+    const motionFileInput = document.getElementById('motionFileInput');
+
+    motionSelector.addEventListener('change', async () => {
+      const url = motionSelector.value;
+      if (!url) return;
+      try {
+        const animData = await mascot.loadCustomAnimation(url);
+        mascot.dispatch('custom_animation', { animationData: animData, loop: true });
+      } catch (err) {
+        console.error('Failed to load custom animation:', err);
+        alert(`無法載入動作檔: ${err.message}`);
+      }
+    });
+
+    document.getElementById('btnUploadMotion').addEventListener('click', () => motionFileInput.click());
+    motionFileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        const animData = await mascot.loadCustomAnimationFromFile(file);
+        motionSelector.value = '';
+        mascot.dispatch('custom_animation', { animationData: animData, loop: true });
+      } catch (err) {
+        console.error('Failed to parse motion file:', err);
+        alert(`無法解析動作檔: ${err.message}`);
+      }
+      motionFileInput.value = '';
+    });
+
+    // ── Real LLM Proxy Connector Logic (Phase 5B) ──
+    let mockLlmTimer = null;
+    let mockLlmRequestId = 0;
+    let llmAbortController = null;
+
+    const chatInput = document.getElementById('chatInput');
+    const jsonPreview = document.getElementById('jsonPreview');
+    const btnSendChat = document.getElementById('btnSendChat');
+
+    // ── Mock GIS Tool (Phase 6) ────────────────
+    let gisRequestId = 0;
+    const gisInfo     = document.getElementById('gisInfo');
+    const gisMarker   = document.getElementById('gisMarker');
+    const gisPipeLine = document.getElementById('gisPipeLine');
+
+    // 延遲輔助函式
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+    async function mockQueryPipe(args) {
+      const requestId = ++gisRequestId;
+      console.log(`[MockGIS] Start query_pipe. Request ID: ${requestId}`, args);
+
+      // 設定地圖狀態為查詢中
+      gisInfo.innerHTML = `<span class="gis-pulse"></span>正在搜尋管線座標: (x: ${args.x ?? 0}, y: ${args.y ?? 0})...`;
+      gisInfo.className = 'gis-info querying';
+
+      // 隱藏/重設地圖元件
+      gisMarker.style.display = 'none';
+      gisPipeLine.setAttribute('x2', '10%');
+      gisPipeLine.setAttribute('y2', '90%');
+      gisPipeLine.classList.remove('active');
+
+      // 延遲 1200ms 模擬計算
+      await sleep(1200);
+
+      // 保護點 3：若已被中斷或重設，直接捨棄，標記為 staled
+      if (requestId !== gisRequestId) {
+        console.log(`[MockGIS] Request ${requestId} is stale, discarding.`);
+        return { ok: false, error: 'stale request discarded' };
+      }
+
+      // 成功標記與畫線
+      const x = args.x ?? 65;
+      const y = args.y ?? 45;
+      gisMarker.style.left = `${x}%`;
+      gisMarker.style.top = `${y}%`;
+      gisMarker.style.display = 'block';
+
+      // 畫管線
+      gisPipeLine.setAttribute('x2', `${x}%`);
+      gisPipeLine.setAttribute('y2', `${y}%`);
+      gisPipeLine.classList.add('active');
+
+      gisInfo.textContent = `查詢成功! 管線編號: WP-008, 深度: -1.2m`;
+      gisInfo.className = 'gis-info success';
+
+      if (mascot.context) {
+        mascot.context.update({
+          selectedFeature: 'PIPE-008',
+          activeLayer: 'sewer',
+          mapCenter: [120.65, 24.15]
+        });
+      }
+
+      return { ok: true, summary: "找到 1 條污水管，直徑 500mm，深度 1.8m", data: { pipe_id: "PIPE-008", type: "sewer", diameter: 500, depth: 1.8 } };
+    }
+
+    async function mockQueryCCTV(args) {
+      const requestId = ++gisRequestId;
+      console.log(`[MockGIS] Start query_cctv. Request ID: ${requestId}`, args);
+
+      // 設定地圖狀態為查詢中
+      gisInfo.innerHTML = `<span class="gis-pulse"></span>正在讀取監視器座標: (x: ${args.x ?? 0}, y: ${args.y ?? 0})...`;
+      gisInfo.className = 'gis-info querying';
+
+      // 隱藏/重設地圖元件
+      gisMarker.style.display = 'none';
+      gisPipeLine.classList.remove('active');
+
+      // 延遲 1200ms 模擬計算
+      await sleep(1200);
+
+      // 保護點 3：若已被中斷或重設，直接捨棄，標記為 staled
+      if (requestId !== gisRequestId) {
+        console.log(`[MockGIS] Request ${requestId} is stale, discarding.`);
+        return { ok: false, error: 'stale request discarded' };
+      }
+
+      // 成功標記與畫線 (監視器定位)
+      const x = args.x ?? 30;
+      const y = args.y ?? 60;
+      gisMarker.style.left = `${x}%`;
+      gisMarker.style.top = `${y}%`;
+      gisMarker.style.display = 'block';
+
+      gisInfo.textContent = `監視器連線成功! 設備: CCTV-042 (運行中)`;
+      gisInfo.className = 'gis-info success';
+
+      if (mascot.context) {
+        mascot.context.update({
+          selectedFeature: 'CCTV-042',
+          activeLayer: 'monitoring',
+          mapCenter: [120.63, 24.16]
+        });
+      }
+
+      return { ok: true, summary: "已載入 CCTV-042 即時影像，目前串流穩定", data: { device: "CCTV-042", status: "online" } };
+    }
+
+    // 當重設或中斷時，主動遞增 gisRequestId 使得正在進行的查詢作廢，並設定地圖狀態為 cancelled
+    function cancelGisQuery() {
+      gisRequestId++;
+      gisInfo.textContent = "GIS Query Cancelled.";
+      gisInfo.className = 'gis-info cancelled';
+      gisMarker.style.display = 'none';
+      gisPipeLine.classList.remove('active');
+    }
+
+    // 註冊自訂異步工具到能力系統 (Phase 7)
+    mascot.tools.register('query_pipe', mockQueryPipe, {
+      description: '查詢地下管線數據',
+      schema: {
+        required: ['x', 'y']
+      }
+    });
+
+    mascot.tools.register('query_cctv', mockQueryCCTV, {
+      description: '查詢路口監視器影像',
+      schema: {
+        required: ['x', 'y']
+      }
+    });
+
+    function mockDownloadReport(args) {
+      const featureId = args.featureId;
+      if (!featureId || featureId === 'none') {
+        throw new Error('Please select a valid feature to download report.');
+      }
+
+      // 產生報告內容
+      const content = `EasyMap Agent SDK — 維護檢測報告
+======================================
+報告對象 (Target): ${featureId}
+產出時間 (Time): ${new Date().toISOString()}
+檢測狀態 (Status): OK
+檢測說明: 本檢測報告為 AI 自動派發下載，確認管線/監視器運行指標一切良好。`;
+
+      // 觸發真實瀏覽器下載
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `report_${featureId}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      // 回傳符合 user 建議之格式
+      return {
+        ok: true,
+        tool: "download_report",
+        featureId: featureId,
+        filename: `report_${featureId}.txt`,
+        message: `已成功下載 ${featureId} 檢測報告文本。`
+      };
+    }
+
+    mascot.tools.register('download_report', mockDownloadReport, {
+      description: '下載指定設備之檢測維護報告',
+      schema: {
+        required: ['featureId']
+      }
+    });
+
+    function sendChat() {
+      const text = chatInput.value.trim();
+
+      chatInput.value = ''; // 立即清空輸入框
+
+      mockLlmRequestId++;
+      const requestId = mockLlmRequestId;
+
+      if (mockLlmTimer) {
+        clearTimeout(mockLlmTimer);
+        mockLlmTimer = null;
+      }
+
+      // 中斷當前所有動作與地圖查詢，立即切換到思考狀態
+      cancelGisQuery();
+      mascot.clearQueue();
+      mascot.performIntent({
+        intent: "thinking",
+        text: "正在發送請求至 LLM Proxy..."
+      });
+
+      jsonPreview.textContent = JSON.stringify({
+        status: "sending request to proxy...",
+        requestId,
+        text
+      }, null, 2);
+
+      // 向後端發送語意請求
+      fetch('/api/llm', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: text,
+          contextDigest: mascot.buildContextDigest ? mascot.buildContextDigest() : {}
+        }),
+        signal: llmAbortController ? (llmAbortController.abort(), llmAbortController = new AbortController()).signal : (llmAbortController = new AbortController()).signal
+      })
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        return res.json();
+      })
+      .then(result => {
+        if (requestId !== mockLlmRequestId) return;
+
+        jsonPreview.textContent = JSON.stringify(result, null, 2);
+        mascot.performIntent(result);
+      })
+      .catch(err => {
+        // 忽略 AbortController 主動取消造成的例外
+        if (err.name === 'AbortError') return;
+
+        if (requestId !== mockLlmRequestId) return;
+
+        console.error('LLM proxy error:', err);
+        const errorResult = {
+          intent: "error",
+          text: `連線後端 Proxy 失敗：${err.message || err}`
+        };
+        jsonPreview.textContent = JSON.stringify(errorResult, null, 2);
+        mascot.performIntent(errorResult);
+      });
+    }
+
+    btnSendChat.addEventListener('click', sendChat);
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        sendChat();
+      }
+    });
+
+    // ── 滑鼠注視 ──────────────────────────
+    viewport.addEventListener('mousemove', (e) => mascot.handleMouseMove(e));
+
+    // ── 狀態按鈕：全部用 dispatch ─────────
+    document.querySelectorAll('[data-state]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        cancelGisQuery(); // 中斷地圖
+        mascot.dispatch(btn.dataset.state);
+      });
+    });
+
+    // ── 意圖按鈕：呼叫 performIntent ──────
+    document.querySelectorAll('[data-intent]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        mascot.performIntent({ intent: btn.dataset.intent });
+      });
+    });
+
+    // ── 清除記憶按鈕 ──────────────────────
+    document.getElementById('btnClearMemory').addEventListener('click', () => {
+      if (mascot.memory) {
+        mascot.memory.clear();
+      }
+    });
+
+    // ── 下載報表按鈕 ──────────────────────
+    document.getElementById('btnDownloadReport').addEventListener('click', () => {
+      const spatialContext = mascot.context ? mascot.context.get() : { selectedFeature: 'none' };
+      const selectedFeature = spatialContext.selectedFeature || 'none';
+      if (selectedFeature !== 'none') {
+        mascot.performIntent({
+          intent: "download_report",
+          confidence: 1.0,
+          tool: "download_report",
+          args: { featureId: selectedFeature },
+          afterText: "我已經幫您下載完成囉～"
+        });
+      } else {
+        mascot.performIntent({
+          intent: "warning",
+          text: "目前沒有選取地圖物件，請先點選左側管線或監視器設備以進行下載。"
+        });
+      }
+    });
+
+    // ── 重設空間按鈕 ──────────────────────
+    document.getElementById('btnResetContext').addEventListener('click', () => {
+      if (mascot.context) {
+        mascot.context.clear();
+      }
+      if (mascot.domContext) {
+        mascot.domContext.clear();
+      }
+    });
+
+    // ── Demo Form 提交與資料匯出 (Phase 11) ──
+    document.getElementById('btnSubmitReport').addEventListener('click', () => {
+      const form = document.getElementById('gisReportForm');
+      const address = document.getElementById('reportAddress');
+      const email = document.getElementById('reportEmail');
+
+      if (mascot.domContext) {
+        mascot.domContext.updateFormContext(address);
+        mascot.domContext.updateFormContext(email);
+      }
+
+      if (form.checkValidity()) {
+        gisInfo.textContent = "報告已成功送出！";
+        gisInfo.className = 'gis-info success';
+      } else {
+        gisInfo.textContent = "回報單欄位校驗失敗！";
+        gisInfo.className = 'gis-info error';
+      }
+    });
+
+    document.getElementById('btnExportFeature').addEventListener('click', () => {
+      gisInfo.textContent = `匯出成功! 格式: ${document.getElementById('exportFormat').value.toUpperCase()}`;
+      gisInfo.className = 'gis-info success';
+    });
+
+    // ── 說話按鈕 ──────────────────────────
+    document.getElementById('btnSay').addEventListener('click', () => {
+      mascot.say('羽山哥，部署完成了！🚀');
+    });
+
+    // ── 序列展示按鈕 ──────────────────────
+    document.getElementById('btnShowQueue').addEventListener('click', () => {
+      console.log('[UI] Enqueueing demo action sequence');
+      mascot.enqueue([
+        { type: 'lookAt', target: 'mouse' },
+        { type: 'wait', duration: 500 },
+        {
+          type: 'say',
+          text: '羽山哥，這個動畫與排程佇列載入成功了！👍',
+          emotion: 'joy',
+          motion: 'wave',
+          timeout: 6000
+        },
+        { type: 'wait', duration: 300 },
+        { type: 'do', name: 'happy', timeout: 3000 },
+      ]);
+    });
+
+    // ── 對話泡泡 ──────────────────────────
+    mascot.state.onSay = (text) => {
+      if (text) {
+        bubble.textContent = text;
+        bubble.classList.add('visible');
+      } else {
+        bubble.classList.remove('visible');
+      }
+    };
+
+    // ── 重置視角 ──────────────────────────
+    document.getElementById('btnResetCamera').addEventListener('click', () => {
+      mascot.resetCamera();
+    });
+
+    // ── Debug Panel 開合 ──────────────────
+    document.getElementById('debugToggle').addEventListener('click', () => {
+      document.getElementById('debugPanel').classList.toggle('open');
+    });
+
+    // ── Console 提示 ─────────────────────
+    console.log(
+      '%c🤖 VRM Mascot — State Machine',
+      'color: #18a999; font-size: 16px; font-weight: bold;'
+    );
+    console.log('API:');
+    console.log('  mascot.dispatch("greeting")');
+    console.log('  mascot.dispatch("thinking")');
+    console.log('  mascot.dispatch("dancing")');
+    console.log('  mascot.dispatch("happy")');
+    console.log('  mascot.dispatch("idle")');
+    console.log('  mascot.say("你好")');
+    console.log('  mascot.dispatch("custom", { animationData: data, loop: true })');
+    console.log('行為佇列 API:');
+    console.log('  mascot.enqueue({ type: "say", text: "哈囉", emotion: "fun", motion: "wave" })');
+    console.log('  mascot.enqueue([{ type: "wait", duration: 1000 }, { type: "do", name: "happy" }])');
+    console.log('  mascot.clearQueue()');
+    console.log('代理意圖 API:');
+    console.log('  mascot.performIntent("greeting")');
+    console.log('  mascot.performIntent({ intent: "success", text: "客製化文字", emotion: "joy" })');
+    console.log('別名:');
+    console.log('  mascot.dispatch("wave")  → greeting');
+    console.log('  mascot.dispatch("dance") → dancing');
+    console.log('  mascot.dispatch("think") → thinking');
+
+    window.mascot = mascot;
+  </script>
+
+</body>
+</html>

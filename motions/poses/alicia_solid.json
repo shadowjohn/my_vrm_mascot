@@ -1,0 +1,22 @@
+{
+  "model": "AliciaSolid",
+  "basePose": {
+    "rotation": {
+      "spine": { "x": 2, "y": 0, "z": -2 },
+      "chest": { "x": -2, "y": -2, "z": -1 },
+      "leftShoulder": { "x": 0, "y": 0, "z": 2 },
+      "rightShoulder": { "x": 0, "y": 0, "z": -2 },
+      "leftUpperArm": { "x": 9, "y": -3, "z": 54 },
+      "rightUpperArm": { "x": 9, "y": 3, "z": -54 },
+      "leftLowerArm": { "x": 1, "y": -14, "z": -5 },
+      "rightLowerArm": { "x": 1, "y": 14, "z": 5 },
+      "leftHand": { "x": -2, "y": 0, "z": -2 },
+      "rightHand": { "x": -2, "y": 0, "z": 2 },
+      "leftUpperLeg": { "x": 1, "y": 0, "z": 2 },
+      "rightUpperLeg": { "x": -1, "y": 0, "z": -2 }
+    },
+    "position": {
+      "hips": { "x": -0.014, "y": 0, "z": 0.004 }
+    }
+  }
+}

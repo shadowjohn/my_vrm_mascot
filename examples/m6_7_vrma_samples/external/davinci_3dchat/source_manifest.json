@@ -1,0 +1,380 @@
+{
+  "sourceName": "3dchat",
+  "sourceUrl": "https://github.com/DavinciDreams/3dchat",
+  "retrievedAt": "2026-06-14T00:00:00+08:00",
+  "usageStatus": "local_mining_only_license_not_verified",
+  "upstreamLicense": "",
+  "upstreamCommit": "25f22f42f3f2d3f92a979e9710a2d5cf4d0f7d00",
+  "note": "Selected agent-friendly VRMA motions for local Alicia Motion Mine review. Verify upstream license and redistribution terms before committing or shipping VRMA binaries.",
+  "files": [
+    {
+      "localFile": "davinci_acknowledging.vrma",
+      "sourcePath": "public/animations/vrma/acknowledging.vrma",
+      "sourceSize": 61643,
+      "size": 61643,
+      "format": "json_gltf_vrma",
+      "sha256": "a1d6ad370be9cf504694e5b1a0decc1070c9900905f0725527615723a47fb97a",
+      "suggestedMiningUse": "success"
+    },
+    {
+      "localFile": "davinci_angryGesture.vrma",
+      "sourcePath": "public/animations/vrma/angryGesture.vrma",
+      "sourceSize": 73648,
+      "size": 73648,
+      "format": "json_gltf_vrma",
+      "sha256": "42cd80720837cc5e9b7ad5a4b84387e54ce839302759a584ed067bf2fa06b676",
+      "suggestedMiningUse": "warning"
+    },
+    {
+      "localFile": "davinci_annoyedHeadShake.vrma",
+      "sourcePath": "public/animations/vrma/annoyedHeadShake.vrma",
+      "sourceSize": 68374,
+      "size": 68374,
+      "format": "json_gltf_vrma",
+      "sha256": "445525d74feb418b52d11647a66e72873d1a146799517fcb2a155c5326c3c879",
+      "suggestedMiningUse": "warning"
+    },
+    {
+      "localFile": "davinci_bashful.vrma",
+      "sourcePath": "public/animations/vrma/bashful.vrma",
+      "sourceSize": 923677,
+      "size": 923677,
+      "format": "json_gltf_vrma",
+      "sha256": "b818492a6e46e24f0dac3165dae0cd502016afab616393dff28b8084f567c434",
+      "suggestedMiningUse": "think"
+    },
+    {
+      "localFile": "davinci_beckoning.vrma",
+      "sourcePath": "public/animations/vrma/beckoning.vrma",
+      "sourceSize": 772849,
+      "size": 772849,
+      "format": "json_gltf_vrma",
+      "sha256": "3f6a19ca2c16a09cd8b081bcb06c31f50608d6f93afb02d5aaf920c79df0df07",
+      "suggestedMiningUse": "point_or_present"
+    },
+    {
+      "localFile": "davinci_beingCocky.vrma",
+      "sourcePath": "public/animations/vrma/beingCocky.vrma",
+      "sourceSize": 80369,
+      "size": 80369,
+      "format": "json_gltf_vrma",
+      "sha256": "b847087e5e8ceee2955d6d44be709991786db920f7a37083d12c977eff42192e",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci_boredmelancholyIdle_1.vrma",
+      "sourcePath": "public/animations/vrma/boredmelancholyIdle_1.vrma",
+      "sourceSize": 776581,
+      "size": 776581,
+      "format": "json_gltf_vrma",
+      "sha256": "760e0f1fef8febc16cc12e3434a84a94b443eb32a8fe4ef7798b9e3e0402da0e",
+      "suggestedMiningUse": "think"
+    },
+    {
+      "localFile": "davinci_bowing.vrma",
+      "sourcePath": "public/animations/vrma/bowing.vrma",
+      "sourceSize": 2644948,
+      "size": 2644948,
+      "format": "json_gltf_vrma",
+      "sha256": "e00ab1ac85e2294fb4bedf069c4213eff977907f4c0da9d09527e9122353ea76",
+      "suggestedMiningUse": "success"
+    },
+    {
+      "localFile": "davinci_buttonPushing.vrma",
+      "sourcePath": "public/animations/vrma/buttonPushing.vrma",
+      "sourceSize": 784051,
+      "size": 784051,
+      "format": "json_gltf_vrma",
+      "sha256": "f7529bfc63f0adb40980b75ea8cec43fab3ef1b0a6a715dba52a6a836dab3753",
+      "suggestedMiningUse": "point_or_present"
+    },
+    {
+      "localFile": "davinci_cockyHeadTurn.vrma",
+      "sourcePath": "public/animations/vrma/cockyHeadTurn.vrma",
+      "sourceSize": 771265,
+      "size": 771265,
+      "format": "json_gltf_vrma",
+      "sha256": "4a8626854bf3617c1d5fd44e308d10b5831753e36d3ce54c70ad155a255fe2bc",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci_disappointed.vrma",
+      "sourcePath": "public/animations/vrma/disappointed.vrma",
+      "sourceSize": 801263,
+      "size": 801263,
+      "format": "json_gltf_vrma",
+      "sha256": "07dd8d875b960e9bab92eb3859f21f98f054ffbbb65d303559e1b2a94f63a033",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci_dismissingGesture.vrma",
+      "sourcePath": "public/animations/vrma/dismissingGesture.vrma",
+      "sourceSize": 93051,
+      "size": 93051,
+      "format": "json_gltf_vrma",
+      "sha256": "24ccdd4ee4c0b7ecc6aa442ae121090ec850a9c9de9843683d069a462e75b652",
+      "suggestedMiningUse": "warning"
+    },
+    {
+      "localFile": "davinci_happyHandGesture.vrma",
+      "sourcePath": "public/animations/vrma/happyHandGesture.vrma",
+      "sourceSize": 85629,
+      "size": 85629,
+      "format": "json_gltf_vrma",
+      "sha256": "a34a11da11c007e68d0e3796fd335b5f1a53436954d11387a5713ad99683575b",
+      "suggestedMiningUse": "success"
+    },
+    {
+      "localFile": "davinci_happyIdle.vrma",
+      "sourcePath": "public/animations/vrma/happyIdle.vrma",
+      "sourceSize": 831476,
+      "size": 831476,
+      "format": "json_gltf_vrma",
+      "sha256": "c84fc63459771e11006617bd58af5e0547a0335e1dca7eb68526266971c00fce",
+      "suggestedMiningUse": "success"
+    },
+    {
+      "localFile": "davinci_hardHeadNod.vrma",
+      "sourcePath": "public/animations/vrma/hardHeadNod.vrma",
+      "sourceSize": 63892,
+      "size": 63892,
+      "format": "json_gltf_vrma",
+      "sha256": "b6b63b8af1a4f329b6d33d68c7703f6665aee06dfe298544a9f70dac0c6f5e34",
+      "suggestedMiningUse": "success"
+    },
+    {
+      "localFile": "davinci_headNod.vrma",
+      "sourcePath": "public/animations/vrma/headNod.vrma",
+      "sourceSize": 81149,
+      "size": 81149,
+      "format": "json_gltf_vrma",
+      "sha256": "f58f944fb8e59b6a761f2aed53b836fe59d0a7a94adc3f80684fbadfb07eb2aa",
+      "suggestedMiningUse": "success"
+    },
+    {
+      "localFile": "davinci_idle.vrma",
+      "sourcePath": "public/animations/vrma/idle.vrma",
+      "sourceSize": 99777,
+      "size": 99777,
+      "format": "json_gltf_vrma",
+      "sha256": "9407e894822c125c0d27b063854d7f0849200b51b068e526d3a30e8ca191ef33",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci_lengthyHeadNod.vrma",
+      "sourcePath": "public/animations/vrma/lengthyHeadNod.vrma",
+      "sourceSize": 65429,
+      "size": 65429,
+      "format": "json_gltf_vrma",
+      "sha256": "016d8cac96a380f62e4f209063109785b9c314f055d0deeddfde4ca01f4beb67",
+      "suggestedMiningUse": "success"
+    },
+    {
+      "localFile": "davinci_lookAround.vrma",
+      "sourcePath": "public/animations/vrma/lookAround.vrma",
+      "sourceSize": 806492,
+      "size": 806492,
+      "format": "json_gltf_vrma",
+      "sha256": "1eefc93000b2b1f39b8cd88f57f6e4e1be6b9ea2c8db983e8bccf72d5b712895",
+      "suggestedMiningUse": "think"
+    },
+    {
+      "localFile": "davinci_lookAwayGesture.vrma",
+      "sourcePath": "public/animations/vrma/lookAwayGesture.vrma",
+      "sourceSize": 68374,
+      "size": 68374,
+      "format": "json_gltf_vrma",
+      "sha256": "04c08b8d784810428038fdb97a62c89a68a4bea807837479e2936497bf35d879",
+      "suggestedMiningUse": "point_or_present"
+    },
+    {
+      "localFile": "davinci_nervouslyLookAround.vrma",
+      "sourcePath": "public/animations/vrma/nervouslyLookAround.vrma",
+      "sourceSize": 891203,
+      "size": 891203,
+      "format": "json_gltf_vrma",
+      "sha256": "22c26699f6db0a9612d0ab1de39a96ec1c17eaef33c6a5936fab4c2188c495ba",
+      "suggestedMiningUse": "think"
+    },
+    {
+      "localFile": "davinci_plotting.vrma",
+      "sourcePath": "public/animations/vrma/plotting.vrma",
+      "sourceSize": 785544,
+      "size": 785544,
+      "format": "json_gltf_vrma",
+      "sha256": "dfb38034023133ca61b4f9db8eddb4523f310a46f8dca765811cdd6d7b0952ed",
+      "suggestedMiningUse": "think"
+    },
+    {
+      "localFile": "davinci_pointing.vrma",
+      "sourcePath": "public/animations/vrma/pointing.vrma",
+      "sourceSize": 772027,
+      "size": 772027,
+      "format": "json_gltf_vrma",
+      "sha256": "5b27867cf8652b1a5a5d2b2c4536ca585ea70b4fcfa71fdf181cec4740b87e35",
+      "suggestedMiningUse": "point_or_present"
+    },
+    {
+      "localFile": "davinci_relievedSigh.vrma",
+      "sourcePath": "public/animations/vrma/relievedSigh.vrma",
+      "sourceSize": 86334,
+      "size": 86334,
+      "format": "json_gltf_vrma",
+      "sha256": "dfe240fe434249baecd42e2b167bfb39cd7162a52bdd1470d1d6786a002c9186",
+      "suggestedMiningUse": "success"
+    },
+    {
+      "localFile": "davinci_sadIdle.vrma",
+      "sourcePath": "public/animations/vrma/sadIdle.vrma",
+      "sourceSize": 774341,
+      "size": 774341,
+      "format": "json_gltf_vrma",
+      "sha256": "5f1e4c55c2a9cbcdf3d43c770bfd3746fe50998b2043c1746a3a9a25a7023338",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci_salute.vrma",
+      "sourcePath": "public/animations/vrma/salute.vrma",
+      "sourceSize": 2660879,
+      "size": 2660879,
+      "format": "json_gltf_vrma",
+      "sha256": "f567e1bf03d3a27c047242a9a7e07d793a8343e75fb6fc0f1522025b199e48de",
+      "suggestedMiningUse": "point_or_present"
+    },
+    {
+      "localFile": "davinci_sarcasticHeadNod.vrma",
+      "sourcePath": "public/animations/vrma/sarcasticHeadNod.vrma",
+      "sourceSize": 74392,
+      "size": 74392,
+      "format": "json_gltf_vrma",
+      "sha256": "88ebea5336bce6e6a9262d82dc665b1388ba0631bf3236501447a9feac3abe46",
+      "suggestedMiningUse": "success"
+    },
+    {
+      "localFile": "davinci_shakingHeadNo.vrma",
+      "sourcePath": "public/animations/vrma/shakingHeadNo.vrma",
+      "sourceSize": 61643,
+      "size": 61643,
+      "format": "json_gltf_vrma",
+      "sha256": "9b91c8666718ef9b208fe28c2092c5ac97d90138369d57b46ba3bdd2522a37ba",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci_shrugging.vrma",
+      "sourcePath": "public/animations/vrma/shrugging.vrma",
+      "sourceSize": 759307,
+      "size": 759307,
+      "format": "json_gltf_vrma",
+      "sha256": "1939f80205cbd6dc3c18b7130bd4b8a63de7fd8a0dbc4f1a1a66f9b00b68cb88",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci_standingArguing.vrma",
+      "sourcePath": "public/animations/vrma/standingArguing.vrma",
+      "sourceSize": 1099213,
+      "size": 1099213,
+      "format": "json_gltf_vrma",
+      "sha256": "da3e7426857d6d0d07491db42cd0640431608a5866276f4dcd37f9d8c2552e44",
+      "suggestedMiningUse": "warning"
+    },
+    {
+      "localFile": "davinci_standingClap.vrma",
+      "sourcePath": "public/animations/vrma/standingClap.vrma",
+      "sourceSize": 805744,
+      "size": 805744,
+      "format": "json_gltf_vrma",
+      "sha256": "1a03cfa7c2b089820e0f600841d3b56c123aff4035e1fade4dfb2db3329a55aa",
+      "suggestedMiningUse": "success"
+    },
+    {
+      "localFile": "davinci_standingGreeting.vrma",
+      "sourcePath": "public/animations/vrma/standingGreeting.vrma",
+      "sourceSize": 817692,
+      "size": 817692,
+      "format": "json_gltf_vrma",
+      "sha256": "8aeee75ced6965e66d542f8684b9e488b26006bbdb59ac1669261e73ce7761cc",
+      "suggestedMiningUse": "point_or_present"
+    },
+    {
+      "localFile": "davinci_strongGesture.vrma",
+      "sourcePath": "public/animations/vrma/strongGesture.vrma",
+      "sourceSize": 757210,
+      "size": 757210,
+      "format": "json_gltf_vrma",
+      "sha256": "3aeeafba8da41df018f88ccb709b7437d8da9001f666d0f33714ea1e14c43d58",
+      "suggestedMiningUse": "warning"
+    },
+    {
+      "localFile": "davinci_talking.vrma",
+      "sourcePath": "public/animations/vrma/talking.vrma",
+      "sourceSize": 793711,
+      "size": 793711,
+      "format": "json_gltf_vrma",
+      "sha256": "fb6ab4ab11edb2f700fabfff91085a74bd0b27cdf6592202b79e79f97a14c5e2",
+      "suggestedMiningUse": "point_or_present"
+    },
+    {
+      "localFile": "davinci_thinking.vrma",
+      "sourcePath": "public/animations/vrma/thinking.vrma",
+      "sourceSize": 802011,
+      "size": 802011,
+      "format": "json_gltf_vrma",
+      "sha256": "4312c401a49b685f1b082f64adbdb20c0a83e72db0c20e236343e70a04785011",
+      "suggestedMiningUse": "think"
+    },
+    {
+      "localFile": "davinci_thoughtfulHeadShake.vrma",
+      "sourcePath": "public/animations/vrma/thoughtfulHeadShake.vrma",
+      "sourceSize": 87126,
+      "size": 87126,
+      "format": "json_gltf_vrma",
+      "sha256": "3c572d287ef5245ac22f502c09d3ae9dcbe61f3798cd2629e1c344a9caeb8922",
+      "suggestedMiningUse": "warning"
+    },
+    {
+      "localFile": "davinci_victory.vrma",
+      "sourcePath": "public/animations/vrma/victory.vrma",
+      "sourceSize": 878871,
+      "size": 878871,
+      "format": "json_gltf_vrma",
+      "sha256": "ad2d57efc34e8ab887bfd24c8a6c7ac7df30b870339623d5df17c8ec8c92ce94",
+      "suggestedMiningUse": "success"
+    },
+    {
+      "localFile": "davinci_victoryIdle.vrma",
+      "sourcePath": "public/animations/vrma/victoryIdle.vrma",
+      "sourceSize": 755845,
+      "size": 755845,
+      "format": "json_gltf_vrma",
+      "sha256": "0ab7ff2c32c269395d99086745d367fbe01f91c5d59697b5923c035425584e3d",
+      "suggestedMiningUse": "success"
+    },
+    {
+      "localFile": "davinci_waving.vrma",
+      "sourcePath": "public/animations/vrma/waving.vrma",
+      "sourceSize": 810972,
+      "size": 810972,
+      "format": "json_gltf_vrma",
+      "sha256": "7256034cef2f5a98d4b5738106622df39c14461ddf91ec4dc4cbc27e872d27cf",
+      "suggestedMiningUse": "success"
+    },
+    {
+      "localFile": "davinci_weightShift.vrma",
+      "sourcePath": "public/animations/vrma/weightShift.vrma",
+      "sourceSize": 203658,
+      "size": 203658,
+      "format": "json_gltf_vrma",
+      "sha256": "acafe93ad80edbc739110bbe04aef3b864a865af9827bc420e5799287b4dc19d",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci_yawn.vrma",
+      "sourcePath": "public/animations/vrma/yawn.vrma",
+      "sourceSize": 875938,
+      "size": 875938,
+      "format": "json_gltf_vrma",
+      "sha256": "9483a329ecc0584a9c9f9b694954899698343e92704ab7af75548da2036f04c3",
+      "suggestedMiningUse": "think"
+    }
+  ]
+}

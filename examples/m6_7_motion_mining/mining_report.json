@@ -1,0 +1,499 @@
+{
+  "sprint": "Motion Mining Sprint 001",
+  "status": "interim",
+  "generatedAt": "2026-06-14T10:30:00+08:00",
+  "generatedFrom": "mining_log.json",
+  "totalEntries": 50,
+  "sourceCount": 10,
+  "targetEntries": 100,
+  "categoryCounts": {
+    "warning": 9,
+    "reject": 10,
+    "success": 6,
+    "present": 5,
+    "point": 4,
+    "candidate_future": 5,
+    "think": 11
+  },
+  "sourceCounts": {
+    "Angry.vrma": 5,
+    "Clapping.vrma": 5,
+    "Goodbye.vrma": 5,
+    "Jump.vrma": 5,
+    "LookAround.vrma": 5,
+    "Relax.vrma": 5,
+    "Sad.vrma": 5,
+    "Sleepy.vrma": 5,
+    "Surprised.vrma": 5,
+    "Thinking.vrma": 5
+  },
+  "reasonCounts": {
+    "too_large_motion": 2,
+    "hands_cover_face": 4,
+    "requires_locomotion": 2,
+    "requires_weight_shift": 2,
+    "requires_lower_body": 1,
+    "not_agentic": 2,
+    "unclear_intent": 2
+  },
+  "averagesByCategory": {
+    "warning": {
+      "count": 9,
+      "score": 3.44,
+      "sourceScore": 3.67,
+      "agentScore": 3.44
+    },
+    "reject": {
+      "count": 10,
+      "score": 1.9,
+      "sourceScore": 2.8,
+      "agentScore": 1.9
+    },
+    "success": {
+      "count": 6,
+      "score": 3.17,
+      "sourceScore": 3.17,
+      "agentScore": 3.17
+    },
+    "present": {
+      "count": 5,
+      "score": 4.4,
+      "sourceScore": 4.4,
+      "agentScore": 4.4
+    },
+    "point": {
+      "count": 4,
+      "score": 3.25,
+      "sourceScore": 4.25,
+      "agentScore": 3.25
+    },
+    "candidate_future": {
+      "count": 5,
+      "score": 3.6,
+      "sourceScore": 4.2,
+      "agentScore": 1.4
+    },
+    "think": {
+      "count": 11,
+      "score": 4.18,
+      "sourceScore": 4.18,
+      "agentScore": 4.18
+    }
+  },
+  "rankings": {
+    "categoryByCount": [
+      {
+        "category": "think",
+        "count": 11
+      },
+      {
+        "category": "reject",
+        "count": 10
+      },
+      {
+        "category": "warning",
+        "count": 9
+      },
+      {
+        "category": "success",
+        "count": 6
+      },
+      {
+        "category": "candidate_future",
+        "count": 5
+      },
+      {
+        "category": "present",
+        "count": 5
+      },
+      {
+        "category": "point",
+        "count": 4
+      }
+    ],
+    "reasonByCount": [
+      {
+        "reason": "hands_cover_face",
+        "count": 4
+      },
+      {
+        "reason": "not_agentic",
+        "count": 2
+      },
+      {
+        "reason": "requires_locomotion",
+        "count": 2
+      },
+      {
+        "reason": "requires_weight_shift",
+        "count": 2
+      },
+      {
+        "reason": "too_large_motion",
+        "count": 2
+      },
+      {
+        "reason": "unclear_intent",
+        "count": 2
+      },
+      {
+        "reason": "requires_lower_body",
+        "count": 1
+      }
+    ],
+    "sourceByCount": [
+      {
+        "source": "Angry.vrma",
+        "count": 5
+      },
+      {
+        "source": "Clapping.vrma",
+        "count": 5
+      },
+      {
+        "source": "Goodbye.vrma",
+        "count": 5
+      },
+      {
+        "source": "Jump.vrma",
+        "count": 5
+      },
+      {
+        "source": "LookAround.vrma",
+        "count": 5
+      },
+      {
+        "source": "Relax.vrma",
+        "count": 5
+      },
+      {
+        "source": "Sad.vrma",
+        "count": 5
+      },
+      {
+        "source": "Sleepy.vrma",
+        "count": 5
+      },
+      {
+        "source": "Surprised.vrma",
+        "count": 5
+      },
+      {
+        "source": "Thinking.vrma",
+        "count": 5
+      }
+    ],
+    "agentReadyTopCandidates": [
+      {
+        "id": "present_002",
+        "source": "Relax.vrma",
+        "sampleTime": 0.462,
+        "category": "present",
+        "score": 5,
+        "sourceScore": 5,
+        "agentScore": 5,
+        "reason": "",
+        "exportedPoseFile": "present_002.json",
+        "note": "雙手自然打開，適合說明、展示或開場介紹。"
+      },
+      {
+        "id": "present_005",
+        "source": "Relax.vrma",
+        "sampleTime": 0.099,
+        "category": "present",
+        "score": 5,
+        "sourceScore": 5,
+        "agentScore": 5,
+        "reason": "",
+        "exportedPoseFile": "present_005.json",
+        "note": "放鬆起手非常適合 Agent 介紹姿勢，輪廓開放且不誇張。"
+      },
+      {
+        "id": "think_001",
+        "source": "LookAround.vrma",
+        "sampleTime": 0.396,
+        "category": "think",
+        "score": 5,
+        "sourceScore": 5,
+        "agentScore": 5,
+        "reason": "",
+        "exportedPoseFile": "think_001.json",
+        "note": "視線偏移與頭部探索感明確，適合分析中或查詢中。"
+      },
+      {
+        "id": "think_005",
+        "source": "Thinking.vrma",
+        "sampleTime": 0.495,
+        "category": "think",
+        "score": 5,
+        "sourceScore": 5,
+        "agentScore": 5,
+        "reason": "",
+        "exportedPoseFile": "think_005.json",
+        "note": "思考語意明確，是查詢中與分析中的優先候選。"
+      },
+      {
+        "id": "think_006",
+        "source": "Thinking.vrma",
+        "sampleTime": 1.518,
+        "category": "think",
+        "score": 5,
+        "sourceScore": 5,
+        "agentScore": 5,
+        "reason": "",
+        "exportedPoseFile": "think_006.json",
+        "note": "手靠臉與頭部偏移接近理想查詢中姿勢，值得優先固化。"
+      },
+      {
+        "id": "think_010",
+        "source": "Thinking.vrma",
+        "sampleTime": 0.099,
+        "category": "think",
+        "score": 5,
+        "sourceScore": 5,
+        "agentScore": 5,
+        "reason": "",
+        "exportedPoseFile": "think_010.json",
+        "note": "思考起手自然且辨識度高，是查詢中姿勢 Top candidate。"
+      },
+      {
+        "id": "point_002",
+        "source": "LookAround.vrma",
+        "sampleTime": 1.452,
+        "category": "point",
+        "score": 4,
+        "sourceScore": 5,
+        "agentScore": 4,
+        "reason": "",
+        "exportedPoseFile": "point_002.json",
+        "note": "身體朝側邊，有明確指向感，可作 point_left 或 point_right 原型。"
+      },
+      {
+        "id": "present_001",
+        "source": "Goodbye.vrma",
+        "sampleTime": 0.462,
+        "category": "present",
+        "score": 4,
+        "sourceScore": 4,
+        "agentScore": 4,
+        "reason": "",
+        "exportedPoseFile": "present_001.json",
+        "note": "單手開展、輪廓清楚，適合介紹起手式。"
+      },
+      {
+        "id": "present_003",
+        "source": "Relax.vrma",
+        "sampleTime": 1.452,
+        "category": "present",
+        "score": 4,
+        "sourceScore": 4,
+        "agentScore": 4,
+        "reason": "",
+        "exportedPoseFile": "present_003.json",
+        "note": "開放式手勢穩定，適合說明背景或展示 GIS panel。"
+      },
+      {
+        "id": "present_004",
+        "source": "Goodbye.vrma",
+        "sampleTime": 0.099,
+        "category": "present",
+        "score": 4,
+        "sourceScore": 4,
+        "agentScore": 4,
+        "reason": "",
+        "exportedPoseFile": "present_004.json",
+        "note": "單手外展輪廓乾淨，適合介紹或引導使用者看右側資訊。"
+      },
+      {
+        "id": "success_003",
+        "source": "Goodbye.vrma",
+        "sampleTime": 1.518,
+        "category": "success",
+        "score": 4,
+        "sourceScore": 4,
+        "agentScore": 4,
+        "reason": "",
+        "exportedPoseFile": "success_003.json",
+        "note": "揮手感明確，適合完成回應或告知已處理。"
+      },
+      {
+        "id": "think_002",
+        "source": "LookAround.vrma",
+        "sampleTime": 2.706,
+        "category": "think",
+        "score": 4,
+        "sourceScore": 4,
+        "agentScore": 4,
+        "reason": "",
+        "exportedPoseFile": "think_002.json",
+        "note": "停頓感明確，適合等待資料或定位目標時使用。"
+      }
+    ],
+    "futureCandidates": [
+      {
+        "id": "candidate_future_003",
+        "source": "Jump.vrma",
+        "sampleTime": 2.805,
+        "category": "candidate_future",
+        "score": 3,
+        "sourceScore": 4,
+        "agentScore": 2,
+        "reason": "requires_lower_body",
+        "exportedPoseFile": "candidate_future_003.json",
+        "note": "正向情緒明確，但目前 upper-body-only 太舞台化，未來加入下半身後再評估。"
+      },
+      {
+        "id": "candidate_future_005",
+        "source": "Jump.vrma",
+        "sampleTime": 3.498,
+        "category": "candidate_future",
+        "score": 3,
+        "sourceScore": 4,
+        "agentScore": 2,
+        "reason": "requires_weight_shift",
+        "exportedPoseFile": "candidate_future_005.json",
+        "note": "落地後上身有正向情緒，但目前缺重心回收，需 weight shift 才能成立。"
+      },
+      {
+        "id": "candidate_future_002",
+        "source": "Jump.vrma",
+        "sampleTime": 1.419,
+        "category": "candidate_future",
+        "score": 4,
+        "sourceScore": 5,
+        "agentScore": 1,
+        "reason": "requires_weight_shift",
+        "exportedPoseFile": "candidate_future_002.json",
+        "note": "原始重心轉移可能自然，但 Agent Pose 鎖下半身後會失衡，留待 weight shift。"
+      },
+      {
+        "id": "candidate_future_001",
+        "source": "Jump.vrma",
+        "sampleTime": 0.528,
+        "category": "candidate_future",
+        "score": 4,
+        "sourceScore": 4,
+        "agentScore": 1,
+        "reason": "requires_locomotion",
+        "exportedPoseFile": "candidate_future_001.json",
+        "note": "原始跳躍動作有明確動能，但目前 Agent Pose 鎖下半身後不成立，留待 locomotion。"
+      },
+      {
+        "id": "candidate_future_004",
+        "source": "Jump.vrma",
+        "sampleTime": 0.099,
+        "category": "candidate_future",
+        "score": 4,
+        "sourceScore": 4,
+        "agentScore": 1,
+        "reason": "requires_locomotion",
+        "exportedPoseFile": "candidate_future_004.json",
+        "note": "起跳準備在原始動作有動能，但鎖下半身後語意斷裂，保留給 locomotion。"
+      }
+    ],
+    "rejectedButUseful": [
+      {
+        "id": "reject_008",
+        "source": "Angry.vrma",
+        "sampleTime": 3.498,
+        "category": "reject",
+        "score": 2,
+        "sourceScore": 4,
+        "agentScore": 2,
+        "reason": "too_large_motion",
+        "exportedPoseFile": "",
+        "note": "原始情緒收束有張力，但 Agent Pose 下仍過度戲劇化，只留手臂角度參考。"
+      },
+      {
+        "id": "reject_001",
+        "source": "Angry.vrma",
+        "sampleTime": 2.571,
+        "category": "reject",
+        "score": 2,
+        "sourceScore": 3,
+        "agentScore": 2,
+        "reason": "too_large_motion",
+        "exportedPoseFile": "",
+        "note": "情緒幅度偏大，不適合直接用於 Agent，但手肘外張角度可參考。"
+      },
+      {
+        "id": "reject_006",
+        "source": "Sleepy.vrma",
+        "sampleTime": 1.617,
+        "category": "reject",
+        "score": 2,
+        "sourceScore": 3,
+        "agentScore": 2,
+        "reason": "unclear_intent",
+        "exportedPoseFile": "",
+        "note": "睡意語意太強，不適合一般分析狀態，但可參考慢節奏。"
+      },
+      {
+        "id": "reject_007",
+        "source": "Surprised.vrma",
+        "sampleTime": 1.386,
+        "category": "reject",
+        "score": 2,
+        "sourceScore": 3,
+        "agentScore": 2,
+        "reason": "hands_cover_face",
+        "exportedPoseFile": "",
+        "note": "手勢可能遮臉，不適合長時間姿勢，但驚訝語意可保留參考。"
+      },
+      {
+        "id": "reject_009",
+        "source": "Clapping.vrma",
+        "sampleTime": 3.498,
+        "category": "reject",
+        "score": 2,
+        "sourceScore": 3,
+        "agentScore": 2,
+        "reason": "hands_cover_face",
+        "exportedPoseFile": "",
+        "note": "收尾手部仍偏臉部區域，容易遮擋表情，不適合作常態成功姿勢。"
+      },
+      {
+        "id": "reject_011",
+        "source": "Sleepy.vrma",
+        "sampleTime": 3.498,
+        "category": "reject",
+        "score": 2,
+        "sourceScore": 3,
+        "agentScore": 2,
+        "reason": "unclear_intent",
+        "exportedPoseFile": "",
+        "note": "末段語意偏疲倦，和 GIS Agent 分析中狀態容易混淆。"
+      },
+      {
+        "id": "reject_012",
+        "source": "Surprised.vrma",
+        "sampleTime": 3.498,
+        "category": "reject",
+        "score": 2,
+        "sourceScore": 3,
+        "agentScore": 2,
+        "reason": "hands_cover_face",
+        "exportedPoseFile": "",
+        "note": "尾段手勢仍有遮臉風險，不適合長時間顯示，但可作 warning clip 中間幀參考。"
+      },
+      {
+        "id": "reject_002",
+        "source": "Clapping.vrma",
+        "sampleTime": 1.386,
+        "category": "reject",
+        "score": 1,
+        "sourceScore": 2,
+        "agentScore": 1,
+        "reason": "hands_cover_face",
+        "exportedPoseFile": "",
+        "note": "雙手靠近臉部，容易遮擋表情，不適合 Agent 長時間狀態。"
+      }
+    ]
+  },
+  "observations": [
+    "think currently leads by count and has high agentScore, matching GIS Agent query/analyze/waiting needs.",
+    "present has the strongest average agentScore among non-future categories.",
+    "candidate_future entries show high sourceScore but low agentScore, mainly blocked by lower-body and weight-shift requirements.",
+    "hands_cover_face is the most common reject blocker so far."
+  ]
+}

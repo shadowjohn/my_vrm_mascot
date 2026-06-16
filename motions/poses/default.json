@@ -1,0 +1,22 @@
+{
+  "model": "default",
+  "basePose": {
+    "rotation": {
+      "spine": { "x": 2, "y": 0, "z": -2 },
+      "chest": { "x": -1, "y": -2, "z": -1 },
+      "leftShoulder": { "x": 0, "y": 0, "z": 4 },
+      "rightShoulder": { "x": 0, "y": 0, "z": -4 },
+      "leftUpperArm": { "x": 7, "y": 0, "z": 42 },
+      "rightUpperArm": { "x": 7, "y": 0, "z": -42 },
+      "leftLowerArm": { "x": 0, "y": -9, "z": 0 },
+      "rightLowerArm": { "x": 0, "y": 9, "z": 0 },
+      "leftHand": { "x": 0, "y": 0, "z": 0 },
+      "rightHand": { "x": 0, "y": 0, "z": 0 },
+      "leftUpperLeg": { "x": 1, "y": 0, "z": 2 },
+      "rightUpperLeg": { "x": -1, "y": 0, "z": -2 }
+    },
+    "position": {
+      "hips": { "x": -0.008, "y": 0, "z": 0 }
+    }
+  }
+}

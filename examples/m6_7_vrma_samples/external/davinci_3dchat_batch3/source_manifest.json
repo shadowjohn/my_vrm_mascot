@@ -1,0 +1,407 @@
+{
+  "sourceName": "3dchat batch 3 locomotion dance reject future",
+  "sourceUrl": "https://github.com/DavinciDreams/3dchat",
+  "retrievedAt": "2026-06-14T00:00:00+08:00",
+  "usageStatus": "local_mining_only_license_not_verified",
+  "upstreamLicense": "",
+  "upstreamCommit": "25f22f42f3f2d3f92a979e9710a2d5cf4d0f7d00",
+  "note": "Third selected VRMA batch for local Alicia Motion Mine review. This batch focuses on locomotion, dance, sports, and large-motion negative/future samples.",
+  "files": [
+    {
+      "localFile": "davinci3_Swagger_Walk.vrma",
+      "sourcePath": "public/animations/vrma/Swagger Walk.vrma",
+      "sourceSize": 2601328,
+      "size": 2601328,
+      "format": "json_gltf_vrma",
+      "sha256": "b4cd9ab64a3f9e14cd9e81daad5b7839da0b30f31ead406cb4c38717866accb3",
+      "suggestedMiningUse": "candidate_future_requires_locomotion"
+    },
+    {
+      "localFile": "davinci3_backflip.vrma",
+      "sourcePath": "public/animations/vrma/backflip.vrma",
+      "sourceSize": 799735,
+      "size": 799735,
+      "format": "json_gltf_vrma",
+      "sha256": "41c704302d82d0d5406fb2ebea58aab67df3336325740c9b963d2384bbc91e2c",
+      "suggestedMiningUse": "candidate_future_requires_locomotion"
+    },
+    {
+      "localFile": "davinci3_ballet.vrma",
+      "sourcePath": "public/animations/vrma/ballet.vrma",
+      "sourceSize": 2218863,
+      "size": 2218863,
+      "format": "json_gltf_vrma",
+      "sha256": "e7759cc4040c8470b59d6611076f4bc4a109c1e8048b31490cf1c9fbbe6c9406",
+      "suggestedMiningUse": "reject_or_dance_short"
+    },
+    {
+      "localFile": "davinci3_balletsplit.vrma",
+      "sourcePath": "public/animations/vrma/balletsplit.vrma",
+      "sourceSize": 2125228,
+      "size": 2125228,
+      "format": "json_gltf_vrma",
+      "sha256": "a1642a59a4ae568d936acc7844621f8c3e2b794c023874171542118161776b77",
+      "suggestedMiningUse": "reject_or_dance_short"
+    },
+    {
+      "localFile": "davinci3_breakdance1990.vrma",
+      "sourcePath": "public/animations/vrma/breakdance1990.vrma",
+      "sourceSize": 78873,
+      "size": 78873,
+      "format": "json_gltf_vrma",
+      "sha256": "d99ea9746417fddc1c39073180408170e5e63bd0b3ab97048b19ec53e7f89548",
+      "suggestedMiningUse": "reject_or_dance_short"
+    },
+    {
+      "localFile": "davinci3_breakdanceEnding1.vrma",
+      "sourcePath": "public/animations/vrma/breakdanceEnding1.vrma",
+      "sourceSize": 151329,
+      "size": 151329,
+      "format": "json_gltf_vrma",
+      "sha256": "48da8d1118eea684518db01b60c71271c7899529c067c005659a2f2ec4555e84",
+      "suggestedMiningUse": "reject_or_dance_short"
+    },
+    {
+      "localFile": "davinci3_breakdanceFootwork1.vrma",
+      "sourcePath": "public/animations/vrma/breakdanceFootwork1.vrma",
+      "sourceSize": 91606,
+      "size": 91606,
+      "format": "json_gltf_vrma",
+      "sha256": "698b8d8a3ff916cefb3fd44b1064723f366d3b856f2297c186111b0405a54b98",
+      "suggestedMiningUse": "reject_or_dance_short"
+    },
+    {
+      "localFile": "davinci3_breakdanceFreezes.vrma",
+      "sourcePath": "public/animations/vrma/breakdanceFreezes.vrma",
+      "sourceSize": 154369,
+      "size": 154369,
+      "format": "json_gltf_vrma",
+      "sha256": "843e391532ef92958baa053d5e786932c8a0f1e71732c51020db0f3aa6cd6801",
+      "suggestedMiningUse": "reject_or_dance_short"
+    },
+    {
+      "localFile": "davinci3_breakdanceReady.vrma",
+      "sourcePath": "public/animations/vrma/breakdanceReady.vrma",
+      "sourceSize": 58705,
+      "size": 58705,
+      "format": "json_gltf_vrma",
+      "sha256": "71a55398c73003c1d45475dd4a7dd33088a141911c8dea20e2005a32a834854b",
+      "suggestedMiningUse": "reject_or_dance_short"
+    },
+    {
+      "localFile": "davinci3_breakdanceSwipes.vrma",
+      "sourcePath": "public/animations/vrma/breakdanceSwipes.vrma",
+      "sourceSize": 88558,
+      "size": 88558,
+      "format": "json_gltf_vrma",
+      "sha256": "4c897de700f47f25fbed39a582848880a0190f2b1197a640942a9b125f396088",
+      "suggestedMiningUse": "reject_or_dance_short"
+    },
+    {
+      "localFile": "davinci3_breakdanceUprock.vrma",
+      "sourcePath": "public/animations/vrma/breakdanceUprock.vrma",
+      "sourceSize": 72151,
+      "size": 72151,
+      "format": "json_gltf_vrma",
+      "sha256": "c267fb189d792bf274a9f290d788c0d60a5aaaa112fda1f8658f9cd002282793",
+      "suggestedMiningUse": "reject_or_dance_short"
+    },
+    {
+      "localFile": "davinci3_brooklynUprock.vrma",
+      "sourcePath": "public/animations/vrma/brooklynUprock.vrma",
+      "sourceSize": 121511,
+      "size": 121511,
+      "format": "json_gltf_vrma",
+      "sha256": "460794ddbdccc32aef49d506e5f96cb1ae8b8baa7c15ed380af01bed64a660a9",
+      "suggestedMiningUse": "reject_or_dance_short"
+    },
+    {
+      "localFile": "davinci3_cartwheel.vrma",
+      "sourcePath": "public/animations/vrma/cartwheel.vrma",
+      "sourceSize": 789226,
+      "size": 789226,
+      "format": "json_gltf_vrma",
+      "sha256": "a6c817e4d9057418a9811a7e44f136b156dd10827fcb0d3ee0816a6c5c926b17",
+      "suggestedMiningUse": "candidate_future_requires_locomotion"
+    },
+    {
+      "localFile": "davinci3_catwalkWalking.vrma",
+      "sourcePath": "public/animations/vrma/catwalkWalking.vrma",
+      "sourceSize": 747413,
+      "size": 747413,
+      "format": "json_gltf_vrma",
+      "sha256": "7194ca7a075da40031fa3c70718d6366d6ceac275a53beba873a33f3de94df04",
+      "suggestedMiningUse": "candidate_future_requires_locomotion"
+    },
+    {
+      "localFile": "davinci3_catwalkWalkForwardHighKnees.vrma",
+      "sourcePath": "public/animations/vrma/catwalkWalkForwardHighKnees.vrma",
+      "sourceSize": 2616718,
+      "size": 2616718,
+      "format": "json_gltf_vrma",
+      "sha256": "cf0aa304aaea1edc4c53e0b657191308219f76ec1eeeab7d1a20926e78096a26",
+      "suggestedMiningUse": "candidate_future_requires_locomotion"
+    },
+    {
+      "localFile": "davinci3_climbingToTop.vrma",
+      "sourcePath": "public/animations/vrma/climbingToTop.vrma",
+      "sourceSize": 2689965,
+      "size": 2689965,
+      "format": "json_gltf_vrma",
+      "sha256": "6771aee19cc3c84bd6d9c0eca31a9861cc662325d697b645bb1a8ef52e07574b",
+      "suggestedMiningUse": "candidate_future_requires_locomotion"
+    },
+    {
+      "localFile": "davinci3_dancingTwerk.vrma",
+      "sourcePath": "public/animations/vrma/dancingTwerk.vrma",
+      "sourceSize": 998408,
+      "size": 998408,
+      "format": "json_gltf_vrma",
+      "sha256": "a367c9c716bdccba174a760a49534dec8085afe98275eb07406eeaa8cc84e895",
+      "suggestedMiningUse": "reject_or_dance_short"
+    },
+    {
+      "localFile": "davinci3_dropKick.vrma",
+      "sourcePath": "public/animations/vrma/dropKick.vrma",
+      "sourceSize": 2661968,
+      "size": 2661968,
+      "format": "json_gltf_vrma",
+      "sha256": "6e88ccacb2ac06196c8ae67225f3308119c29526d11fb3adc3dc721fcfe2ef44",
+      "suggestedMiningUse": "reject_or_future"
+    },
+    {
+      "localFile": "davinci3_flair.vrma",
+      "sourcePath": "public/animations/vrma/flair.vrma",
+      "sourceSize": 78873,
+      "size": 78873,
+      "format": "json_gltf_vrma",
+      "sha256": "abebbde7f8dfb10e43fa72d879f48afba4951922c2b319d4b881e427234c9fa3",
+      "suggestedMiningUse": "reject_or_dance_short"
+    },
+    {
+      "localFile": "davinci3_golfBadShot.vrma",
+      "sourcePath": "public/animations/vrma/golfBadShot.vrma",
+      "sourceSize": 2945908,
+      "size": 2945908,
+      "format": "json_gltf_vrma",
+      "sha256": "fcf8592632aa1a535fd142c2d73570b2ddcac3106bce5bd35f547dfec1b72a2b",
+      "suggestedMiningUse": "reject_or_future"
+    },
+    {
+      "localFile": "davinci3_golfDrive.vrma",
+      "sourcePath": "public/animations/vrma/golfDrive.vrma",
+      "sourceSize": 786993,
+      "size": 786993,
+      "format": "json_gltf_vrma",
+      "sha256": "ed846435d74c1904386574afecc3fe50c676bc54028215336a5f1fea32d97c65",
+      "suggestedMiningUse": "reject_or_future"
+    },
+    {
+      "localFile": "davinci3_golfPrePutt.vrma",
+      "sourcePath": "public/animations/vrma/golfPrePutt.vrma",
+      "sourceSize": 2932338,
+      "size": 2932338,
+      "format": "json_gltf_vrma",
+      "sha256": "ae6ce7e4262897fc83fc42ba8b1ce20981a0a4dfdca5d2715dbd9a3d15f05716",
+      "suggestedMiningUse": "reject_or_future"
+    },
+    {
+      "localFile": "davinci3_golfPuttVictory.vrma",
+      "sourcePath": "public/animations/vrma/golfPuttVictory.vrma",
+      "sourceSize": 875938,
+      "size": 875938,
+      "format": "json_gltf_vrma",
+      "sha256": "89db7a93d5b6387f787dc844cd125844ba5d37655ae1dd944b26e325629f6f02",
+      "suggestedMiningUse": "reject_or_future"
+    },
+    {
+      "localFile": "davinci3_hipHopDance.vrma",
+      "sourcePath": "public/animations/vrma/hipHopDance.vrma",
+      "sourceSize": 2957173,
+      "size": 2957173,
+      "format": "json_gltf_vrma",
+      "sha256": "9efb518deff484a3c17ac81f8362b873ae70aba9e1ed13cab78fce27841fa170",
+      "suggestedMiningUse": "reject_or_dance_short"
+    },
+    {
+      "localFile": "davinci3_hipHopDancing.vrma",
+      "sourcePath": "public/animations/vrma/hipHopDancing.vrma",
+      "sourceSize": 852786,
+      "size": 852786,
+      "format": "json_gltf_vrma",
+      "sha256": "144608d25614d7b425a48c632f07e4a1f8c28916eaf23489407dadd3c33a9597",
+      "suggestedMiningUse": "reject_or_dance_short"
+    },
+    {
+      "localFile": "davinci3_jumping.vrma",
+      "sourcePath": "public/animations/vrma/jumping.vrma",
+      "sourceSize": 2651729,
+      "size": 2651729,
+      "format": "json_gltf_vrma",
+      "sha256": "d7cbea981555e8aa0c0f445e85bf00c57dbeded4c057d99ad409d45b06dad112",
+      "suggestedMiningUse": "candidate_future_requires_locomotion"
+    },
+    {
+      "localFile": "davinci3_jumpingDown.vrma",
+      "sourcePath": "public/animations/vrma/jumpingDown.vrma",
+      "sourceSize": 795255,
+      "size": 795255,
+      "format": "json_gltf_vrma",
+      "sha256": "97675949a2dabbe3caea471480d91167b8db06cc8e381483f9c6701fd0b1eca4",
+      "suggestedMiningUse": "candidate_future_requires_locomotion"
+    },
+    {
+      "localFile": "davinci3_jumpingJacks.vrma",
+      "sourcePath": "public/animations/vrma/jumpingJacks.vrma",
+      "sourceSize": 745170,
+      "size": 745170,
+      "format": "json_gltf_vrma",
+      "sha256": "d3f8d87a5499d559596c7f71d2c4fa8db350603f35b472a01128be0dba4f8e80",
+      "suggestedMiningUse": "candidate_future_requires_locomotion"
+    },
+    {
+      "localFile": "davinci3_kipUp.vrma",
+      "sourcePath": "public/animations/vrma/kipUp.vrma",
+      "sourceSize": 762295,
+      "size": 762295,
+      "format": "json_gltf_vrma",
+      "sha256": "3b33026d7a1f3c922c71d81bea72d5b439ab5263bc7957676d7e220a6e010d48",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci3_lowCrawl.vrma",
+      "sourcePath": "public/animations/vrma/lowCrawl.vrma",
+      "sourceSize": 768333,
+      "size": 768333,
+      "format": "json_gltf_vrma",
+      "sha256": "8adc8aac8969c941465765ef51c5170be7b73d2365334b3e7d37ebadbfb4b1aa",
+      "suggestedMiningUse": "candidate_future_requires_locomotion"
+    },
+    {
+      "localFile": "davinci3_rumbaDancing.vrma",
+      "sourcePath": "public/animations/vrma/rumbaDancing.vrma",
+      "sourceSize": 768333,
+      "size": 768333,
+      "format": "json_gltf_vrma",
+      "sha256": "99c90865f7c361dce34e53817646e7d0de52da252238a00436836e23221195a9",
+      "suggestedMiningUse": "reject_or_dance_short"
+    },
+    {
+      "localFile": "davinci3_runningUpStairs.vrma",
+      "sourcePath": "public/animations/vrma/runningUpStairs.vrma",
+      "sourceSize": 736947,
+      "size": 736947,
+      "format": "json_gltf_vrma",
+      "sha256": "b98648a9f876043e3ee300d008c28aa8c5e413fec69a37657a3837554de9862a",
+      "suggestedMiningUse": "candidate_future_requires_locomotion"
+    },
+    {
+      "localFile": "davinci3_sambaDancing.vrma",
+      "sourcePath": "public/animations/vrma/sambaDancing.vrma",
+      "sourceSize": 1225439,
+      "size": 1225439,
+      "format": "json_gltf_vrma",
+      "sha256": "b30a49ea2e8fcf625d54fab15c0d87ab278f89083ad0197fd732476524fc3784",
+      "suggestedMiningUse": "reject_or_dance_short"
+    },
+    {
+      "localFile": "davinci3_sillyDancing.vrma",
+      "sourcePath": "public/animations/vrma/sillyDancing.vrma",
+      "sourceSize": 847905,
+      "size": 847905,
+      "format": "json_gltf_vrma",
+      "sha256": "0cd530bd9333c0699a403c5721deabee548d08543e16a899f034858a8a8f8e66",
+      "suggestedMiningUse": "reject_or_dance_short"
+    },
+    {
+      "localFile": "davinci3_skateboarding.vrma",
+      "sourcePath": "public/animations/vrma/skateboarding.vrma",
+      "sourceSize": 763762,
+      "size": 763762,
+      "format": "json_gltf_vrma",
+      "sha256": "42b9ae91c806f92a6e3838c9d685a7ea6f1dc7b7dc1287abaaf4fc6ffae79ca3",
+      "suggestedMiningUse": "candidate_future_requires_locomotion"
+    },
+    {
+      "localFile": "davinci3_slowJogBackwards.vrma",
+      "sourcePath": "public/animations/vrma/slowJogBackwards.vrma",
+      "sourceSize": 2603137,
+      "size": 2603137,
+      "format": "json_gltf_vrma",
+      "sha256": "fd3cbc0e6242b88e103f5c04f7c6871eef82db4956d2cf99dbab764b34a1a8b8",
+      "suggestedMiningUse": "candidate_future_requires_locomotion"
+    },
+    {
+      "localFile": "davinci3_sneakingForward.vrma",
+      "sourcePath": "public/animations/vrma/sneakingForward.vrma",
+      "sourceSize": 756380,
+      "size": 756380,
+      "format": "json_gltf_vrma",
+      "sha256": "af53a2bbb6132353f72e2243d9d1abff4c8d866ff786c452009e678fbf08d48a",
+      "suggestedMiningUse": "candidate_future"
+    },
+    {
+      "localFile": "davinci3_sneakyWalking.vrma",
+      "sourcePath": "public/animations/vrma/sneakyWalking.vrma",
+      "sourceSize": 808732,
+      "size": 808732,
+      "format": "json_gltf_vrma",
+      "sha256": "d61f00239d68d33ab14bcb155eabbf756c4944eb8f5069966f3d6ba0529481e4",
+      "suggestedMiningUse": "candidate_future_requires_locomotion"
+    },
+    {
+      "localFile": "davinci3_standardRun.vrma",
+      "sourcePath": "public/animations/vrma/standardRun.vrma",
+      "sourceSize": 739189,
+      "size": 739189,
+      "format": "json_gltf_vrma",
+      "sha256": "ebf5fcc8c1cbb3458d3748e977d99e765948a4deb8fbf8ee303033b3fce1122a",
+      "suggestedMiningUse": "candidate_future_requires_locomotion"
+    },
+    {
+      "localFile": "davinci3_startClimbingLadder.vrma",
+      "sourcePath": "public/animations/vrma/startClimbingLadder.vrma",
+      "sourceSize": 762295,
+      "size": 762295,
+      "format": "json_gltf_vrma",
+      "sha256": "33ecd8df37aae69b4fdb681f7029b35009205c84bec13b5a98f924028566acde",
+      "suggestedMiningUse": "candidate_future_requires_locomotion"
+    },
+    {
+      "localFile": "davinci3_swimming.vrma",
+      "sourcePath": "public/animations/vrma/swimming.vrma",
+      "sourceSize": 804408,
+      "size": 804408,
+      "format": "json_gltf_vrma",
+      "sha256": "7066d6bc06fe0c8415cbe1d0f2b8c6b2931a308c7a847b62a15693b0b9ed5c55",
+      "suggestedMiningUse": "candidate_future_requires_locomotion"
+    },
+    {
+      "localFile": "davinci3_twistDance.vrma",
+      "sourcePath": "public/animations/vrma/twistDance.vrma",
+      "sourceSize": 895355,
+      "size": 895355,
+      "format": "json_gltf_vrma",
+      "sha256": "8dfe1f7d19f2620dee4622cce88763ea252093ead9ace396bd831522dd8b2947",
+      "suggestedMiningUse": "reject_or_dance_short"
+    },
+    {
+      "localFile": "davinci3_vaultOverBox.vrma",
+      "sourcePath": "public/animations/vrma/vaultOverBox.vrma",
+      "sourceSize": 789226,
+      "size": 789226,
+      "format": "json_gltf_vrma",
+      "sha256": "17f700f67bceb8ec0cdb9947c2294ee0d775744542bf3cf5c7c834ab9312acf6",
+      "suggestedMiningUse": "candidate_future_requires_locomotion"
+    },
+    {
+      "localFile": "davinci3_zombieStandUp.vrma",
+      "sourcePath": "public/animations/vrma/zombieStandUp.vrma",
+      "sourceSize": 2667664,
+      "size": 2667664,
+      "format": "json_gltf_vrma",
+      "sha256": "b2474134f788562ad5da858ed73853a47015ba61120a86f72c9c330e9164bdbd",
+      "suggestedMiningUse": "candidate_future_requires_locomotion"
+    }
+  ]
+}

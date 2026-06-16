@@ -1,0 +1,514 @@
+{
+  "schemaVersion": 1,
+  "phase": "M6.11 Semantic Motion Registry",
+  "source": "semantic_motion_library.json",
+  "generatedAt": "2026-06-16T01:41:32.932+08:00",
+  "summary": {
+    "totalMotions": 10,
+    "dataReadyCount": 10,
+    "preferredMotionCount": 10,
+    "runtimePlaybackReadyCount": 0,
+    "categoryCounts": {
+      "warning": 2,
+      "guide": 1,
+      "surprised": 1,
+      "attention": 1,
+      "point": 1,
+      "thinking": 2,
+      "success": 1,
+      "social": 1
+    },
+    "motionIds": [
+      "angry_hands_waist",
+      "come_here",
+      "cross_no",
+      "hands_up_surrender",
+      "look_around",
+      "point_target",
+      "shy_head_touch",
+      "thinking_chin",
+      "victory_pose",
+      "wave_goodbye"
+    ]
+  },
+  "motions": {
+    "angry_hands_waist": {
+      "semanticMotionId": "angry_hands_waist",
+      "displayName": "插腰生氣 / 有態度提醒",
+      "category": "warning",
+      "intentTags": [
+        "warning",
+        "attitude",
+        "strict_reminder",
+        "frustrated"
+      ],
+      "agentTriggers": [
+        "使用者重複犯錯",
+        "需要強烈提醒",
+        "限制或異常狀態"
+      ],
+      "meanings": [
+        "不可以喔",
+        "你又來了",
+        "請注意",
+        "有點生氣"
+      ],
+      "recipes": [
+        "angry_hands_waist"
+      ],
+      "sourceMotions": [
+        "Angry.vrma",
+        "Blush.vrma",
+        "davinci_bashful.vrma",
+        "davinci_victoryIdle.vrma",
+        "davinci4_VRMA_03.vrma"
+      ],
+      "preferredMotion": "Angry.vrma",
+      "variants": [],
+      "confidence": 0.91,
+      "dataReady": true,
+      "runtimeReady": false,
+      "runtimeStatus": "data_ready",
+      "recipeSummary": "雙手插腰並帶有頭部晃動或身體前壓，呈現有態度的提醒。",
+      "poseHints": {
+        "activeSide": "both",
+        "primaryAction": "hands_on_waist",
+        "bodyLean": "slight_forward",
+        "repeatable": false,
+        "expression": "angry"
+      }
+    },
+    "come_here": {
+      "semanticMotionId": "come_here",
+      "displayName": "招手靠近 / 跟我來",
+      "category": "guide",
+      "intentTags": [
+        "guide",
+        "come_here",
+        "follow_me",
+        "attention"
+      ],
+      "agentTriggers": [
+        "引導使用者查看指定位置",
+        "呼叫使用者注意某個目標",
+        "帶使用者往下一步操作"
+      ],
+      "meanings": [
+        "過來",
+        "跟上",
+        "往這裡",
+        "請看這邊"
+      ],
+      "recipes": [
+        "come_here"
+      ],
+      "sourceMotions": [
+        "davinci_beckoning.vrma",
+        "davinci4_swinging.vrma"
+      ],
+      "preferredMotion": "davinci_beckoning.vrma",
+      "variants": [],
+      "confidence": 0.7,
+      "dataReady": true,
+      "runtimeReady": false,
+      "runtimeStatus": "data_ready",
+      "recipeSummary": "手部向自己方向連續招手，像是在請對方靠近或跟上。",
+      "poseHints": {
+        "activeSide": "right",
+        "primaryAction": "beckon",
+        "bodyLean": "slight_forward",
+        "repeatable": true,
+        "rhythm": "short_loop"
+      }
+    },
+    "cross_no": {
+      "semanticMotionId": "cross_no",
+      "displayName": "交叉制止 / 不可以",
+      "category": "warning",
+      "intentTags": [
+        "deny",
+        "reject",
+        "stop",
+        "not_allowed"
+      ],
+      "agentTriggers": [
+        "政策阻擋",
+        "使用者操作不合法",
+        "工具結果有風險"
+      ],
+      "meanings": [
+        "不行",
+        "停止",
+        "禁止",
+        "拒絕"
+      ],
+      "recipes": [
+        "cross_no"
+      ],
+      "sourceMotions": [
+        "Clapping.vrma",
+        "davinci_bashful.vrma",
+        "davinci_nervouslyLookAround.vrma",
+        "davinci_standingClap.vrma",
+        "davinci2_bodyBlock.vrma",
+        "davinci2_praying.vrma",
+        "davinci2_searchingPockets.vrma",
+        "davinci2_sittingDisapproval.vrma",
+        "davinci2_sittingTalking.vrma",
+        "davinci3_golfBadShot.vrma",
+        "davinci3_jumpingJacks.vrma",
+        "davinci3_sneakyWalking.vrma",
+        "davinci4_punch.vrma",
+        "davinci4_VRMA_07.vrma",
+        "Surprised.vrma"
+      ],
+      "preferredMotion": "Clapping.vrma",
+      "variants": [],
+      "confidence": 0.96,
+      "dataReady": true,
+      "runtimeReady": false,
+      "runtimeStatus": "data_ready",
+      "recipeSummary": "雙手在身前交叉或阻擋，語意接近否定、禁止與制止。",
+      "poseHints": {
+        "activeSide": "both",
+        "primaryAction": "cross_block",
+        "bodyLean": "slight_back",
+        "repeatable": false,
+        "expression": "serious"
+      }
+    },
+    "hands_up_surrender": {
+      "semanticMotionId": "hands_up_surrender",
+      "displayName": "舉手投降 / 嚇一跳",
+      "category": "surprised",
+      "intentTags": [
+        "surprised",
+        "surrender",
+        "pause",
+        "unexpected"
+      ],
+      "agentTriggers": [
+        "非預期錯誤",
+        "使用者提出難題",
+        "需要暫停確認"
+      ],
+      "meanings": [
+        "嚇一跳",
+        "先等等",
+        "我投降",
+        "這有點意外"
+      ],
+      "recipes": [
+        "hands_up_surrender"
+      ],
+      "sourceMotions": [
+        "davinci_standingGreeting.vrma",
+        "davinci_victory.vrma",
+        "davinci_yawn.vrma",
+        "davinci2_entry.vrma",
+        "davinci3_twistDance.vrma",
+        "davinci4_singing.vrma",
+        "Goodbye.vrma",
+        "Surprised.vrma",
+        "test157t_hello.vrma"
+      ],
+      "preferredMotion": "davinci_standingGreeting.vrma",
+      "variants": [],
+      "confidence": 0.95,
+      "dataReady": true,
+      "runtimeReady": false,
+      "runtimeStatus": "data_ready",
+      "recipeSummary": "雙手上舉，語意可能是投降、驚訝、暫停或被嚇到。",
+      "poseHints": {
+        "activeSide": "both",
+        "primaryAction": "hands_up",
+        "bodyLean": "slight_back",
+        "repeatable": false,
+        "expression": "surprised"
+      }
+    },
+    "look_around": {
+      "semanticMotionId": "look_around",
+      "displayName": "左右觀察 / 搜尋中",
+      "category": "attention",
+      "intentTags": [
+        "scan",
+        "look_around",
+        "searching",
+        "spatial_awareness"
+      ],
+      "agentTriggers": [
+        "搜尋地圖目標",
+        "檢查周遭物件",
+        "等待空間上下文"
+      ],
+      "meanings": [
+        "找找看",
+        "我看看周圍",
+        "正在搜尋",
+        "確認附近狀況"
+      ],
+      "recipes": [
+        "look_around"
+      ],
+      "sourceMotions": [
+        "davinci_annoyedHeadShake.vrma",
+        "davinci_lookAround.vrma",
+        "davinci_lookAwayGesture.vrma",
+        "davinci2_entry.vrma",
+        "davinci2_lookOverShoulder.vrma",
+        "davinci3_startClimbingLadder.vrma",
+        "davinci4_crosslegFreeze.vrma",
+        "LookAround.vrma",
+        "Sad.vrma",
+        "Sleepy.vrma"
+      ],
+      "preferredMotion": "davinci_annoyedHeadShake.vrma",
+      "variants": [],
+      "confidence": 0.89,
+      "dataReady": true,
+      "runtimeReady": false,
+      "runtimeStatus": "data_ready",
+      "recipeSummary": "頭部或上半身左右查看，像是在尋找、觀察或確認周遭狀況。",
+      "poseHints": {
+        "activeSide": "none",
+        "primaryAction": "look_around",
+        "bodyLean": "neutral",
+        "repeatable": true,
+        "gaze": "scan"
+      }
+    },
+    "point_target": {
+      "semanticMotionId": "point_target",
+      "displayName": "指向目標 / 看這裡",
+      "category": "point",
+      "intentTags": [
+        "point",
+        "target",
+        "show_result",
+        "spatial_reference"
+      ],
+      "agentTriggers": [
+        "指向地圖目標",
+        "提示使用者查看查詢結果",
+        "強調畫面中的指定位置"
+      ],
+      "meanings": [
+        "看這裡",
+        "目標在這裡",
+        "指向",
+        "提示位置"
+      ],
+      "recipes": [
+        "point_target"
+      ],
+      "sourceMotions": [
+        "davinci_happyHandGesture.vrma",
+        "davinci_pointing.vrma",
+        "davinci2_crouchToStand.vrma",
+        "davinci3_backflip.vrma",
+        "davinci3_golfDrive.vrma"
+      ],
+      "preferredMotion": "davinci_happyHandGesture.vrma",
+      "variants": [],
+      "confidence": 0.8,
+      "dataReady": true,
+      "runtimeReady": false,
+      "runtimeStatus": "data_ready",
+      "recipeSummary": "手臂伸出並指向目標方向，用於提示使用者看向指定位置。",
+      "poseHints": {
+        "activeSide": "right",
+        "primaryAction": "point",
+        "bodyLean": "slight_forward",
+        "repeatable": false,
+        "gaze": "target"
+      }
+    },
+    "shy_head_touch": {
+      "semanticMotionId": "shy_head_touch",
+      "displayName": "害羞摸頭 / 不好意思",
+      "category": "thinking",
+      "intentTags": [
+        "shy",
+        "apology",
+        "uncertain",
+        "minor_error"
+      ],
+      "agentTriggers": [
+        "回覆不確定",
+        "小錯誤後修正",
+        "需要柔和道歉"
+      ],
+      "meanings": [
+        "不好意思",
+        "有點害羞",
+        "我想一下",
+        "剛剛可能不太對"
+      ],
+      "recipes": [
+        "shy_head_touch"
+      ],
+      "sourceMotions": [
+        "Blush.vrma"
+      ],
+      "preferredMotion": "Blush.vrma",
+      "variants": [],
+      "confidence": 0.67,
+      "dataReady": true,
+      "runtimeReady": false,
+      "runtimeStatus": "data_ready",
+      "recipeSummary": "手摸後腦或臉側，帶有害羞、不好意思或小失誤後的反應。",
+      "poseHints": {
+        "activeSide": "left",
+        "primaryAction": "head_touch",
+        "bodyLean": "slight_side",
+        "repeatable": false,
+        "expression": "shy"
+      }
+    },
+    "thinking_chin": {
+      "semanticMotionId": "thinking_chin",
+      "displayName": "托腮思考 / 分析中",
+      "category": "thinking",
+      "intentTags": [
+        "thinking",
+        "analyzing",
+        "waiting",
+        "reasoning"
+      ],
+      "agentTriggers": [
+        "等待 LLM 回覆",
+        "等待工具結果",
+        "正在分析資料"
+      ],
+      "meanings": [
+        "思考中",
+        "分析中",
+        "稍等一下",
+        "正在確認"
+      ],
+      "recipes": [
+        "thinking_chin"
+      ],
+      "sourceMotions": [
+        "Blush.vrma",
+        "davinci_sarcasticHeadNod.vrma",
+        "davinci_thinking.vrma",
+        "davinci2_crouchToStand.vrma",
+        "davinci2_rummaging.vrma",
+        "Thinking.vrma"
+      ],
+      "preferredMotion": "Blush.vrma",
+      "variants": [],
+      "confidence": 0.81,
+      "dataReady": true,
+      "runtimeReady": false,
+      "runtimeStatus": "data_ready",
+      "recipeSummary": "手部靠近下巴或臉側，頭部微低，呈現思考與分析中的狀態。",
+      "poseHints": {
+        "activeSide": "right",
+        "primaryAction": "chin_touch",
+        "bodyLean": "slight_forward",
+        "repeatable": false,
+        "gaze": "up_left"
+      }
+    },
+    "victory_pose": {
+      "semanticMotionId": "victory_pose",
+      "displayName": "勝利完成 / 做到了",
+      "category": "success",
+      "intentTags": [
+        "success",
+        "done",
+        "celebrate",
+        "completed"
+      ],
+      "agentTriggers": [
+        "工具執行成功",
+        "下載完成",
+        "查詢完成"
+      ],
+      "meanings": [
+        "完成了",
+        "成功",
+        "做到了",
+        "太好了"
+      ],
+      "recipes": [
+        "victory_pose"
+      ],
+      "sourceMotions": [
+        "davinci_happyIdle.vrma",
+        "davinci_victory.vrma",
+        "davinci3_golfPuttVictory.vrma"
+      ],
+      "preferredMotion": "davinci_happyIdle.vrma",
+      "variants": [],
+      "confidence": 0.76,
+      "dataReady": true,
+      "runtimeReady": false,
+      "runtimeStatus": "data_ready",
+      "recipeSummary": "帶有完成、勝利或開心語意的姿勢，適合工具成功後的短演出。",
+      "poseHints": {
+        "activeSide": "both",
+        "primaryAction": "victory",
+        "bodyLean": "slight_up",
+        "repeatable": false,
+        "expression": "happy"
+      }
+    },
+    "wave_goodbye": {
+      "semanticMotionId": "wave_goodbye",
+      "displayName": "揮手告別 / 打招呼",
+      "category": "social",
+      "intentTags": [
+        "greeting",
+        "farewell",
+        "hello",
+        "goodbye"
+      ],
+      "agentTriggers": [
+        "使用者進入頁面",
+        "對話結束",
+        "任務完成後友善收尾"
+      ],
+      "meanings": [
+        "你好",
+        "再見",
+        "嗨",
+        "下次見"
+      ],
+      "recipes": [
+        "wave_goodbye"
+      ],
+      "sourceMotions": [
+        "davinci_acknowledging.vrma",
+        "davinci_standingGreeting.vrma",
+        "davinci_waving.vrma",
+        "davinci2_entry.vrma",
+        "davinci2_floating.vrma",
+        "davinci2_sittingDisapproval.vrma",
+        "davinci3_hipHopDancing.vrma",
+        "davinci4_VRMA_02.vrma",
+        "Goodbye.vrma",
+        "test157t_greeting.vrma",
+        "test157t_greeting2.vrma",
+        "test157t_hello.vrma"
+      ],
+      "preferredMotion": "davinci_acknowledging.vrma",
+      "variants": [],
+      "confidence": 0.9,
+      "dataReady": true,
+      "runtimeReady": false,
+      "runtimeStatus": "data_ready",
+      "recipeSummary": "手部向外揮動，可用於打招呼、歡迎或告別。",
+      "poseHints": {
+        "activeSide": "right",
+        "primaryAction": "wave",
+        "bodyLean": "neutral",
+        "repeatable": true,
+        "rhythm": "friendly_loop"
+      }
+    }
+  }
+}

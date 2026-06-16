@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My VRM Mascot Workbench</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07111f;
+      --panel: #101827;
+      --panel-strong: #162033;
+      --text: #e6edf7;
+      --muted: #9fb0c8;
+      --line: rgba(148, 163, 184, 0.26);
+      --accent: #2dd4bf;
+      --accent-2: #8b5cf6;
+      --ok: #86efac;
+      --warn: #fbbf24;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 18% 12%, rgba(45, 212, 191, 0.14), transparent 28%),
+        radial-gradient(circle at 82% 18%, rgba(139, 92, 246, 0.18), transparent 32%),
+        linear-gradient(180deg, #081221 0%, #050a12 100%);
+      color: var(--text);
+      font-family: "Segoe UI", "Noto Sans TC", sans-serif;
+      letter-spacing: 0;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .portal-shell {
+      width: min(1180px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 24px 0 48px;
+    }
+
+    .topbar {
+      position: sticky;
+      z-index: 10;
+      top: 0;
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) auto;
+      align-items: center;
+      gap: 18px;
+      padding: 14px 0;
+      background: linear-gradient(180deg, rgba(7, 17, 31, 0.98), rgba(7, 17, 31, 0.78));
+      backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border: 1px solid rgba(45, 212, 191, 0.36);
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.84);
+      color: var(--accent);
+      font-weight: 900;
+      box-shadow: 0 0 26px rgba(45, 212, 191, 0.14);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.1;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .nav a,
+    .button {
+      min-height: 36px;
+      padding: 8px 12px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.74);
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .nav a:hover,
+    .button:hover {
+      border-color: rgba(45, 212, 191, 0.62);
+      background: rgba(22, 32, 51, 0.94);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+      gap: 22px;
+      align-items: stretch;
+      padding: 34px 0 26px;
+    }
+
+    .hero-main,
+    .quick-start,
+    .section,
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.7);
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.22);
+    }
+
+    .hero-main {
+      padding: 30px;
+    }
+
+    .hero-main h2 {
+      margin: 0;
+      max-width: 760px;
+      font-size: clamp(34px, 5vw, 60px);
+      line-height: 1.02;
+    }
+
+    .hero-main p {
+      max-width: 760px;
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.7;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .button.primary {
+      border-color: rgba(45, 212, 191, 0.66);
+      background: linear-gradient(180deg, rgba(45, 212, 191, 0.22), rgba(45, 212, 191, 0.1));
+      color: #d1faf5;
+    }
+
+    .quick-start {
+      display: grid;
+      align-content: start;
+      gap: 14px;
+      padding: 22px;
+    }
+
+    .quick-start h2,
+    .section h2 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.25;
+    }
+
+    .quick-start ol {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding-left: 22px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    code,
+    pre {
+      font-family: Consolas, "Cascadia Mono", monospace;
+    }
+
+    code {
+      color: #c4b5fd;
+    }
+
+    pre {
+      overflow: auto;
+      margin: 0;
+      padding: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 8px;
+      background: rgba(5, 10, 18, 0.72);
+      color: #dbeafe;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .section {
+      margin-top: 20px;
+      padding: 24px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 16px;
+    }
+
+    .section-header p {
+      max-width: 650px;
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .metric-card {
+      padding: 16px;
+      border: 1px solid rgba(45, 212, 191, 0.24);
+      border-radius: 8px;
+      background: rgba(5, 10, 18, 0.42);
+    }
+
+    .metric-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .metric-value {
+      margin-top: 6px;
+      color: #d1faf5;
+      font-size: 30px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .skill-tree {
+      display: grid;
+      gap: 10px;
+    }
+
+    .skill-row {
+      display: grid;
+      grid-template-columns: 96px minmax(0, 1fr) 42px;
+      align-items: center;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .skill-track {
+      height: 9px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.18);
+    }
+
+    .skill-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    }
+
+    .card {
+      display: grid;
+      gap: 12px;
+      padding: 18px;
+      box-shadow: none;
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.3;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      padding: 3px 8px;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .server-notes {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .note {
+      padding: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 8px;
+      background: rgba(5, 10, 18, 0.34);
+    }
+
+    .note strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ok);
+    }
+
+    .note.warning strong {
+      color: var(--warn);
+    }
+
+    .note p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    @media (max-width: 900px) {
+      .topbar,
+      .hero,
+      .grid,
+      .grid.two,
+      .dashboard-grid,
+      .server-notes {
+        grid-template-columns: 1fr;
+      }
+
+      .nav {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .portal-shell {
+        width: min(100% - 24px, 1180px);
+      }
+
+      .hero-main,
+      .quick-start,
+      .section {
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="portal-shell">
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="My VRM Mascot Workbench">
+        <span class="brand-mark">VRM</span>
+        <div>
+          <h1>My VRM Mascot Workbench</h1>
+          <p>本地開發入口 / 展示入口 / 動作採礦入口</p>
+        </div>
+      </a>
+      <nav class="nav" aria-label="Workbench navigation">
+        <a href="#motion-mining">Motion Mining</a>
+        <a href="#skill-tree">Skill Tree</a>
+        <a href="#advanced-tools">Advanced Tools</a>
+        <a href="#runtime-demo">Runtime Demo</a>
+        <a href="#showcase">展示區</a>
+        <a href="#usage">使用方法</a>
+        <a href="#server">Server</a>
+      </nav>
+    </header>
+
+    <section id="top" class="hero">
+      <div class="hero-main">
+        <h2>Alicia Motion Studio 正式入口。</h2>
+        <p>這裡是正式 `index.html`：Motion Mining 是主線，Importer 與 JSON 檢視工具收進 Advanced Tools。資料會從 VRMA 採礦累積到 mining_log / report，再長成 Pose Library。</p>
+        <div class="hero-actions">
+          <a class="button primary" href="motion_template_lab.html">進入 Alicia Motion Mine</a>
+          <a class="button" href="mascot_runtime.html">開啟主展示</a>
+          <a class="button" href="m6_acting_bridge_demo.html">測試 Acting Bridge</a>
+        </div>
+      </div>
+
+      <aside class="quick-start">
+        <h2>Quick Start</h2>
+        <ol>
+          <li>執行 <code>run_server.bat</code></li>
+          <li>開啟 <code>open_portal.bat</code></li>
+          <li>不用時執行 <code>stop_server.bat</code></li>
+          <li>或直接前往 <code>http://127.0.0.1:8765/</code></li>
+        </ol>
+        <pre>cd /d D:\mytools\my_vrm_mascot
+python .\server.py</pre>
+      </aside>
+    </section>
+
+    <section id="motion-mining" class="section">
+      <div class="section-header">
+        <div>
+          <h2>Motion Mining</h2>
+          <p>主線入口：先選 VRMA，播放與拖曳時間軸，釘選有料 moment，再把候選片段分類成可重用 Agent pose。</p>
+        </div>
+      </div>
+
+      <div class="dashboard-grid" aria-label="Motion mining dashboard">
+        <div class="metric-card">
+          <span>來源 VRMA</span>
+          <div class="metric-value">10</div>
+        </div>
+        <div class="metric-card">
+          <span>已挖 Pose</span>
+          <div class="metric-value">50</div>
+        </div>
+        <div class="metric-card">
+          <span>Future Candidate</span>
+          <div class="metric-value">5</div>
+        </div>
+        <div class="metric-card">
+          <span>Reject</span>
+          <div class="metric-value">10</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <article class="card">
+          <h3>Alicia Motion Mine</h3>
+          <p>目前唯一主入口。進去後是 VRMA Explorer：看整支動作、釘選候選片段，再進行分類。</p>
+          <div class="tag-row"><span class="tag">M6.7</span><span class="tag">VRMA Explorer</span><span class="tag">Pin Moment</span></div>
+          <a class="button primary" href="motion_template_lab.html">開啟 Alicia Motion Mine</a>
+        </article>
+        <article class="card">
+          <h3>mining_log.json</h3>
+          <p>採礦候選紀錄，可作為後續 Pose Library / Report 的資料來源。</p>
+          <div class="tag-row"><span class="tag">Data</span><span class="tag">JSON</span></div>
+          <a class="button" href="examples/m6_7_motion_mining/mining_log.json">開啟 mining_log.json</a>
+        </article>
+        <article class="card">
+          <h3>mining_report.json</h3>
+          <p>採礦統計摘要，先看 Top Categories 與 Future / Reject 原因，再決定下一步 motion investment。</p>
+          <div class="tag-row"><span class="tag">Report</span><span class="tag">Sprint 001</span></div>
+          <a class="button" href="examples/m6_7_motion_mining/mining_report.json">開啟 mining_report.json</a>
+        </article>
+      </div>
+    </section>
+
+    <section id="skill-tree" class="section">
+      <div class="section-header">
+        <div>
+          <h2>Skill Tree</h2>
+          <p>目前採礦統計。它會直接告訴我們 Alicia 現在最有料的是 think，最缺的是 point / present 的後續擴充。</p>
+        </div>
+      </div>
+      <div class="grid two">
+        <article class="card">
+          <h3>Top Categories</h3>
+          <div class="skill-tree">
+            <div class="skill-row"><strong>Think</strong><div class="skill-track"><div class="skill-fill" style="width: 100%;"></div></div><span>11</span></div>
+            <div class="skill-row"><strong>Warning</strong><div class="skill-track"><div class="skill-fill" style="width: 82%;"></div></div><span>9</span></div>
+            <div class="skill-row"><strong>Success</strong><div class="skill-track"><div class="skill-fill" style="width: 55%;"></div></div><span>6</span></div>
+            <div class="skill-row"><strong>Present</strong><div class="skill-track"><div class="skill-fill" style="width: 45%;"></div></div><span>5</span></div>
+            <div class="skill-row"><strong>Point</strong><div class="skill-track"><div class="skill-fill" style="width: 36%;"></div></div><span>4</span></div>
+          </div>
+        </article>
+        <article class="card">
+          <h3>目前觀察</h3>
+          <p>Think 數量與品質都領先，很適合 GIS Agent 的查詢中、分析中、等待工具狀態。Future Candidate 主要卡在 lower body / weight shift，還不急著進 M8。</p>
+          <div class="tag-row"><span class="tag">Think leads</span><span class="tag">Present high score</span><span class="tag">Weight shift later</span></div>
+          <a class="button" href="examples/m6_7_motion_mining/mining_report.json">查看完整報告</a>
+        </article>
+      </div>
+    </section>
+
+    <section id="advanced-tools" class="section">
+      <div class="section-header">
+        <div>
+          <h2>Advanced Tools</h2>
+          <p>進階工具只服務 debug / 匯出 / 檢視，不再跟 Motion Mining 主入口搶位置。</p>
+        </div>
+      </div>
+      <div class="grid">
+        <article class="card">
+          <h3>Motion Template Importer</h3>
+          <p>載入 VRMA、取樣上半身、預覽 Agent Pose、輸出 NaturalPosePreset JSON。</p>
+          <a class="button primary" href="motion_template_lab.html#minerAdvancedTools">開啟進階工具</a>
+        </article>
+        <article class="card">
+          <h3>Alicia Pose Preset</h3>
+          <p>目前 AliciaSolid model-specific base pose preset。</p>
+          <a class="button" href="motions/poses/alicia_solid.json">開啟 alicia_solid.json</a>
+        </article>
+        <article class="card">
+          <h3>Default Pose Preset</h3>
+          <p>未知模型 fallback 的泛用自然姿勢 preset。</p>
+          <a class="button" href="motions/poses/default.json">開啟 default.json</a>
+        </article>
+      </div>
+    </section>
+
+    <section id="runtime-demo" class="section">
+      <div class="section-header">
+        <div>
+          <h2>Runtime Demo</h2>
+          <p>Agent Avatar Runtime 的演出橋接與主流程驗證入口。</p>
+        </div>
+      </div>
+      <div class="grid two">
+        <article class="card">
+          <h3>M6 Acting Bridge Demo</h3>
+          <p>手動觸發 trace / talking lifecycle，驗證 ActingBridge -> ActingPolicy -> mascot.act。</p>
+          <a class="button primary" href="m6_acting_bridge_demo.html">開啟 M6 Demo</a>
+        </article>
+        <article class="card">
+          <h3>Smoke Dance Clip</h3>
+          <p>短動作 clip 彩蛋資料，保留為 Motion Clip Layer 的素材參考。</p>
+          <a class="button" href="motions/smoke_dance.json">開啟 smoke_dance.json</a>
+        </article>
+      </div>
+    </section>
+
+    <section id="showcase" class="section">
+      <div class="section-header">
+        <div>
+          <h2>展示區</h2>
+          <p>給人看的 Agent Runtime 主展示已移到 `mascot_runtime.html`，正式 `/` 與 `index.html` 現在保留給 Workbench。</p>
+        </div>
+      </div>
+      <div class="grid">
+        <article class="card">
+          <h3>主展示 / Agent Runtime</h3>
+          <p>GIS Agent、Debug Panel、Suggested Actions、VRM Mascot 的主要整合畫面。</p>
+          <div class="tag-row"><span class="tag">Agent Runtime</span><span class="tag">VRM</span><span class="tag">GIS</span></div>
+          <a class="button primary" href="mascot_runtime.html">開啟 mascot_runtime.html</a>
+        </article>
+        <article class="card">
+          <h3>專案 README</h3>
+          <p>查看目前 my_vrm_mascot 的開發說明與階段脈絡。</p>
+          <div class="tag-row"><span class="tag">Docs</span><span class="tag">Local-first</span></div>
+          <a class="button" href="README.md">開啟 README.md</a>
+        </article>
+        <article class="card">
+          <h3>VRMA 範例說明</h3>
+          <p>查看 M6.7 VRMA sample folder 的使用方式與採礦素材來源。</p>
+          <div class="tag-row"><span class="tag">VRMA</span><span class="tag">Samples</span></div>
+          <a class="button" href="examples/m6_7_vrma_samples/README.md">開啟 Samples README</a>
+        </article>
+      </div>
+    </section>
+
+    <section id="usage" class="section">
+      <div class="section-header">
+        <div>
+          <h2>使用方法 / Skill</h2>
+          <p>本機開發以 `server.py` 為主；正式 `index.html` 是 Workbench 入口，方便新人或未來部署時快速找到工具。</p>
+        </div>
+      </div>
+      <div class="grid two">
+        <article class="card">
+          <h3>本機啟動</h3>
+          <pre>cd /d D:\mytools\my_vrm_mascot
+run_server.bat
+open_portal.bat
+stop_server.bat</pre>
+        </article>
+        <article class="card">
+          <h3>手動啟動</h3>
+          <pre>cd /d D:\mytools\my_vrm_mascot
+python .\server.py
+
+http://127.0.0.1:8765/</pre>
+        </article>
+      </div>
+    </section>
+
+    <section id="server" class="section">
+      <div class="section-header">
+        <div>
+          <h2>Server / 3wa 搬移邊界</h2>
+          <p>先整理成 local-first Workbench，不急著改後端。搬進 3wa 時分清楚靜態展示與寫入能力。</p>
+        </div>
+      </div>
+      <div class="server-notes">
+        <div class="note">
+          <strong>靜態展示可直接搬移</strong>
+          <p>HTML、JS、VRM、VRMA、JSON、PNG 等靜態資源可放到 Apache2 / 3wa 目錄，由瀏覽器直接讀取。</p>
+        </div>
+        <div class="note warning">
+          <strong>寫入需要 API</strong>
+          <p>寫入 mining_log.json、產生 candidates/*.json 或上傳 VRMA 時，需要 PHP API 或 Python API；否則 browser 只能下載檔案。</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

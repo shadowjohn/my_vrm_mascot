@@ -1,0 +1,917 @@
+{
+  "schemaVersion": 1,
+  "phase": "M6.7.6B Pose Style Recipe Generator",
+  "source": "motion_profiles.json",
+  "generatedAt": "2026-06-16T01:41:32.654+08:00",
+  "summary": {
+    "totalProfiles": 172,
+    "recipeCount": 10,
+    "coveredMotionCount": 56,
+    "recipeIds": [
+      "cross_no",
+      "hands_up_surrender",
+      "angry_hands_waist",
+      "wave_goodbye",
+      "look_around",
+      "thinking_chin",
+      "point_target",
+      "victory_pose",
+      "come_here",
+      "shy_head_touch"
+    ]
+  },
+  "recipes": [
+    {
+      "recipeId": "cross_no",
+      "displayName": "交叉制止",
+      "sourceMotions": [
+        "Clapping.vrma",
+        "davinci_bashful.vrma",
+        "davinci_nervouslyLookAround.vrma",
+        "davinci_standingClap.vrma",
+        "davinci2_bodyBlock.vrma",
+        "davinci2_praying.vrma",
+        "davinci2_searchingPockets.vrma",
+        "davinci2_sittingDisapproval.vrma",
+        "davinci2_sittingTalking.vrma",
+        "davinci3_golfBadShot.vrma",
+        "davinci3_jumpingJacks.vrma",
+        "davinci3_sneakyWalking.vrma",
+        "davinci4_punch.vrma",
+        "davinci4_VRMA_07.vrma",
+        "Surprised.vrma"
+      ],
+      "matchedKeywords": [
+        "不行",
+        "不能",
+        "不對",
+        "交叉",
+        "拒絕",
+        "阻止",
+        "禁止"
+      ],
+      "motionSummary": "雙手在身前交叉或阻擋，語意接近否定、禁止與制止。",
+      "agentUsages": [
+        "人物左傾，二手檔在面前，像是有個汽球快要爆炸，手在臉前交叉，好像真要報了，然後繼續檔摭檔著",
+        "也可以用在溜冰，左滑右滑",
+        "不想喝酒，已喝太多了",
+        "打高爾夫球揮桿後，覺得打不好，雙手交叉往前彎腰像是把桿子丟了，然後發脾氣往後走了一小段，再面向鏡頭連續左晃右晃，在說打得不好",
+        "有點嘲諷或過度拍手的效果",
+        "似乎想阻止什麼事",
+        "坐著，右手伸出，作了手掌左攞右攞揮手的動作，似乎在拒絕什麼",
+        "坐著，這是個40秒左右的連續動畫，先看左，再看右，雙手在前面叉交叉，感覺像是在坐電車或坐火車，過程看著右邊，最後回正",
+        "長時間坐車的感覺",
+        "前面有個過動兒小朋友也適合用這個，手按著他的頭，但他仍跳來跳去",
+        "是不是好棒棒",
+        "要阻止某件事發生，像是有暴王龍在面前"
+      ],
+      "poseHints": {
+        "activeSide": "both",
+        "primaryAction": "cross_block",
+        "bodyLean": "slight_back",
+        "repeatable": false,
+        "expression": "serious"
+      },
+      "confidence": 0.96,
+      "evidence": [
+        {
+          "source": "Clapping.vrma",
+          "matchedKeywords": [
+            "交叉",
+            "不對",
+            "不行",
+            "禁止",
+            "不能"
+          ],
+          "textSnippet": "雙手在面前連續交叉數次 這件事情不對，不是這樣 這件事情不對，不是這樣 這樣不行，很不好 嚴格禁止，不能這樣 雙手在面前連續交叉數次"
+        },
+        {
+          "source": "davinci_bashful.vrma",
+          "matchedKeywords": [
+            "交叉"
+          ],
+          "textSnippet": "雙手在背後微微交叉，上半身前傾頭低低的，頭微微左右搖擺墾求道歉的感覺，身體左晃又晃，滑來滑去 像犯錯的小孩，雙手在背後微微交叉，上半身前傾頭低低的，頭微微左右搖擺墾求道歉的感覺\n也可以用在溜冰，左滑右滑 像犯錯的小孩，雙手在背後微微交叉，上半身前傾頭低低的，頭微微左右搖擺墾求道歉"
+        },
+        {
+          "source": "davinci_nervouslyLookAround.vrma",
+          "matchedKeywords": [
+            "阻止"
+          ],
+          "textSnippet": "雙手張開往前伸 要阻止某件事發生，像是有暴王龍在面前 要阻止某件事發生，像是有暴王龍在面前 請不要這樣 停車，快停車 雙手張開往前伸"
+        },
+        {
+          "source": "davinci_standingClap.vrma",
+          "matchedKeywords": [
+            "交叉"
+          ],
+          "textSnippet": "雙手在面前拍手，且拍手的角度已大到交叉 誇張式的拍手 誇張式的拍手 有點嘲諷或過度拍手的效果 是不是好棒棒 雙手在面前拍手，且拍手的角度已大到交叉"
+        },
+        {
+          "source": "davinci2_bodyBlock.vrma",
+          "matchedKeywords": [
+            "交叉",
+            "阻止"
+          ],
+          "textSnippet": "人物左傾，二手檔在面前，像是有個汽球快要爆炸，手在臉前交叉，好像真要報了，然後繼續檔摭檔著 人物左傾，二手檔在面前，像是有個汽球快要爆炸，手在臉前交叉，好像真要報了，然後繼續檔摭檔著\n似乎想阻止什麼事 人物左傾，二手檔在面前，像是有個汽球快要爆炸，手在臉前交叉，好像真要報了，然後"
+        },
+        {
+          "source": "davinci2_praying.vrma",
+          "matchedKeywords": [
+            "交叉"
+          ],
+          "textSnippet": "雙膝跪地，雙手在胸前交叉，然後身體往左下彎了一下，然後站起身 雙膝跪地，雙手在胸前交叉，然後身體往左下彎了一下，然後站起身 雙膝跪地，雙手在胸前交叉，然後身體往左下彎了一下，然後站起身 雙膝跪地，雙手在胸前交叉，然後身體往左下彎了一下，然後站起身"
+        },
+        {
+          "source": "davinci2_searchingPockets.vrma",
+          "matchedKeywords": [
+            "不對"
+          ],
+          "textSnippet": "雙手在背後的口袋找皮包的感覺，轉身往後看，右手好像找到了一個紙屑，發現不對，把紙屑丟掉，然後繼續找 雙手在背後的口袋找皮包的感覺，轉身往後看，右手好像找到了一個紙屑，發現不對，把紙屑丟掉，然後繼續找 雙手在背後的口袋找皮包的感覺，轉身往後看，右手好像找到了一個紙屑，發現不對，把紙"
+        },
+        {
+          "source": "davinci2_sittingDisapproval.vrma",
+          "matchedKeywords": [
+            "拒絕"
+          ],
+          "textSnippet": "坐著，右手伸出，作了手掌左攞右攞揮手的動作 坐著，右手伸出，作了手掌左攞右攞揮手的動作，似乎在拒絕什麼\n不想喝酒，已喝太多了 坐著，右手伸出，作了手掌左攞右攞揮手的動作，似乎在拒絕什麼 不想喝酒，已喝太多了 坐著，右手伸出，作了手掌左攞右攞揮手的動作"
+        },
+        {
+          "source": "davinci2_sittingTalking.vrma",
+          "matchedKeywords": [
+            "交叉"
+          ],
+          "textSnippet": "坐著，這是個40秒左右的連續動畫，先看左，再看右，雙手在前面叉交叉，感覺像是在坐電車或坐火車，過程看著右邊，最後回正 坐著，這是個40秒左右的連續動畫，先看左，再看右，雙手在前面叉交叉，感覺像是在坐電車或坐火車，過程看著右邊，最後回正\n長時間坐車的感覺 坐著，這是個40秒左右的連"
+        },
+        {
+          "source": "davinci3_golfBadShot.vrma",
+          "matchedKeywords": [
+            "交叉"
+          ],
+          "textSnippet": "打高爾夫球揮桿後，覺得打不好，雙手交叉往前彎腰像是把桿子丟了，然後發脾氣往後走了一小段，再面向鏡頭連續左晃右晃，在說打得不好 打高爾夫球揮桿後，覺得打不好，雙手交叉往前彎腰像是把桿子丟了，然後發脾氣往後走了一小段，再面向鏡頭連續左晃右晃，在說打得不好 打高爾夫球揮桿後，覺得打不好"
+        },
+        {
+          "source": "davinci3_jumpingJacks.vrma",
+          "matchedKeywords": [
+            "交叉"
+          ],
+          "textSnippet": "原地跳了二次，最後雙手在頭上交叉 原地跳了二次，最後雙手在頭上交叉 原地跳了二次，最後雙手在頭上交叉 原地跳了二次，最後雙手在頭上交叉"
+        },
+        {
+          "source": "davinci3_sneakyWalking.vrma",
+          "matchedKeywords": [
+            "交叉"
+          ],
+          "textSnippet": "雙手張開，但人物越飄越遠，腳交叉了一次 雙手張開，但人物越飄越遠，腳交叉了一次 雙手張開，但人物越飄越遠，腳交叉了一次 雙手張開，但人物越飄越遠，腳交叉了一次"
+        }
+      ]
+    },
+    {
+      "recipeId": "hands_up_surrender",
+      "displayName": "舉手投降",
+      "sourceMotions": [
+        "davinci_standingGreeting.vrma",
+        "davinci_victory.vrma",
+        "davinci_yawn.vrma",
+        "davinci2_entry.vrma",
+        "davinci3_twistDance.vrma",
+        "davinci4_singing.vrma",
+        "Goodbye.vrma",
+        "Surprised.vrma",
+        "test157t_hello.vrma"
+      ],
+      "matchedKeywords": [
+        "手往上",
+        "投降",
+        "舉高",
+        "嚇了一跳",
+        "雙手往上"
+      ],
+      "motionSummary": "雙手上舉，語意可能是投降、驚訝、暫停或被嚇到。",
+      "agentUsages": [
+        "一邊敬禮一邊退著走",
+        "也可能是成功了，勝利的姿勢",
+        "立正姿勢，右手往上伸，靠近眉毛的地方揮手了數次，在與人說再見",
+        "忙了很久，覺得很累，伸展休息一下",
+        "行進中，右手往上比出敬禮的手勢，然後左看看右看看，也像是登場時大家歡迎她的到來",
+        "伸懶腰",
+        "我們歡迎羽山娘",
+        "朋友離的比較遠，揮手說再見的感覺",
+        "背對著大家，手在背後有點緊張，準備了一下轉身回來，雙手舉高揮舞，與大家打招呼，最後右手往上伸展，小跳一下",
+        "登場時",
+        "跳舞，左跳右跳很有節奏，中途雙手往上舉，然後再回到左跳右跳",
+        "像是要跟某人說再見，但他沒看到，覺得有點失望，就不揮手了"
+      ],
+      "poseHints": {
+        "activeSide": "both",
+        "primaryAction": "hands_up",
+        "bodyLean": "slight_back",
+        "repeatable": false,
+        "expression": "surprised"
+      },
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "source": "davinci_standingGreeting.vrma",
+          "matchedKeywords": [
+            "手往上"
+          ],
+          "textSnippet": "立正姿勢，右手往上伸，靠近眉毛的地方揮手了數次，像是在與人說再見 與人說再見 立正姿勢，右手往上伸，靠近眉毛的地方揮手了數次，在與人說再見 朋友離的比較遠，揮手說再見的感覺 立正姿勢，右手往上伸，靠近眉毛的地方揮手了數次，像是在與人說再見"
+        },
+        {
+          "source": "davinci_victory.vrma",
+          "matchedKeywords": [
+            "投降",
+            "舉高"
+          ],
+          "textSnippet": "雙手往外舉高，掌心向前，身體左右微微擺動，有種投降的感覺 雙手往外舉高，掌心向前，有種投降的感覺\n也可能是成功了，勝利的姿勢 雙手往外舉高，掌心向前，有種投降的感覺 也可能是成功了，勝利的姿勢 雙手往外舉高，掌心向前，身體左右微微擺動，有種投降的感覺"
+        },
+        {
+          "source": "davinci_yawn.vrma",
+          "matchedKeywords": [
+            "舉高"
+          ],
+          "textSnippet": "頭往右擺，再往左擺，右手斜斜舉高，左手橫在嘴前檔住打哈欠，然後左右也往斜上伸展，伸了個懶腰 頭往右擺，再往左擺，右手斜斜舉高，左手橫在嘴前檔住打哈欠，然後左右也往斜上伸展，伸了個懶腰\n伸懶腰\n忙了很久，覺得很累，伸展休息一下 頭往右擺，再往左擺，右手斜斜舉高，左手橫在嘴前檔住打哈"
+        },
+        {
+          "source": "davinci2_entry.vrma",
+          "matchedKeywords": [
+            "手往上"
+          ],
+          "textSnippet": "行進中，右手往上比出敬禮的手勢，然後左看看右看看，也像是登場時大家歡迎她的到來，一邊敬禮一邊退著走 行進中，右手往上比出敬禮的手勢，然後左看看右看看，也像是登場時大家歡迎她的到來\n登場時\n我們歡迎羽山娘\n一邊敬禮一邊退著走 行進中，右手往上比出敬禮的手勢，然後左看看右看看，也像是"
+        },
+        {
+          "source": "davinci3_twistDance.vrma",
+          "matchedKeywords": [
+            "雙手往上",
+            "手往上"
+          ],
+          "textSnippet": "跳舞，左跳右跳很有節奏，中途雙手往上舉，然後再回到左跳右跳 跳舞，左跳右跳很有節奏，中途雙手往上舉，然後再回到左跳右跳 跳舞，左跳右跳很有節奏，中途雙手往上舉，然後再回到左跳右跳 跳舞，左跳右跳很有節奏，中途雙手往上舉，然後再回到左跳右跳"
+        },
+        {
+          "source": "davinci4_singing.vrma",
+          "matchedKeywords": [
+            "雙手往上",
+            "手往上"
+          ],
+          "textSnippet": "舞蹈，雙手往上舉，像是有人帶著一起在畫面上跳舞，轉了一圈回到原位 舞蹈，雙手往上舉，像是有人帶著一起在畫面上跳舞，轉了一圈回到原位 舞蹈，雙手往上舉，像是有人帶著一起在畫面上跳舞，轉了一圈回到原位 舞蹈，雙手往上舉，像是有人帶著一起在畫面上跳舞，轉了一圈回到原位"
+        },
+        {
+          "source": "Goodbye.vrma",
+          "matchedKeywords": [
+            "投降",
+            "雙手往上",
+            "手往上",
+            "舉高"
+          ],
+          "textSnippet": "雙手往上舉高，再回到腰旁，左右一擺，再回到投降的姿勢，然後手放下 像是要跟某人說再見，但他沒看到，覺得有點失望，就不揮手了 像是要跟某人說再見，但他沒看到，覺得有點失望，就不揮手了 雙手往上舉高，再回到腰旁，左右一擺，再回到投降的姿勢，然後手放下"
+        },
+        {
+          "source": "Surprised.vrma",
+          "matchedKeywords": [
+            "嚇了一跳"
+          ],
+          "textSnippet": "嚇了一跳，雙手在面前交叉，可能有什麼 jump scare 出現 嚇了一跳，雙手在面前交叉，可能有什麼 jump scare 出現 嚇了一跳，雙手在面前交叉，可能有什麼 jump scare 出現 嚇了一跳，雙手在面前交叉，可能有什麼 jump scare 出現"
+        },
+        {
+          "source": "test157t_hello.vrma",
+          "matchedKeywords": [
+            "手往上",
+            "舉高"
+          ],
+          "textSnippet": "背對著大家，手在背後有點緊張，準備了一下轉身回來，雙手舉高揮舞，與大家打招呼，最後右手往上伸展，小跳一下 背對著大家，手在背後有點緊張，準備了一下轉身回來，雙手舉高揮舞，與大家打招呼，最後右手往上伸展，小跳一下 背對著大家，手在背後有點緊張，準備了一下轉身回來，雙手舉高揮舞，與大"
+        }
+      ]
+    },
+    {
+      "recipeId": "angry_hands_waist",
+      "displayName": "插腰生氣",
+      "sourceMotions": [
+        "Angry.vrma",
+        "Blush.vrma",
+        "davinci_bashful.vrma",
+        "davinci_victoryIdle.vrma",
+        "davinci4_VRMA_03.vrma"
+      ],
+      "matchedKeywords": [
+        "犯錯",
+        "生氣",
+        "氣噗噗",
+        "插腰",
+        "講不聽"
+      ],
+      "motionSummary": "雙手插腰並帶有頭部晃動或身體前壓，呈現有態度的提醒。",
+      "agentUsages": [
+        "也可以用在溜冰，左滑右滑",
+        "可能因為使用者犯錯講不聽，羽山娘生氣中",
+        "在想事情，或是不小心犯錯時的不好意思的動作",
+        "羽山娘氣噗噗",
+        "很有自信的指天，且左手插腰",
+        "從立正姿勢，右手往外伸了一些再回到右耳邊比 YA，左手微微插腰，像是被拍照時的準備動作",
+        "這是個生氣中的動作",
+        "像犯錯的小孩，雙手在背後微微交叉，上半身前傾頭低低的，頭微微左右搖擺墾求道歉的感覺",
+        "舞蹈的起始動作"
+      ],
+      "poseHints": {
+        "activeSide": "both",
+        "primaryAction": "hands_on_waist",
+        "bodyLean": "slight_forward",
+        "repeatable": false,
+        "expression": "angry"
+      },
+      "confidence": 0.91,
+      "evidence": [
+        {
+          "source": "Angry.vrma",
+          "matchedKeywords": [
+            "插腰",
+            "生氣",
+            "氣噗噗",
+            "犯錯",
+            "講不聽"
+          ],
+          "textSnippet": "雙手插腰，頭微微歪一邊晃頭 羽山娘生氣中 可能因為使用者犯錯講不聽，羽山娘生氣中 這是個生氣中的動作 羽山娘氣噗噗 雙手插腰，頭微微歪一邊晃頭"
+        },
+        {
+          "source": "Blush.vrma",
+          "matchedKeywords": [
+            "犯錯"
+          ],
+          "textSnippet": "微微擺頭，左手伸後到後腦摸了二下 在想事情，或是不小心犯錯時的不好意思的動作 在想事情，或是不小心犯錯時的不好意思的動作 微微擺頭，左手伸後到後腦摸了二下"
+        },
+        {
+          "source": "davinci_bashful.vrma",
+          "matchedKeywords": [
+            "犯錯"
+          ],
+          "textSnippet": "雙手在背後微微交叉，上半身前傾頭低低的，頭微微左右搖擺墾求道歉的感覺，身體左晃又晃，滑來滑去 像犯錯的小孩，雙手在背後微微交叉，上半身前傾頭低低的，頭微微左右搖擺墾求道歉的感覺\n也可以用在溜冰，左滑右滑 像犯錯的小孩，雙手在背後微微交叉，上半身前傾頭低低的，頭微微左右搖擺墾求道歉"
+        },
+        {
+          "source": "davinci_victoryIdle.vrma",
+          "matchedKeywords": [
+            "插腰"
+          ],
+          "textSnippet": "右手往天上伸直，左手插腰 很有自信的指天，且左手插腰\n舞蹈的起始動作 很有自信的指天，且左手插腰 舞蹈的起始動作 右手往天上伸直，左手插腰"
+        },
+        {
+          "source": "davinci4_VRMA_03.vrma",
+          "matchedKeywords": [
+            "插腰"
+          ],
+          "textSnippet": "從立正姿勢，右手往外伸了一些再回到右耳邊比 YA，左手微微插腰，像是被拍照時的準備動作 從立正姿勢，右手往外伸了一些再回到右耳邊比 YA，左手微微插腰，像是被拍照時的準備動作 從立正姿勢，右手往外伸了一些再回到右耳邊比 YA，左手微微插腰，像是被拍照時的準備動作 從立正姿勢，右手"
+        }
+      ]
+    },
+    {
+      "recipeId": "wave_goodbye",
+      "displayName": "揮手告別",
+      "sourceMotions": [
+        "davinci_acknowledging.vrma",
+        "davinci_standingGreeting.vrma",
+        "davinci_waving.vrma",
+        "davinci2_entry.vrma",
+        "davinci2_floating.vrma",
+        "davinci2_sittingDisapproval.vrma",
+        "davinci3_hipHopDancing.vrma",
+        "davinci4_VRMA_02.vrma",
+        "Goodbye.vrma",
+        "test157t_greeting.vrma",
+        "test157t_greeting2.vrma",
+        "test157t_hello.vrma"
+      ],
+      "matchedKeywords": [
+        "打招呼",
+        "再見",
+        "揮手",
+        "歡迎"
+      ],
+      "motionSummary": "手部向外揮動，可用於打招呼、歡迎或告別。",
+      "agentUsages": [
+        "一邊敬禮一邊退著走",
+        "也可以用於很誇張的再見姿勢",
+        "不想喝酒，已喝太多了",
+        "左手往外滑一下，右手往外滑一下，是一個往外滑的自由式，用途不明但很可愛",
+        "打招呼",
+        "立正姿勢，右手往上伸，靠近眉毛的地方揮手了數次，在與人說再見",
+        "行進中，右手往上比出敬禮的手勢，然後左看看右看看，也像是登場時大家歡迎她的到來",
+        "坐著，右手伸出，作了手掌左攞右攞揮手的動作，似乎在拒絕什麼",
+        "我們歡迎羽山娘",
+        "我懂了",
+        "朋友離的比較遠，揮手說再見的感覺",
+        "很標準的右手在耳邊揮揮手，與大家打招呼的感覺"
+      ],
+      "poseHints": {
+        "activeSide": "right",
+        "primaryAction": "wave",
+        "bodyLean": "neutral",
+        "repeatable": true,
+        "rhythm": "friendly_loop"
+      },
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "source": "davinci_acknowledging.vrma",
+          "matchedKeywords": [
+            "打招呼"
+          ],
+          "textSnippet": "頭約歪5度左左，向前點頭了一次，像是在打招呼的感覺,，頭髮自然飄散 打招呼，或是我懂了，微微點頭示意 打招呼 我懂了 微微點頭示意 頭約歪5度左左，向前點頭了一次，像是在打招呼的感覺,，頭髮自然飄散"
+        },
+        {
+          "source": "davinci_standingGreeting.vrma",
+          "matchedKeywords": [
+            "揮手",
+            "再見"
+          ],
+          "textSnippet": "立正姿勢，右手往上伸，靠近眉毛的地方揮手了數次，像是在與人說再見 與人說再見 立正姿勢，右手往上伸，靠近眉毛的地方揮手了數次，在與人說再見 朋友離的比較遠，揮手說再見的感覺 立正姿勢，右手往上伸，靠近眉毛的地方揮手了數次，像是在與人說再見"
+        },
+        {
+          "source": "davinci_waving.vrma",
+          "matchedKeywords": [
+            "再見"
+          ],
+          "textSnippet": "右手伸起，在面前來回揮動 可能覺得有臭味，要把臭味揮掉 覺得有臭味，要把臭味揮掉 也可以用於很誇張的再見姿勢 右手伸起，在面前來回揮動"
+        },
+        {
+          "source": "davinci2_entry.vrma",
+          "matchedKeywords": [
+            "歡迎"
+          ],
+          "textSnippet": "行進中，右手往上比出敬禮的手勢，然後左看看右看看，也像是登場時大家歡迎她的到來，一邊敬禮一邊退著走 行進中，右手往上比出敬禮的手勢，然後左看看右看看，也像是登場時大家歡迎她的到來\n登場時\n我們歡迎羽山娘\n一邊敬禮一邊退著走 行進中，右手往上比出敬禮的手勢，然後左看看右看看，也像是"
+        },
+        {
+          "source": "davinci2_floating.vrma",
+          "matchedKeywords": [
+            "打招呼"
+          ],
+          "textSnippet": "左手往外滑一下，右手往外滑一下，是一個往外滑的自由式 左手往外滑一下，右手往外滑一下，是一個往外滑的自由式，用途不明但很可愛\n跟左、右的觀眾打招呼 左手往外滑一下，右手往外滑一下，是一個往外滑的自由式，用途不明但很可愛 跟左、右的觀眾打招呼 左手往外滑一下，右手往外滑一下，是一個"
+        },
+        {
+          "source": "davinci2_sittingDisapproval.vrma",
+          "matchedKeywords": [
+            "揮手"
+          ],
+          "textSnippet": "坐著，右手伸出，作了手掌左攞右攞揮手的動作 坐著，右手伸出，作了手掌左攞右攞揮手的動作，似乎在拒絕什麼\n不想喝酒，已喝太多了 坐著，右手伸出，作了手掌左攞右攞揮手的動作，似乎在拒絕什麼 不想喝酒，已喝太多了 坐著，右手伸出，作了手掌左攞右攞揮手的動作"
+        },
+        {
+          "source": "davinci3_hipHopDancing.vrma",
+          "matchedKeywords": [
+            "揮手"
+          ],
+          "textSnippet": "跳舞，伸出右手拉一下，伸出左手拉一下，反履揮手 跳舞，伸出右手拉一下，伸出左手拉一下，反履揮手 跳舞，伸出右手拉一下，伸出左手拉一下，反履揮手 跳舞，伸出右手拉一下，伸出左手拉一下，反履揮手"
+        },
+        {
+          "source": "davinci4_VRMA_02.vrma",
+          "matchedKeywords": [
+            "打招呼"
+          ],
+          "textSnippet": "蹲著然後站起，站起後雙手在二耳邊，左手放下，人側一邊，右手在耳邊與大家朝手，很可愛的打招呼 蹲著然後站起，站起後雙手在二耳邊，左手放下，人側一邊，右手在耳邊與大家朝手，很可愛的打招呼 蹲著然後站起，站起後雙手在二耳邊，左手放下，人側一邊，右手在耳邊與大家朝手，很可愛的打招呼 蹲著"
+        },
+        {
+          "source": "Goodbye.vrma",
+          "matchedKeywords": [
+            "揮手",
+            "再見"
+          ],
+          "textSnippet": "雙手往上舉高，再回到腰旁，左右一擺，再回到投降的姿勢，然後手放下 像是要跟某人說再見，但他沒看到，覺得有點失望，就不揮手了 像是要跟某人說再見，但他沒看到，覺得有點失望，就不揮手了 雙手往上舉高，再回到腰旁，左右一擺，再回到投降的姿勢，然後手放下"
+        },
+        {
+          "source": "test157t_greeting.vrma",
+          "matchedKeywords": [
+            "揮手",
+            "打招呼"
+          ],
+          "textSnippet": "蹲下，跳起後右手在右耳邊揮手，有一種忽然被發現被 cue 到，跳起來與大家打招呼的感覺 蹲下，跳起後右手在右耳邊揮手，有一種忽然被發現被 cue 到，跳起來與大家打招呼的感覺 蹲下，跳起後右手在右耳邊揮手，有一種忽然被發現被 cue 到，跳起來與大家打招呼的感覺 蹲下，跳起後右手"
+        },
+        {
+          "source": "test157t_greeting2.vrma",
+          "matchedKeywords": [
+            "揮手",
+            "打招呼"
+          ],
+          "textSnippet": "很標準的右手在耳邊揮揮手，與大家打招呼的感覺 很標準的右手在耳邊揮揮手，與大家打招呼的感覺 很標準的右手在耳邊揮揮手，與大家打招呼的感覺 很標準的右手在耳邊揮揮手，與大家打招呼的感覺"
+        },
+        {
+          "source": "test157t_hello.vrma",
+          "matchedKeywords": [
+            "打招呼"
+          ],
+          "textSnippet": "背對著大家，手在背後有點緊張，準備了一下轉身回來，雙手舉高揮舞，與大家打招呼，最後右手往上伸展，小跳一下 背對著大家，手在背後有點緊張，準備了一下轉身回來，雙手舉高揮舞，與大家打招呼，最後右手往上伸展，小跳一下 背對著大家，手在背後有點緊張，準備了一下轉身回來，雙手舉高揮舞，與大"
+        }
+      ]
+    },
+    {
+      "recipeId": "look_around",
+      "displayName": "左右觀察",
+      "sourceMotions": [
+        "davinci_annoyedHeadShake.vrma",
+        "davinci_lookAround.vrma",
+        "davinci_lookAwayGesture.vrma",
+        "davinci2_entry.vrma",
+        "davinci2_lookOverShoulder.vrma",
+        "davinci3_startClimbingLadder.vrma",
+        "davinci4_crosslegFreeze.vrma",
+        "LookAround.vrma",
+        "Sad.vrma",
+        "Sleepy.vrma"
+      ],
+      "matchedKeywords": [
+        "右看",
+        "四週",
+        "左看",
+        "回頭看",
+        "環看"
+      ],
+      "motionSummary": "頭部或上半身左右查看，像是在尋找、觀察或確認周遭狀況。",
+      "agentUsages": [
+        "一邊敬禮一邊退著走",
+        "人往左看往後跳，畫面有點超出螢幕",
+        "小心翼翼，感覺四週有點危險，雙手在前方，右邊看一下，又被左邊嚇了一下",
+        "左邊或右邊有什麼事，或是左右二邊有人靠近",
+        "行進中，右手往上比出敬禮的手勢，然後左看看右看看，也像是登場時大家歡迎她的到來",
+        "我們歡迎羽山娘",
+        "身體左轉往左看，身體右轉往右看，環看四週",
+        "看看發生什麼事",
+        "原本是躺著翻身跳下床，身體背對螢幕左前方，回頭看螢幕這",
+        "旋轉上半身，回頭看了一下",
+        "登場時",
+        "感覺傷心，頭低下，往左看了一下，再往右看了一下"
+      ],
+      "poseHints": {
+        "activeSide": "none",
+        "primaryAction": "look_around",
+        "bodyLean": "neutral",
+        "repeatable": true,
+        "gaze": "scan"
+      },
+      "confidence": 0.89,
+      "evidence": [
+        {
+          "source": "davinci_annoyedHeadShake.vrma",
+          "matchedKeywords": [
+            "左看"
+          ],
+          "textSnippet": "頭往左看了一下又回正 頭往左看了一下又回正 頭往左看了一下又回正 頭往左看了一下又回正"
+        },
+        {
+          "source": "davinci_lookAround.vrma",
+          "matchedKeywords": [
+            "左看",
+            "右看"
+          ],
+          "textSnippet": "雙手微微張開，擺頭左看看，再擺頭右看看 雙手微微張開，擺頭左看看，再擺頭右看看\n看看發生什麼事\n左邊或右邊有什麼事，或是左右二邊有人靠近 雙手微微張開，擺頭左看看，再擺頭右看看 看看發生什麼事 左邊或右邊有什麼事，或是左右二邊有人靠近 雙手微微張開，擺頭左看看，再擺頭右看看"
+        },
+        {
+          "source": "davinci_lookAwayGesture.vrma",
+          "matchedKeywords": [
+            "右看"
+          ],
+          "textSnippet": "頭往右邊往右看了一下，再轉正回來 頭往右邊往右看了一下，再轉正回來 頭往右邊往右看了一下，再轉正回來 頭往右邊往右看了一下，再轉正回來"
+        },
+        {
+          "source": "davinci2_entry.vrma",
+          "matchedKeywords": [
+            "左看",
+            "右看"
+          ],
+          "textSnippet": "行進中，右手往上比出敬禮的手勢，然後左看看右看看，也像是登場時大家歡迎她的到來，一邊敬禮一邊退著走 行進中，右手往上比出敬禮的手勢，然後左看看右看看，也像是登場時大家歡迎她的到來\n登場時\n我們歡迎羽山娘\n一邊敬禮一邊退著走 行進中，右手往上比出敬禮的手勢，然後左看看右看看，也像是"
+        },
+        {
+          "source": "davinci2_lookOverShoulder.vrma",
+          "matchedKeywords": [
+            "四週",
+            "回頭看"
+          ],
+          "textSnippet": "雙手在身體前方，先看一下右邊，然後又迅速的看了一下左邊\n回頭看了一下 小心翼翼，感覺四週有點危險，雙手在前方，右邊看一下，又被左邊嚇了一下\n旋轉上半身，回頭看了一下 小心翼翼，感覺四週有點危險，雙手在前方，右邊看一下，又被左邊嚇了一下 旋轉上半身，回頭看了一下 雙手在身體前方，先"
+        },
+        {
+          "source": "davinci3_startClimbingLadder.vrma",
+          "matchedKeywords": [
+            "左看"
+          ],
+          "textSnippet": "人往左看往後跳，畫面有點超出螢幕 人往左看往後跳，畫面有點超出螢幕 人往左看往後跳，畫面有點超出螢幕 人往左看往後跳，畫面有點超出螢幕"
+        },
+        {
+          "source": "davinci4_crosslegFreeze.vrma",
+          "matchedKeywords": [
+            "回頭看"
+          ],
+          "textSnippet": "原本是躺著翻身跳下床，身體背對螢幕左前方，回頭看螢幕這 原本是躺著翻身跳下床，身體背對螢幕左前方，回頭看螢幕這 原本是躺著翻身跳下床，身體背對螢幕左前方，回頭看螢幕這 原本是躺著翻身跳下床，身體背對螢幕左前方，回頭看螢幕這"
+        },
+        {
+          "source": "LookAround.vrma",
+          "matchedKeywords": [
+            "左看",
+            "右看",
+            "環看",
+            "四週"
+          ],
+          "textSnippet": "身體左轉往左看，身體右轉往右看，環看四週 身體左轉往左看，身體右轉往右看，環看四週 身體左轉往左看，身體右轉往右看，環看四週 身體左轉往左看，身體右轉往右看，環看四週"
+        },
+        {
+          "source": "Sad.vrma",
+          "matchedKeywords": [
+            "左看",
+            "右看"
+          ],
+          "textSnippet": "感覺傷心，頭低下，往左看了一下，再往右看了一下 感覺傷心，頭低下，往左看了一下，再往右看了一下 感覺傷心，頭低下，往左看了一下，再往右看了一下 感覺傷心，頭低下，往左看了一下，再往右看了一下"
+        },
+        {
+          "source": "Sleepy.vrma",
+          "matchedKeywords": [
+            "左看"
+          ],
+          "textSnippet": "覺得想數，往左看了一下，右手檔住打哈欠的嘴，手再放下 覺得想數，往左看了一下，右手檔住打哈欠的嘴，手再放下 覺得想數，往左看了一下，右手檔住打哈欠的嘴，手再放下 覺得想數，往左看了一下，右手檔住打哈欠的嘴，手再放下"
+        }
+      ]
+    },
+    {
+      "recipeId": "thinking_chin",
+      "displayName": "托腮思考",
+      "sourceMotions": [
+        "Blush.vrma",
+        "davinci_sarcasticHeadNod.vrma",
+        "davinci_thinking.vrma",
+        "davinci2_crouchToStand.vrma",
+        "davinci2_rummaging.vrma",
+        "Thinking.vrma"
+      ],
+      "matchedKeywords": [
+        "下巴",
+        "思考",
+        "想事情"
+      ],
+      "motionSummary": "手部靠近下巴或臉側，頭部微低，呈現思考與分析中的狀態。",
+      "agentUsages": [
+        "也可以像是剛打針，右手壓著綿花按著傷口",
+        "也許在問人現在時間幾點幾分",
+        "可能在想事情，或忽然理解什麼",
+        "右手在眼前約20cm處平舉，左手在下巴前10cm左右，這姿勢維持了4秒，像在翻找抽屜裡的文件",
+        "右手斜到左臉下巴，手背向上，頭微微往右斜，有一種呵呵呵笑的感覺",
+        "在想事情，或是不小心犯錯時的不好意思的動作",
+        "或是在思考時間幾點了",
+        "娜卡的特有笑聲招牌動作",
+        "雙手叉交在腹部前，頭低低左晃右晃，像是在想事情"
+      ],
+      "poseHints": {
+        "activeSide": "right",
+        "primaryAction": "chin_touch",
+        "bodyLean": "slight_forward",
+        "repeatable": false,
+        "gaze": "up_left"
+      },
+      "confidence": 0.81,
+      "evidence": [
+        {
+          "source": "Blush.vrma",
+          "matchedKeywords": [
+            "想事情"
+          ],
+          "textSnippet": "微微擺頭，左手伸後到後腦摸了二下 在想事情，或是不小心犯錯時的不好意思的動作 在想事情，或是不小心犯錯時的不好意思的動作 微微擺頭，左手伸後到後腦摸了二下"
+        },
+        {
+          "source": "davinci_sarcasticHeadNod.vrma",
+          "matchedKeywords": [
+            "想事情"
+          ],
+          "textSnippet": "頭往右後微微仰，然後再往前點了一下頭 可能在想事情，或忽然理解什麼 可能在想事情，或忽然理解什麼 頭往右後微微仰，然後再往前點了一下頭"
+        },
+        {
+          "source": "davinci_thinking.vrma",
+          "matchedKeywords": [
+            "下巴"
+          ],
+          "textSnippet": "右手斜到左臉下巴，手背向上，頭微微往右斜，有一種呵呵呵笑的感覺，以前秀逗魔導士裡的娜卡很常作這個動作 右手斜到左臉下巴，手背向上，頭微微往右斜，有一種呵呵呵笑的感覺\n娜卡的特有笑聲招牌動作 右手斜到左臉下巴，手背向上，頭微微往右斜，有一種呵呵呵笑的感覺 娜卡的特有笑聲招牌動作 右"
+        },
+        {
+          "source": "davinci2_crouchToStand.vrma",
+          "matchedKeywords": [
+            "思考"
+          ],
+          "textSnippet": "左手向前，右手指著左手手腕 也許在問人現在時間幾點幾分\n也可以像是剛打針，右手壓著綿花按著傷口\n或是在思考時間幾點了 也許在問人現在時間幾點幾分 也可以像是剛打針，右手壓著綿花按著傷口 或是在思考時間幾點了 左手向前，右手指著左手手腕"
+        },
+        {
+          "source": "davinci2_rummaging.vrma",
+          "matchedKeywords": [
+            "下巴"
+          ],
+          "textSnippet": "右手在眼前約20cm處平舉，左手在下巴前10cm左右，這姿勢維持了4秒，像在翻找抽屜裡的文件 右手在眼前約20cm處平舉，左手在下巴前10cm左右，這姿勢維持了4秒，像在翻找抽屜裡的文件 右手在眼前約20cm處平舉，左手在下巴前10cm左右，這姿勢維持了4秒，像在翻找抽屜裡的文件"
+        },
+        {
+          "source": "Thinking.vrma",
+          "matchedKeywords": [
+            "想事情"
+          ],
+          "textSnippet": "雙手叉交在腹部前，頭低低左晃右晃，像是在想事情 雙手叉交在腹部前，頭低低左晃右晃，像是在想事情 雙手叉交在腹部前，頭低低左晃右晃，像是在想事情 雙手叉交在腹部前，頭低低左晃右晃，像是在想事情"
+        }
+      ]
+    },
+    {
+      "recipeId": "point_target",
+      "displayName": "指向目標",
+      "sourceMotions": [
+        "davinci_happyHandGesture.vrma",
+        "davinci_pointing.vrma",
+        "davinci2_crouchToStand.vrma",
+        "davinci3_backflip.vrma",
+        "davinci3_golfDrive.vrma"
+      ],
+      "matchedKeywords": [
+        "方向",
+        "位置",
+        "指示",
+        "指著"
+      ],
+      "motionSummary": "手臂伸出並指向目標方向，用於提示使用者看向指定位置。",
+      "agentUsages": [
+        "也可以像是剛打針，右手壓著綿花按著傷口",
+        "也許在問人現在時間幾點幾分",
+        "右手向前指了一下，再回到立正姿勢",
+        "往前一跳，跳到相當靠近鏡頭的位置",
+        "或是在思考時間幾點了",
+        "前方似乎有什麼",
+        "前方那裡有東西",
+        "原是立正的姿勢，忽然伸出右手向前約腹部高的位置，像是要握手，但忽然又收回",
+        "高爾夫開球，打出後維持揮桿結束，看著球飛行的方向"
+      ],
+      "poseHints": {
+        "activeSide": "right",
+        "primaryAction": "point",
+        "bodyLean": "slight_forward",
+        "repeatable": false,
+        "gaze": "target"
+      },
+      "confidence": 0.8,
+      "evidence": [
+        {
+          "source": "davinci_happyHandGesture.vrma",
+          "matchedKeywords": [
+            "位置"
+          ],
+          "textSnippet": "原是立正的姿勢，忽然伸出右手向前約腹部高的位置，像是要握手，但忽然又收回 假裝握手 原是立正的姿勢，忽然伸出右手向前約腹部高的位置，像是要握手，但忽然又收回 原是立正的姿勢，忽然伸出右手向前約腹部高的位置，像是要握手，但忽然又收回"
+        },
+        {
+          "source": "davinci_pointing.vrma",
+          "matchedKeywords": [
+            "指示"
+          ],
+          "textSnippet": "立正姿勢，然後右手向前指了一下，再回到立正姿勢 右手向前指了一下，再回到立正姿勢\n指示前面有什麼 右手向前指了一下，再回到立正姿勢 前方似乎有什麼 前方那裡有東西 立正姿勢，然後右手向前指了一下，再回到立正姿勢"
+        },
+        {
+          "source": "davinci2_crouchToStand.vrma",
+          "matchedKeywords": [
+            "指著"
+          ],
+          "textSnippet": "左手向前，右手指著左手手腕 也許在問人現在時間幾點幾分\n也可以像是剛打針，右手壓著綿花按著傷口\n或是在思考時間幾點了 也許在問人現在時間幾點幾分 也可以像是剛打針，右手壓著綿花按著傷口 或是在思考時間幾點了 左手向前，右手指著左手手腕"
+        },
+        {
+          "source": "davinci3_backflip.vrma",
+          "matchedKeywords": [
+            "位置"
+          ],
+          "textSnippet": "往前一跳，跳到相當靠近鏡頭的位置 往前一跳，跳到相當靠近鏡頭的位置 往前一跳，跳到相當靠近鏡頭的位置 往前一跳，跳到相當靠近鏡頭的位置"
+        },
+        {
+          "source": "davinci3_golfDrive.vrma",
+          "matchedKeywords": [
+            "方向"
+          ],
+          "textSnippet": "高爾夫開球，打出後維持揮桿結束，看著球飛行的方向 高爾夫開球，打出後維持揮桿結束，看著球飛行的方向 高爾夫開球，打出後維持揮桿結束，看著球飛行的方向 高爾夫開球，打出後維持揮桿結束，看著球飛行的方向"
+        }
+      ]
+    },
+    {
+      "recipeId": "victory_pose",
+      "displayName": "勝利完成",
+      "sourceMotions": [
+        "davinci_happyIdle.vrma",
+        "davinci_victory.vrma",
+        "davinci3_golfPuttVictory.vrma"
+      ],
+      "matchedKeywords": [
+        "成功",
+        "高興",
+        "勝利",
+        "開心"
+      ],
+      "motionSummary": "帶有完成、勝利或開心語意的姿勢，適合工具成功後的短演出。",
+      "agentUsages": [
+        "也可能是成功了，勝利的姿勢",
+        "高爾夫推桿進球了，她往左走了幾步，表現出勝利的高興動作",
+        "開心的張開雙手微微晃動",
+        "雙手往外舉高，掌心向前，有種投降的感覺"
+      ],
+      "poseHints": {
+        "activeSide": "both",
+        "primaryAction": "victory",
+        "bodyLean": "slight_up",
+        "repeatable": false,
+        "expression": "happy"
+      },
+      "confidence": 0.76,
+      "evidence": [
+        {
+          "source": "davinci_happyIdle.vrma",
+          "matchedKeywords": [
+            "開心"
+          ],
+          "textSnippet": "左右手張開在身體旁二邊，微微劃圈 開心的張開雙手微微晃動 開心的張開雙手微微晃動 左右手張開在身體旁二邊，微微劃圈"
+        },
+        {
+          "source": "davinci_victory.vrma",
+          "matchedKeywords": [
+            "勝利",
+            "成功"
+          ],
+          "textSnippet": "雙手往外舉高，掌心向前，身體左右微微擺動，有種投降的感覺 雙手往外舉高，掌心向前，有種投降的感覺\n也可能是成功了，勝利的姿勢 雙手往外舉高，掌心向前，有種投降的感覺 也可能是成功了，勝利的姿勢 雙手往外舉高，掌心向前，身體左右微微擺動，有種投降的感覺"
+        },
+        {
+          "source": "davinci3_golfPuttVictory.vrma",
+          "matchedKeywords": [
+            "勝利",
+            "高興"
+          ],
+          "textSnippet": "高爾夫推桿進球了，她往左走了幾步，表現出勝利的高興動作 高爾夫推桿進球了，她往左走了幾步，表現出勝利的高興動作 高爾夫推桿進球了，她往左走了幾步，表現出勝利的高興動作 高爾夫推桿進球了，她往左走了幾步，表現出勝利的高興動作"
+        }
+      ]
+    },
+    {
+      "recipeId": "come_here",
+      "displayName": "招手靠近",
+      "sourceMotions": [
+        "davinci_beckoning.vrma",
+        "davinci4_swinging.vrma"
+      ],
+      "matchedKeywords": [
+        "過來",
+        "靠近",
+        "come"
+      ],
+      "motionSummary": "手部向自己方向連續招手，像是在請對方靠近或跟上。",
+      "agentUsages": [
+        "有點色的動作，會看到小褲褲",
+        "希望讓對方跟過來，有 come on come here 的用途",
+        "像泰山一樣，往螢幕蕩過來"
+      ],
+      "poseHints": {
+        "activeSide": "right",
+        "primaryAction": "beckon",
+        "bodyLean": "slight_forward",
+        "repeatable": true,
+        "rhythm": "short_loop"
+      },
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "source": "davinci_beckoning.vrma",
+          "matchedKeywords": [
+            "靠近",
+            "過來",
+            "come"
+          ],
+          "textSnippet": "右手在前方抓著自己的裙子，作出往自己靠近擺動數次 希望讓對方跟過來，有 come on come here 的用途\n有點色的動作 希望讓對方跟過來，有 come on come here 的用途 有點色的動作，會看到小褲褲 右手在前方抓著自己的裙子，作出往自己靠近擺動數次"
+        },
+        {
+          "source": "davinci4_swinging.vrma",
+          "matchedKeywords": [
+            "過來"
+          ],
+          "textSnippet": "像泰山一樣，往螢幕蕩過來 像泰山一樣，往螢幕蕩過來 像泰山一樣，往螢幕蕩過來 像泰山一樣，往螢幕蕩過來"
+        }
+      ]
+    },
+    {
+      "recipeId": "shy_head_touch",
+      "displayName": "害羞摸頭",
+      "sourceMotions": [
+        "Blush.vrma"
+      ],
+      "matchedKeywords": [
+        "不好意思",
+        "犯錯",
+        "後腦"
+      ],
+      "motionSummary": "手摸後腦或臉側，帶有害羞、不好意思或小失誤後的反應。",
+      "agentUsages": [
+        "在想事情，或是不小心犯錯時的不好意思的動作"
+      ],
+      "poseHints": {
+        "activeSide": "left",
+        "primaryAction": "head_touch",
+        "bodyLean": "slight_side",
+        "repeatable": false,
+        "expression": "shy"
+      },
+      "confidence": 0.67,
+      "evidence": [
+        {
+          "source": "Blush.vrma",
+          "matchedKeywords": [
+            "不好意思",
+            "後腦",
+            "犯錯"
+          ],
+          "textSnippet": "微微擺頭，左手伸後到後腦摸了二下 在想事情，或是不小心犯錯時的不好意思的動作 在想事情，或是不小心犯錯時的不好意思的動作 微微擺頭，左手伸後到後腦摸了二下"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "sourceName": "VRM-Assets-Pack-For-Silly-Tavern",
+  "sourceUrl": "https://github.com/test157t/VRM-Assets-Pack-For-Silly-Tavern",
+  "retrievedAt": "2026-06-14T00:00:00+08:00",
+  "usageStatus": "local_mining_only_license_not_verified",
+  "note": "These files are downloaded for local motion mining. Verify upstream license and redistribution terms before committing or shipping the VRMA binaries.",
+  "files": [
+    {
+      "localFile": "test157t_greeting.vrma",
+      "sourcePath": "animation_nitral-fork/greeting.vrma",
+      "size": 854284,
+      "sha256": "6322bbe2df7716529dd53e2a61816e67b946416d3761c672b8d50ee2829825bb"
+    },
+    {
+      "localFile": "test157t_greeting2.vrma",
+      "sourcePath": "animation_nitral-fork/greeting2.vrma",
+      "size": 215232,
+      "sha256": "e66268ebbef69afa5aabc3fe76e13693f621bdf67a6f4bde8aa9e8fde1f2caa8"
+    },
+    {
+      "localFile": "test157t_hello.vrma",
+      "sourcePath": "animation_nitral-fork/hello.vrma",
+      "size": 416320,
+      "sha256": "bde5b9d83745ad520b64ff13c05fa640185dc8ba42f76392e16404572de7c3e3"
+    },
+    {
+      "localFile": "test157t_model_pose.vrma",
+      "sourcePath": "animation_nitral-fork/model pose.vrma",
+      "size": 518364,
+      "sha256": "a2c86633690e911cf935c5b8cae6553aea0445567f88c2861f7597fc1bf08af1"
+    },
+    {
+      "localFile": "test157t_motion_pose.vrma",
+      "sourcePath": "animation_nitral-fork/motion_pose.vrma",
+      "size": 521156,
+      "sha256": "e3b06f78b21df2fe1f26d80dd1826fd47941a891d44b46a6197f8a87de05ff2c"
+    },
+    {
+      "localFile": "test157t_peace_sign.vrma",
+      "sourcePath": "animation_nitral-fork/peace sign.vrma",
+      "size": 1335704,
+      "sha256": "6f66b6b5c0214a7b825498050380ea43a3f782b5ea24ce46f7096acf15866d75"
+    },
+    {
+      "localFile": "test157t_shoot.vrma",
+      "sourcePath": "animation_nitral-fork/shoot.vrma",
+      "size": 1108548,
+      "sha256": "c40c1a7b0dbcac5aa9582f45498474255e4b0ca5642a71ffaf43878c27bedf70"
+    },
+    {
+      "localFile": "test157t_show_full_body.vrma",
+      "sourcePath": "animation_nitral-fork/show full body.vrma",
+      "size": 1348388,
+      "sha256": "f45abc44800c647fa106537a2e31a84cb83b74cf3dd8a0ee71c6915f1555ac57"
+    },
+    {
+      "localFile": "test157t_spin.vrma",
+      "sourcePath": "animation_nitral-fork/spin.vrma",
+      "size": 632316,
+      "sha256": "cc508712ca4db8833ffe982d2eecd427e9374a04c005db2a7a45775f0ca45586"
+    }
+  ]
+}
