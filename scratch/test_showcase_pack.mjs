@@ -124,6 +124,21 @@ function testDemoPropsUseSharedThreeScene() {
   );
 }
 
+function testDemoStagesPhysicalContactAndGaze() {
+  const demo = readFileSync(DEMO_PATH, 'utf8');
+
+  assert.match(demo, /crouch_touch/);
+  assert.match(demo, /hipsPosition:\s*\[/);
+  assert.match(demo, /nudgeContact\(event = \{\}, propLayer = null\)/);
+  assert.match(demo, /getPropWorldPosition\(name\)/);
+  assert.match(demo, /getLookAtPoint\(name, fallback/);
+  assert.match(demo, /class GazeDirector/);
+  assert.match(demo, /mouseOverrideUntil = performance\.now\(\) \+ 1150/);
+  assert.match(demo, /gazeDirector\.focusEvent\(event\)/);
+  assert.match(demo, /aliciaGazeDirector\?\.handleMouseMove/);
+  assert.match(demo, /sceneAction} \$\{event\.prop\}\$\{contact \? ' \+ contact' : ''\}/);
+}
+
 async function run() {
   const tests = [
     testGeneratorExistsAndIsDeterministic,
@@ -132,6 +147,7 @@ async function run() {
     testReportExists,
     testDemoPrefersShowcaseEvents,
     testDemoPropsUseSharedThreeScene,
+    testDemoStagesPhysicalContactAndGaze,
   ];
 
   for (const test of tests) {

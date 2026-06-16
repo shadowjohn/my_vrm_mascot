@@ -212,6 +212,12 @@ v0.1.3 修正 Showcase Demo 的空間感：
 - `demo.php` 的 toy room / props 會優先使用 shared scene，共用 camera、depth、lighting；overlay renderer 只保留作 fallback。
 - demo 物件改成落在 Alicia 周圍與地面深度上，避免看起來像浮在畫面前方的 2D UI。
 
+v0.1.4 強化近距離物件互動：
+
+- 新增 `crouch_touch` 展示動作，低物件互動時 Alicia 會蹲下並伸手觸摸。
+- ScenePropLayer 加入 touch recoil / contact flash，物件被碰到時會有短暫受力回饋。
+- GazeDirector 會讓頭部追蹤目前互動物件；使用者移動滑鼠時短暫改看滑鼠，停止後回到物件。
+
 目前資料集狀態：
 
 | 項目 | 數量 |

@@ -1388,6 +1388,30 @@ $serverChecks = [
           leftUpperArm: [[0, { z: 0 }], [320, { z: 10, x: 8 }], [1040, { z: 10, x: 8 }], [1500, { z: 0 }]],
         },
       },
+      crouch_touch: {
+        durationMs: 1900,
+        fps: 10,
+        hipsPosition: [
+          { time_ms: 0, pos: [0, 0, 0] },
+          { time_ms: 360, pos: [0.004, -0.075, 0.012] },
+          { time_ms: 1120, pos: [0.008, -0.092, 0.018] },
+          { time_ms: 1500, pos: [0.004, -0.045, 0.006] },
+          { time_ms: 1900, pos: [0, 0, 0] },
+        ],
+        bones: {
+          spine: [[0, { x: 0 }], [360, { x: 13, z: -2 }], [1120, { x: 15, z: -2 }], [1900, { x: 0 }]],
+          chest: [[0, { x: 0 }], [360, { x: 8, y: -7 }], [1120, { x: 9, y: -8 }], [1900, { x: 0 }]],
+          leftUpperLeg: [[0, { x: 0 }], [360, { x: -18, z: 3 }], [1120, { x: -22, z: 4 }], [1900, { x: 0 }]],
+          rightUpperLeg: [[0, { x: 0 }], [360, { x: -18, z: -3 }], [1120, { x: -22, z: -4 }], [1900, { x: 0 }]],
+          leftLowerLeg: [[0, { x: 0 }], [360, { x: 34 }], [1120, { x: 40 }], [1900, { x: 0 }]],
+          rightLowerLeg: [[0, { x: 0 }], [360, { x: 34 }], [1120, { x: 40 }], [1900, { x: 0 }]],
+          rightUpperArm: [[0, { z: 0 }], [300, { x: -18, y: -24, z: -58 }], [1040, { x: -20, y: -28, z: -62 }], [1900, { z: 0 }]],
+          rightLowerArm: [[0, { y: 0 }], [300, { y: 48, z: -10 }], [1040, { y: 54, z: -12 }], [1900, { y: 0 }]],
+          rightHand: [[0, { x: 0 }], [520, { x: -18, z: -10 }], [760, { x: -8, z: 9 }], [1080, { x: -16, z: -8 }], [1900, { x: 0 }]],
+          leftUpperArm: [[0, { z: 0 }], [360, { z: 18, x: 10 }], [1120, { z: 20, x: 12 }], [1900, { z: 0 }]],
+          leftLowerArm: [[0, { y: 0 }], [360, { y: -18 }], [1120, { y: -20 }], [1900, { y: 0 }]],
+        },
+      },
       kick_forward: {
         durationMs: 1500,
         fps: 10,
@@ -1435,7 +1459,7 @@ $serverChecks = [
         prop: 'releaseCore',
         intent: 'greeting',
         motion: 'wave',
-        animation: 'touch_model',
+        animation: 'crouch_touch',
         sceneAction: 'touch',
         walkTo: { x: -66, y: 5, scale: 1.05 },
         label: '招手靠近 release core',
@@ -1509,7 +1533,7 @@ $serverChecks = [
         intent: 'explain',
         motion: 'idle',
         actState: 'thinking',
-        animation: 'touch_model',
+        animation: 'crouch_touch',
         sceneAction: 'touch',
         walkTo: { x: -36, y: 3, scale: 1.04 },
         label: '托腮思考下一個動作',
@@ -1540,7 +1564,7 @@ $serverChecks = [
         prop: 'releaseCore',
         intent: 'explain',
         motion: 'shake_head',
-        animation: 'touch_model',
+        animation: 'crouch_touch',
         sceneAction: 'touch',
         walkTo: { x: -56, y: 3, scale: 1.04 },
         label: '害羞補充 runtime limit',
@@ -1567,7 +1591,7 @@ $serverChecks = [
         prop: 'assetCrate',
         intent: 'success',
         motion: 'victory',
-        animation: 'twirl',
+        animation: 'crouch_touch',
         sceneAction: 'touch',
         walkTo: { x: 40, y: 0, scale: 1.05 },
         label: '勝利完成 asset check',
@@ -1720,6 +1744,10 @@ $serverChecks = [
             bump: 0,
             spin: 0,
             orbit: 0,
+            touchPush: 0,
+            contactFlash: 0,
+            touchSide: anchor.x >= 0 ? 1 : -1,
+            touchDepth: anchor.z >= 0 ? 1 : -1,
             action: 'idle',
           };
           this.sceneRoot.add(prop);
@@ -1884,10 +1912,35 @@ $serverChecks = [
         this.activeProp = this.props[name] || null;
       }
 
-      touchProp(name) {
+      getPropWorldPosition(name) {
+        const prop = this.props[name];
+        if (!prop) return null;
+        prop.updateWorldMatrix(true, false);
+        return new THREE.Vector3().setFromMatrixPosition(prop.matrixWorld);
+      }
+
+      getLookAtPoint(name, fallback = { x: 0, y: 0 }) {
+        const camera = this.usesMascotScene
+          ? this.mascot?.getSceneContext?.().camera
+          : this.camera;
+        const worldPosition = this.getPropWorldPosition(name);
+        if (!camera || !worldPosition) return fallback;
+        const ndc = worldPosition.project(camera);
+        return {
+          x: Math.max(-0.86, Math.min(0.86, ndc.x)),
+          y: Math.max(-0.72, Math.min(0.72, ndc.y + 0.08)),
+        };
+      }
+
+      touchProp(name, direction = 0) {
         const state = this.propStates[name];
         if (!state) return false;
         state.bump = 1;
+        state.touchPush = 1;
+        state.contactFlash = 1;
+        state.touchSide = direction || (state.anchor.x >= 0 ? 1 : -1);
+        state.touchDepth = state.anchor.z >= 0 ? 1 : -1;
+        state.spin = state.touchSide * 1.4;
         state.action = 'touch';
         return true;
       }
@@ -1899,6 +1952,9 @@ $serverChecks = [
         state.target.copy(state.anchor).add(new THREE.Vector3(direction * distance, 0.04, 0.04));
         state.spin = direction * 10.5;
         state.bump = 1.25;
+        state.contactFlash = 1.15;
+        state.touchPush = 0.9;
+        state.touchSide = direction;
         state.action = 'punched';
         return true;
       }
@@ -1920,6 +1976,9 @@ $serverChecks = [
         state.target.copy(state.anchor).add(new THREE.Vector3(direction * distance, 0.04, depth));
         state.spin = direction * 7.5;
         state.bump = 1.15;
+        state.contactFlash = 1.1;
+        state.touchPush = 0.85;
+        state.touchSide = direction;
         state.action = 'kicked-away';
         this.lastKickedProp = name;
         return true;
@@ -1932,6 +1991,9 @@ $serverChecks = [
         state.target.copy(state.anchor);
         state.spin = direction * 8.5;
         state.bump = 1;
+        state.contactFlash = 1;
+        state.touchPush = 0.8;
+        state.touchSide = direction;
         state.action = 'kicked-back';
         return true;
       }
@@ -1939,7 +2001,7 @@ $serverChecks = [
       runSceneAction(event = {}) {
         const name = event.prop;
         const action = event.sceneAction || 'focus';
-        if (action === 'touch') return this.touchProp(name);
+        if (action === 'touch') return this.touchProp(name, event.kickDirection || 0);
         if (action === 'punch') return this.punchProp(name, event.kickDirection || 1);
         if (action === 'orbit') return this.orbitProp(name);
         if (action === 'kick-away') return this.kickAway(name, event.kickDirection || 1);
@@ -1976,15 +2038,26 @@ $serverChecks = [
               prop.position.y += Math.sin(state.bump * Math.PI) * 0.12;
               state.bump = Math.max(0, state.bump - dt * 1.8);
             }
+            if (state.touchPush > 0.01) {
+              const push = Math.sin(state.touchPush * Math.PI) * (this.usesMascotScene ? 0.07 : 0.12);
+              prop.position.x += state.touchSide * push;
+              prop.position.z += state.touchDepth * push * 0.45;
+              state.touchPush = Math.max(0, state.touchPush - dt * 2.7);
+            }
             if (Math.abs(state.spin) > 0.01) {
               prop.rotation.z += state.spin * dt;
               state.spin *= Math.pow(0.12, dt);
+            }
+            if (state.contactFlash > 0.01) {
+              state.contactFlash = Math.max(0, state.contactFlash - dt * 2.4);
             }
           }
           prop.rotation.y += dt * (active ? 1.2 : 0.38);
           prop.rotation.x = Math.sin(t * 0.8 + name.length) * 0.08;
           const baseScale = prop.userData.baseScale || 1;
-          const scale = baseScale * (active ? 1.12 + Math.sin(t * 5) * 0.04 : 1);
+          const flash = state?.contactFlash || 0;
+          const contactScale = flash > 0 ? Math.sin(flash * Math.PI) * 0.18 : 0;
+          const scale = baseScale * (active ? 1.12 + Math.sin(t * 5) * 0.04 : 1) * (1 + contactScale);
           prop.scale.setScalar(scale);
           prop.visible = true;
         }
@@ -2083,6 +2156,58 @@ $serverChecks = [
         requestAnimationFrame(step);
       }
 
+      nudgeContact(event = {}, propLayer = null) {
+        const root = this.getSceneRoot();
+        const propWorld = propLayer?.getPropWorldPosition?.(event.prop);
+        if (!root || !propWorld) return false;
+
+        const dx = propWorld.x - root.position.x;
+        const dz = propWorld.z - root.position.z;
+        const len = Math.hypot(dx, dz) || 1;
+        const nx = dx / len;
+        const nz = dz / len;
+        const action = event.sceneAction || 'touch';
+        const isStrike = action === 'punch' || action === 'kick-away' || action === 'kick-back';
+        const isCrouch = event.animation === 'crouch_touch' || event.contactStyle === 'crouch';
+        const distance = isStrike ? 0.13 : (isCrouch ? 0.075 : 0.06);
+        const token = ++this.sceneMoveToken;
+        const start = performance.now();
+        const duration = isStrike ? 520 : 620;
+        const from = {
+          x: root.position.x,
+          y: root.position.y,
+          z: root.position.z,
+          rotationY: root.rotation.y,
+        };
+        const touch = {
+          x: from.x + nx * distance,
+          y: from.y,
+          z: from.z + nz * distance,
+          rotationY: from.rotationY + this.clamp(nx, -1, 1) * -0.16,
+        };
+        const ease = (p) => p < 0.5
+          ? 4 * p * p * p
+          : 1 - Math.pow(-2 * p + 2, 3) / 2;
+        const step = (now) => {
+          if (token !== this.sceneMoveToken) return;
+          const p = this.clamp((now - start) / duration, 0, 1);
+          const forward = p < 0.46;
+          const local = forward ? p / 0.46 : (p - 0.46) / 0.54;
+          const t = ease(local);
+          const a = forward ? from : touch;
+          const b = forward ? touch : from;
+          root.position.x = a.x + (b.x - a.x) * t;
+          root.position.y = a.y + (b.y - a.y) * t;
+          root.position.z = a.z + (b.z - a.z) * t;
+          root.rotation.y = a.rotationY + (b.rotationY - a.rotationY) * t;
+          if (p < 1) {
+            requestAnimationFrame(step);
+          }
+        };
+        requestAnimationFrame(step);
+        return true;
+      }
+
       moveTo(target = {}) {
         const canvas = this.getCanvas();
         if (!canvas) return;
@@ -2137,6 +2262,51 @@ $serverChecks = [
       }
     }
 
+    class GazeDirector {
+      constructor(stage, mascot, propLayer) {
+        this.stage = stage;
+        this.mascot = mascot;
+        this.propLayer = propLayer;
+        this.lockedProp = null;
+        this.fallbackPoint = { x: 0, y: 0 };
+        this.mouseOverrideUntil = 0;
+        this.animationId = requestAnimationFrame(() => this.update());
+      }
+
+      focusEvent(event = {}) {
+        this.lockedProp = event.prop || null;
+        this.fallbackPoint = event.gaze || { x: 0, y: 0 };
+        this.update(true);
+      }
+
+      handleMouseMove(event) {
+        this.mouseOverrideUntil = performance.now() + 1150;
+        this.mascot?.lookAt?.setTarget?.('mouse');
+        this.mascot?.handleMouseMove?.(event);
+      }
+
+      update(force = false) {
+        const now = performance.now();
+        if (this.mascot && (force || now >= this.mouseOverrideUntil)) {
+          if (this.lockedProp) {
+            const point = this.propLayer?.getLookAtPoint?.(this.lockedProp, this.fallbackPoint) || this.fallbackPoint;
+            this.mascot.lookAt?.setTarget?.('point', point);
+          } else {
+            this.mascot.lookAt?.setTarget?.('point', this.fallbackPoint);
+          }
+        }
+        if (!force) {
+          this.animationId = requestAnimationFrame(() => this.update());
+        }
+      }
+
+      dispose() {
+        if (this.animationId) {
+          cancelAnimationFrame(this.animationId);
+        }
+      }
+    }
+
     class ToyRoomStory {
       constructor(stats) {
         this.stats = stats;
@@ -2152,7 +2322,7 @@ $serverChecks = [
             directive: 'Alicia runs into the toy room and claims the first toy.',
             intent: 'greeting',
             motion: 'wave',
-            animation: 'touch_model',
+            animation: 'crouch_touch',
             sceneAction: 'touch',
             walkTo: { x: -78, y: 12, scale: 1.07, roomPath: 'front-left' },
             text: `這裡是我的玩具房。第一顆藍色 core 歸我，我先摸一下，版本 ${this.stats.version} 也順便確認。`,
@@ -2217,7 +2387,7 @@ $serverChecks = [
             directive: 'Alicia pretends to be calm and taps the asset crate.',
             intent: 'success',
             motion: 'victory',
-            animation: 'touch_model',
+            animation: 'crouch_touch',
             sceneAction: 'touch',
             walkTo: { x: 62, y: 13, scale: 1.06, roomPath: 'front-right' },
             text: `好啦，我也會乖。這箱 asset 有 ${this.stats.assetCount} 個檔案，我摸一下，沒壞。`,
@@ -2229,10 +2399,11 @@ $serverChecks = [
     }
 
     class AutoDirector {
-      constructor(mascot, propLayer, walker) {
+      constructor(mascot, propLayer, walker, gazeDirector = null) {
         this.mascot = mascot;
         this.propLayer = propLayer;
         this.walker = walker;
+        this.gazeDirector = gazeDirector;
         this.auto = true;
         this.timer = null;
         this.lastIndex = -1;
@@ -2253,7 +2424,7 @@ $serverChecks = [
             directive: 'Alicia is scanning release metadata.',
             intent: 'explain',
             motion: 'presenting',
-            animation: 'touch_model',
+            animation: 'crouch_touch',
             sceneAction: 'touch',
             walkTo: { x: -64, y: 4, scale: 1.05 },
             text: `我先走到 release core 旁邊摸一下。版本 ${releaseStats.version}，build date ${releaseStats.builtAt}，這個 release 有站穩。`,
@@ -2267,7 +2438,7 @@ $serverChecks = [
             directive: 'Alicia is sorting the packaged assets.',
             intent: 'success',
             motion: 'victory',
-            animation: 'touch_model',
+            animation: 'crouch_touch',
             sceneAction: 'touch',
             walkTo: { x: 52, y: 2, scale: 1.05 },
             text: `我走到 asset crate 旁邊清點。這包有 ${releaseStats.assetCount} 個 asset，其中 ${releaseStats.motionAssetCount} 個是 motion asset。`,
@@ -2438,7 +2609,11 @@ $serverChecks = [
         setMotionFocus(event);
         this.propLayer?.focus(event.prop);
         this.walker?.moveTo(event.walkTo || { x: 0, y: 0, scale: 1 });
-        this.mascot.lookAt?.setTarget?.('point', event.gaze || { x: 0, y: 0 });
+        if (this.gazeDirector) {
+          this.gazeDirector.focusEvent(event);
+        } else {
+          this.mascot.lookAt?.setTarget?.('point', event.gaze || { x: 0, y: 0 });
+        }
         this.mascot.clearQueue?.();
         appendLog(`${source}: ${event.label} @ ${event.walkTo?.roomPath || 'center'}`);
         await sleep(event.walkTo ? 620 : 80);
@@ -2461,8 +2636,9 @@ $serverChecks = [
         }
         if (event.sceneAction) {
           await sleep(220);
+          const contact = this.walker?.nudgeContact?.(event, this.propLayer);
           const acted = this.propLayer?.runSceneAction?.(event);
-          appendLog(`${acted ? 'scene' : 'scene-missing'}: ${event.sceneAction} ${event.prop}`);
+          appendLog(`${acted ? 'scene' : 'scene-missing'}: ${event.sceneAction} ${event.prop}${contact ? ' + contact' : ''}`);
         }
         this.queueFollowUp(event);
         await sleep(320);
@@ -2508,6 +2684,8 @@ $serverChecks = [
       const walker = new AliciaStageWalker(stage, mascot);
       window.aliciaWalker = walker;
       walker.reset();
+      const gazeDirector = new GazeDirector(stage, mascot, propLayer);
+      window.aliciaGazeDirector = gazeDirector;
       setCheck('model', 'ok', 'OK');
       enableDirectorButtons(true);
       enableMotionPills(true);
@@ -2517,7 +2695,7 @@ $serverChecks = [
       appendLog('models/mascot.vrm loaded');
       appendLog(`motion showcase loaded: ${motionCatalog.length} families / ${motionAssets.length} assets / ${showcaseEvents.length} mined events`);
 
-      const director = new AutoDirector(mascot, propLayer, walker);
+      const director = new AutoDirector(mascot, propLayer, walker, gazeDirector);
       window.aliciaDirector = director;
       director.start();
 
@@ -2545,7 +2723,7 @@ $serverChecks = [
     }
 
     stage.addEventListener('mousemove', (event) => {
-      window.alicia?.handleMouseMove?.(event);
+      window.aliciaGazeDirector?.handleMouseMove?.(event);
     });
   </script>
 </body>

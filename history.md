@@ -21,3 +21,4 @@
 - `demo.php` 改成優先讀 `showcase_events.json`，讓 Director 先展示採礦成果；沒有 showcase pack 時才 fallback 到原本 semantic motion catalog。
 - release build 會複製 `demo.php`、showcase manifests 與 `motions/showcase/` 精選 VRMA，並在 `asset_manifest.json` 保留 `approved` / `research_preview` / `distributable` 欄位，不假裝未驗證素材已授權。
 - 新增 v0.1.3 Alicia Showcase 空間感修正：`VrmMascot` 公開 shared Three.js scene API，`demo.php` 的 toy room / props 改掛同一個 scene、共用 camera/depth/lighting，避免四周物件像 overlay 浮在畫面前方。
+- 新增 v0.1.4 Alicia Showcase 近距離互動修正：低物件使用 `crouch_touch` 蹲下伸手，ScenePropLayer 提供 touch recoil / contact flash，GazeDirector 讓頭部追蹤互動物件並支援滑鼠暫時接管視線。

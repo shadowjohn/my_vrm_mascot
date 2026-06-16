@@ -98,7 +98,7 @@
       "intent": "explain",
       "motion": "idle",
       "actState": "thinking",
-      "animation": "touch_model",
+      "animation": "crouch_touch",
       "sceneAction": "touch",
       "walkTo": {
         "x": -36,
@@ -177,7 +177,7 @@
       "prop": "releaseCore",
       "intent": "greeting",
       "motion": "wave",
-      "animation": "touch_model",
+      "animation": "crouch_touch",
       "sceneAction": "touch",
       "walkTo": {
         "x": -66,
@@ -257,7 +257,7 @@
       "prop": "assetCrate",
       "intent": "success",
       "motion": "victory",
-      "animation": "twirl",
+      "animation": "crouch_touch",
       "sceneAction": "touch",
       "walkTo": {
         "x": 40,
@@ -694,7 +694,7 @@
       "intent": "explain",
       "motion": "idle",
       "actState": "thinking",
-      "animation": "touch_model",
+      "animation": "crouch_touch",
       "sceneAction": "touch",
       "walkTo": {
         "x": -36,
@@ -735,7 +735,7 @@
       "intent": "explain",
       "motion": "idle",
       "actState": "thinking",
-      "animation": "touch_model",
+      "animation": "crouch_touch",
       "sceneAction": "touch",
       "walkTo": {
         "x": -36,
@@ -777,7 +777,7 @@
       "intent": "explain",
       "motion": "idle",
       "actState": "thinking",
-      "animation": "touch_model",
+      "animation": "crouch_touch",
       "sceneAction": "touch",
       "walkTo": {
         "x": -36,
@@ -937,7 +937,7 @@
       "prop": "releaseCore",
       "intent": "greeting",
       "motion": "wave",
-      "animation": "touch_model",
+      "animation": "crouch_touch",
       "sceneAction": "touch",
       "walkTo": {
         "x": -66,
@@ -978,7 +978,7 @@
       "prop": "releaseCore",
       "intent": "greeting",
       "motion": "wave",
-      "animation": "touch_model",
+      "animation": "crouch_touch",
       "sceneAction": "touch",
       "walkTo": {
         "x": -66,
@@ -1017,7 +1017,7 @@
       "prop": "releaseCore",
       "intent": "greeting",
       "motion": "wave",
-      "animation": "touch_model",
+      "animation": "crouch_touch",
       "sceneAction": "touch",
       "walkTo": {
         "x": -66,
