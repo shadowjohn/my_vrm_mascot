@@ -271,6 +271,12 @@ v0.1.13 修正公開 showcase raw VRMA 直播放殘留：
 - `demo.php` 的 `playCustomAnimation()` 移除 `vrmaMap` 直播放，`kick_forward / crouch_touch / shy_wave / point_right` 等 showcase 動作改走本地安全 custom animation。
 - raw VRMA 保留在 Motion Mine / Lab / Preview Bridge 當素材來源，不再直接接正式 showcase runtime，避免手臂轉到背後或腳部偶發飛起。
 
+v0.1.14 修正行走面向與短距離滑步：
+
+- `AliciaStageWalker.moveTo()` 新增 `faceWorld` 選項，Director 會把目前互動物件的 world position 傳入，讓 Alicia 移動時朝向目標物件。
+- 場景 root 旋轉改用 shortest-angle interpolation，避免轉身走遠路或背對目標。
+- 3D 場景下改以實際 `distance3d` 判斷是否啟動 `walk_cycle`，短距離但可見的 root 位移也會播放步態，不再只是平移。
+
 目前資料集狀態：
 
 | 項目 | 數量 |

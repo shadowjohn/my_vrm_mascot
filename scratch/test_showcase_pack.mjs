@@ -150,7 +150,13 @@ function testDemoStagesPhysicalContactAndGaze() {
   assert.match(demo, /mouseOverrideUntil = performance\.now\(\) \+ 1150/);
   assert.match(demo, /gazeDirector\.focusEvent\(event\)/);
   assert.match(demo, /aliciaGazeDirector\?\.handleMouseMove/);
-  assert.match(demo, /async moveTo\(target = \{\}\)/);
+  assert.match(demo, /shortestAngleDelta\(from, to\)/);
+  assert.match(demo, /facingRotationFor\(fromX, fromZ, toX, toZ\)/);
+  assert.match(demo, /async moveTo\(target = \{\}, options = \{\}\)/);
+  assert.match(demo, /const faceWorld = this\.propLayer\?\.getPropWorldPosition\?\.\(event\.prop\) \|\| null/);
+  assert.match(demo, /this\.walker\.moveTo\(event\.walkTo \|\| \{ x: 0, y: 0, scale: 1 \}, \{ faceWorld \}\)/);
+  assert.match(demo, /distance3d > 0\.018/);
+  assert.match(demo, /this\.shortestAngleDelta\(from\.rotationY, to\.rotationY\)/);
   assert.match(demo, /const noAutoDirector = query\.has\('noAuto'\) \|\| query\.has\('manual'\)/);
   assert.match(demo, /auto director disabled by query flag/);
   assert.match(motionController, /async preloadVrmaForName\(name\)/);

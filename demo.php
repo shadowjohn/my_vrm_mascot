@@ -2117,14 +2117,25 @@ $serverChecks = [
         return Math.max(min, Math.min(max, value));
       }
 
-      sceneTargetFor(next, compact, scale) {
+      shortestAngleDelta(from, to) {
+        return Math.atan2(Math.sin(to - from), Math.cos(to - from));
+      }
+
+      facingRotationFor(fromX, fromZ, toX, toZ) {
+        const dx = toX - fromX;
+        const dz = toZ - fromZ;
+        const sideYaw = Math.atan2(dx, Math.max(0.22, Math.abs(dz)));
+        return this.rootBaseRotationY - this.clamp(sideYaw, -0.9, 0.9);
+      }
+
+      sceneTargetFor(next, compact, scale, facingRotationY = null) {
         const x = this.clamp(next.x * (compact ? 0.0032 : 0.0072), -1.2, 1.2);
         const z = this.clamp(next.y * (compact ? 0.006 : 0.011), -1.0, 1.0);
         return {
           x,
           z,
           scale,
-          rotationY: this.rootBaseRotationY - x * 0.18,
+          rotationY: Number.isFinite(facingRotationY) ? facingRotationY : this.rootBaseRotationY - x * 0.18,
         };
       }
 
@@ -2155,7 +2166,7 @@ $serverChecks = [
           root.position.y = this.rootBasePosition.y;
           const scale = from.scale + (to.scale - from.scale) * t;
           root.scale.setScalar(scale);
-          root.rotation.y = from.rotationY + (to.rotationY - from.rotationY) * t;
+          root.rotation.y = from.rotationY + this.shortestAngleDelta(from.rotationY, to.rotationY) * t;
           if (p < 1) {
             requestAnimationFrame(step);
           }
@@ -2190,7 +2201,7 @@ $serverChecks = [
           x: from.x + nx * distance,
           y: from.y,
           z: from.z + nz * distance,
-          rotationY: from.rotationY + this.clamp(nx, -1, 1) * -0.16,
+          rotationY: this.facingRotationFor(from.x, from.z, propWorld.x, propWorld.z),
         };
         const ease = (p) => p < 0.5
           ? 4 * p * p * p
@@ -2206,7 +2217,7 @@ $serverChecks = [
           root.position.x = a.x + (b.x - a.x) * t;
           root.position.y = a.y + (b.y - a.y) * t;
           root.position.z = a.z + (b.z - a.z) * t;
-          root.rotation.y = a.rotationY + (b.rotationY - a.rotationY) * t;
+          root.rotation.y = a.rotationY + this.shortestAngleDelta(a.rotationY, b.rotationY) * t;
           if (p < 1) {
             requestAnimationFrame(step);
           }
@@ -2215,7 +2226,7 @@ $serverChecks = [
         return true;
       }
 
-      async moveTo(target = {}) {
+      async moveTo(target = {}, options = {}) {
         const canvas = this.getCanvas();
         if (!canvas) return 80;
         const rect = this.container.getBoundingClientRect();
@@ -2235,18 +2246,28 @@ $serverChecks = [
         const dy = next.y - (this.position?.y ?? 0);
         const distance = Math.hypot(dx, dy);
 
+        const root = this.getSceneRoot();
+        let sceneTarget = null;
+        let distance3d = 0;
+        let facingRotationY = null;
+        if (root && this.rootBasePosition) {
+          const preliminaryTarget = this.sceneTargetFor(next, compact, scale);
+          const targetX = this.rootBasePosition.x + preliminaryTarget.x;
+          const targetZ = this.rootBasePosition.z + preliminaryTarget.z;
+          const faceWorld = options.faceWorld || null;
+          const faceX = Number.isFinite(faceWorld?.x) ? faceWorld.x : targetX;
+          const faceZ = Number.isFinite(faceWorld?.z) ? faceWorld.z : targetZ;
+          facingRotationY = this.facingRotationFor(root.position.x, root.position.z, faceX, faceZ);
+          sceneTarget = this.sceneTargetFor(next, compact, scale, facingRotationY);
+          distance3d = Math.hypot(targetX - root.position.x, targetZ - root.position.z);
+        }
+
         let duration = 1150;
         let isWalking = false;
 
-        if (distance > 5 && this.mascot) {
+        if (this.mascot && ((root && distance3d > 0.018) || distance > 2)) {
           isWalking = true;
-          const root = this.getSceneRoot();
           if (root && this.rootBasePosition) {
-            const sceneTarget = this.sceneTargetFor(next, compact, scale);
-            const targetX = this.rootBasePosition.x + sceneTarget.x;
-            const targetZ = this.rootBasePosition.z + sceneTarget.z;
-            const distance3d = Math.hypot(targetX - root.position.x, targetZ - root.position.z);
-
             const walkSpeed = this.mascot.motion?.getWalkSpeed?.() || 0.85;
             duration = (distance3d / walkSpeed) * 1000;
             // 限制移動時間在合理範圍 [400, 2200] ms 內
@@ -2267,11 +2288,10 @@ $serverChecks = [
           }, duration);
         }
 
-        const root = this.getSceneRoot();
         if (root) {
           canvas.style.transition = 'none';
           canvas.style.transform = 'none';
-          this.animateSceneRoot(root, this.sceneTargetFor(next, compact, scale), duration, isWalking);
+          this.animateSceneRoot(root, sceneTarget || this.sceneTargetFor(next, compact, scale, facingRotationY), duration, isWalking);
         } else {
           const easing = isWalking ? 'linear' : 'cubic-bezier(.2,.82,.22,1)';
           canvas.style.transition = `transform ${duration}ms ${easing}`;
@@ -2664,8 +2684,9 @@ $serverChecks = [
         setSceneFocus(event);
         setMotionFocus(event);
         this.propLayer?.focus(event.prop);
+        const faceWorld = this.propLayer?.getPropWorldPosition?.(event.prop) || null;
         const travelDuration = this.walker
-          ? await this.walker.moveTo(event.walkTo || { x: 0, y: 0, scale: 1 })
+          ? await this.walker.moveTo(event.walkTo || { x: 0, y: 0, scale: 1 }, { faceWorld })
           : 80;
         if (this.gazeDirector) {
           this.gazeDirector.focusEvent(event);

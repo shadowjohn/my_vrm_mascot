@@ -9,6 +9,8 @@
 - 新增 regression test：`walk_cycle` 仍可保留 Mixamo leg tracks，`punch_short` 會濾掉 hips / legs / feet，只保留 spine / arms。
 - 新增 v0.1.13 Alicia Showcase safe runtime motion：核心語意動作不再透過 `getVrmaUrlForName()` 解析 raw VRMA，`demo.php` 的 custom showcase 動作也移除 `vrmaMap` 直播放，統一使用程序 pose / MotionClips / safe custom animation。
 - 明確切開素材層與演出層：raw VRMA 只留給 Motion Mine / Lab 預覽與後續 recipe 生產，不直接接公開 demo runtime，避免手臂跑到背後或下半身偶發失控。
+- 新增 v0.1.14 Alicia StageWalker 面向修正：`moveTo()` 接受互動物件 `faceWorld`，移動時以目標物件方向決定 root yaw，並用 shortest-angle interpolation 平滑轉身。
+- 3D root 位移改以 `distance3d` 觸發 `walk_cycle`，避免短距離場景位移只有 root 平移、腳沒有步態。
 
 ## 2026-06-16
 
