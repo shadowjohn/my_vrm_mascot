@@ -161,6 +161,9 @@ function testDemoStagesPhysicalContactAndGaze() {
   assert.match(demo, /this\.mascot\.dispatch\?\.\('talking'/);
   assert.doesNotMatch(demo, /this\.mascot\.performIntent\(\{[\s\S]*?motion:\s*event\.motion/);
   assert.match(demo, /sceneAction} \$\{event\.prop\}\$\{contact \? ' \+ contact' : ''\}/);
+  assert.doesNotMatch(demo, /const vrmaMap = \{/);
+  assert.doesNotMatch(demo, /playVrmaFile\(resolvedUrl/);
+  assert.match(demo, /buildCustomAnimation\(name, this\.mascot\)/);
 }
 
 async function run() {

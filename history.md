@@ -7,6 +7,8 @@
 - 新增 regression test：確認 `walk_cycle` 不啟動 VRMA mixer，且 upper/lower legs 與 feet 會隨時間變化，避免回到只有 scene root 位移的滑步狀態。
 - 新增 v0.1.12 Alicia Showcase runtime lower-body lock：非 locomotion VRMA 只 retarget 上半身，`punch_short` / warning / wave / presenting 不再讓 raw VRMA 的 hips、legs、feet track 把腳帶飛。
 - 新增 regression test：`walk_cycle` 仍可保留 Mixamo leg tracks，`punch_short` 會濾掉 hips / legs / feet，只保留 spine / arms。
+- 新增 v0.1.13 Alicia Showcase safe runtime motion：核心語意動作不再透過 `getVrmaUrlForName()` 解析 raw VRMA，`demo.php` 的 custom showcase 動作也移除 `vrmaMap` 直播放，統一使用程序 pose / MotionClips / safe custom animation。
+- 明確切開素材層與演出層：raw VRMA 只留給 Motion Mine / Lab 預覽與後續 recipe 生產，不直接接公開 demo runtime，避免手臂跑到背後或下半身偶發失控。
 
 ## 2026-06-16
 

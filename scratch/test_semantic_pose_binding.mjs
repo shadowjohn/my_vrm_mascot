@@ -544,7 +544,17 @@ function testLegacyPlayRoutesClipNamesDeterministically() {
   motion.update(0.45);
 
   assert.equal(motion.currentAction, 'warning_nod');
+  assert.equal(motion.isVrmaActive, false);
   assert.ok(Math.abs(bones.spine.rotation.x - radians(2)) > radians(1));
+}
+
+function testCoreSemanticMotionsDoNotResolveToRawVrma() {
+  const motion = new MotionController();
+
+  for (const name of ['idle', 'think', 'presenting', 'warning', 'wave', 'victory', 'warning_nod', 'shake_head', 'dance_short', 'punch_short']) {
+    assert.equal(motion.getVrmaUrlForName(name), null, `${name} should use procedural runtime, not raw VRMA`);
+  }
+  assert.equal(motion.getVrmaUrlForName('walk_cycle'), 'motions/showcase/davinci2_walking.vrma');
 }
 
 function testWalkCycleUsesProceduralLegMotionInsteadOfVrmaPlayback() {
@@ -753,6 +763,7 @@ const tests = [
   testClipDoesNotMutateIdleMicroMotionState,
   testShortClipsDoNotProduceTPose,
   testLegacyPlayRoutesClipNamesDeterministically,
+  testCoreSemanticMotionsDoNotResolveToRawVrma,
   testWalkCycleUsesProceduralLegMotionInsteadOfVrmaPlayback,
   testVrmaRetargetAcceptsMixamoColonAliasesForLegTracks,
   testVrmaRetargetLocksLowerBodyForNonLocomotionRuntimeClips,

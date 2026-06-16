@@ -2643,27 +2643,6 @@ $serverChecks = [
       }
 
       playCustomAnimation(name) {
-        const vrmaMap = {
-          walk_cycle: 'motions/showcase/davinci2_walking.vrma',
-          point_right: 'motions/showcase/davinci_strongGesture.vrma',
-          point_left: 'motions/showcase/davinci_strongGesture.vrma',
-          hands_waist: 'motions/showcase/davinci_annoyedHeadShake.vrma',
-          shy_wave: 'motions/showcase/davinci_happyHandGesture.vrma',
-          twirl: 'motions/showcase/davinci_happyIdle.vrma',
-          curious_peek: 'motions/showcase/davinci_thinking.vrma',
-          touch_model: 'motions/showcase/davinci2_push.vrma',
-          crouch_touch: 'motions/showcase/davinci2_crouchToStand.vrma',
-          kick_forward: 'motions/showcase/davinci_angryGesture.vrma',
-          punch_forward: 'motions/showcase/davinci_strongGesture.vrma',
-        };
-
-        const vrmaUrl = vrmaMap[name];
-        if (vrmaUrl && this.mascot.motion?.playVrmaFile) {
-          const resolvedUrl = new URL(vrmaUrl, baseUrl).href;
-          this.mascot.motion.playVrmaFile(resolvedUrl, { loop: false, originalName: name });
-          return true;
-        }
-
         const animationData = buildCustomAnimation(name, this.mascot);
         if (!animationData) return false;
         this.mascot.motion?.playCustom?.(animationData, { loop: false });

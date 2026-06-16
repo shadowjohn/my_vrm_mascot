@@ -265,6 +265,12 @@ v0.1.12 修正非走路 VRMA 腿部飛天：
 - `punch_short`、`warning`、`wave`、`presenting` 等語意動作不再吃 raw VRMA 的下半身資料，避免拳頭或手勢動作把 Alicia 雙腳帶飛。
 - 新增 regression test：同一份 Mixamo-like clip 在 `walk_cycle` 可保留腿部 track，在 `punch_short` 必須濾掉 hips / legs / feet。
 
+v0.1.13 修正公開 showcase raw VRMA 直播放殘留：
+
+- 核心語意動作 `idle / think / presenting / warning / wave / victory / warning_nod / shake_head / dance_short / punch_short` 不再從 `getVrmaUrlForName()` 解析 raw VRMA，統一走程序 pose / MotionClips。
+- `demo.php` 的 `playCustomAnimation()` 移除 `vrmaMap` 直播放，`kick_forward / crouch_touch / shy_wave / point_right` 等 showcase 動作改走本地安全 custom animation。
+- raw VRMA 保留在 Motion Mine / Lab / Preview Bridge 當素材來源，不再直接接正式 showcase runtime，避免手臂轉到背後或腳部偶發飛起。
+
 目前資料集狀態：
 
 | 項目 | 數量 |

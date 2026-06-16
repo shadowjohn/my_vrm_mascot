@@ -284,16 +284,8 @@ export class MotionController {
    */
   getVrmaUrlForName(name) {
     const map = {
-      idle: 'motions/showcase/davinci_happyIdle.vrma',
-      think: 'motions/Thinking.vrma',
-      presenting: 'motions/showcase/davinci_strongGesture.vrma',
-      warning: 'motions/Angry.vrma',
-      wave: 'motions/Goodbye.vrma',
-      victory: 'motions/showcase/davinci_happyHandGesture.vrma',
-      warning_nod: 'motions/showcase/davinci_annoyedHeadShake.vrma',
-      shake_head: 'motions/showcase/davinci_annoyedHeadShake.vrma',
-      dance_short: 'motions/showcase/davinci_happyIdle.vrma',
-      punch_short: 'motions/showcase/davinci_angryGesture.vrma',
+      // 正式 runtime 的語意動作走程序式 MotionClips / semantic pose。
+      // Raw VRMA 目前只保留給 Motion Mine / Lab 預覽，避免不同來源 rest pose 讓公開展示手腳失控。
       walk: 'motions/showcase/davinci2_walking.vrma',
       walk_cycle: 'motions/showcase/davinci2_walking.vrma',
     };
