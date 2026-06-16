@@ -130,10 +130,17 @@ function testDemoStagesPhysicalContactAndGaze() {
   const hipsY = [...crouchBlock.matchAll(/pos:\s*\[[^,\]]+,\s*([^,\]]+)/g)]
     .map((match) => Number(match[1]))
     .filter(Number.isFinite);
+  const riskyLegRotations = [...crouchBlock.matchAll(/(?:left|right)(?:Upper|Lower)Leg:\s*\[[^\n]+/g)]
+    .flatMap((match) => [...match[0].matchAll(/x:\s*(-?\d+)/g)].map((value) => Number(value[1])))
+    .filter(Number.isFinite);
 
   assert.match(demo, /crouch_touch/);
   assert.match(demo, /hipsPosition:\s*\[/);
-  assert.ok(Math.min(...hipsY) <= -0.18, 'crouch_touch should visibly lower Alicia, not just bend slightly');
+  assert.ok(Math.min(...hipsY) <= -0.12, 'crouch_touch should visibly lower Alicia, not just bend slightly');
+  assert.ok(
+    riskyLegRotations.every((value) => Math.abs(value) <= 24),
+    'crouch_touch must not use large leg rotations without IK / foot locking'
+  );
   assert.match(demo, /nudgeContact\(event = \{\}, propLayer = null\)/);
   assert.match(demo, /getPropWorldPosition\(name\)/);
   assert.match(demo, /getLookAtPoint\(name, fallback/);

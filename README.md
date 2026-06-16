@@ -228,6 +228,12 @@ v0.1.6 修正 demo 對白蓋掉互動動作：
 - Showcase Director 改用 `dispatch('talking')` 播對白，不再用 `performIntent()` 的 preset motion。
 - 對白只負責文字、表情與嘴型，身體動作由 `event.animation` 單獨控制，避免 `wave` / `warning` 覆蓋 `crouch_touch`。
 
+v0.1.7 修正 `crouch_touch` 骨架折疊：
+
+- 將深蹲改成安全半蹲伸手，保留靠近、下降、觸摸、站回來的節奏。
+- 移除高風險的大角度腿部折疊；在沒有 IK / foot locking 前，腿部 rotation 只允許小幅輔助。
+- 測試新增 `crouch_touch` 腿部角度上限，避免展示頁再次出現骨折感。
+
 目前資料集狀態：
 
 | 項目 | 數量 |
