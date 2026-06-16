@@ -1,0 +1,1135 @@
+{
+  "schemaVersion": 1,
+  "phase": "v0.1.2 Alicia Showcase Events",
+  "source": "showcase_motion_pack.json",
+  "generatedAt": "2026-06-16T01:01:22+08:00",
+  "summary": {
+    "totalEvents": 28,
+    "sourceMotionCount": 28,
+    "semanticMotionCount": 10
+  },
+  "events": [
+    {
+      "id": "showcase_event_001",
+      "topic": "target",
+      "prop": "warningTarget",
+      "intent": "warning",
+      "motion": "warning_nod",
+      "animation": "hands_waist",
+      "walkTo": {
+        "x": 58,
+        "y": -2,
+        "scale": 1.06
+      },
+      "gaze": {
+        "x": 0.46,
+        "y": -0.12
+      },
+      "marker": {
+        "left": "70%",
+        "bottom": "24%"
+      },
+      "tone": "hot",
+      "semanticMotionId": "angry_hands_waist",
+      "semanticLabel": "插腰生氣 / 有態度提醒",
+      "sourceMotion": "Angry.vrma",
+      "sourceMotionPath": "motions/showcase/Angry.vrma",
+      "motionCategory": "warning",
+      "motionScore": 4,
+      "label": "插腰生氣 / 有態度提醒 · Angry.vrma",
+      "storyBeat": "Showcase 01 / warning",
+      "directive": "Alicia replays a mined human description from Angry.vrma.",
+      "text": "我從 Angry.vrma 挖到這個：雙手插腰，頭微微歪一邊晃頭。用途像是「羽山娘生氣中」，可以拿來可能因為使用者犯錯講不聽，羽山娘生氣中。",
+      "minedDescription": "雙手插腰，頭微微歪一邊晃頭",
+      "usageDescription": "羽山娘生氣中",
+      "agentUsage": [
+        "可能因為使用者犯錯講不聽，羽山娘生氣中",
+        "這是個生氣中的動作",
+        "羽山娘氣噗噗"
+      ],
+      "selectionReason": "preferred semantic motion source",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_002",
+      "topic": "target",
+      "prop": "warningTarget",
+      "intent": "warning",
+      "motion": "warning_nod",
+      "animation": "hands_waist",
+      "walkTo": {
+        "x": 54,
+        "y": -3,
+        "scale": 1.05
+      },
+      "gaze": {
+        "x": 0.46,
+        "y": -0.12
+      },
+      "marker": {
+        "left": "69%",
+        "bottom": "24%"
+      },
+      "tone": "hot",
+      "semanticMotionId": "cross_no",
+      "semanticLabel": "交叉制止 / 不可以",
+      "sourceMotion": "Clapping.vrma",
+      "sourceMotionPath": "motions/showcase/Clapping.vrma",
+      "motionCategory": "success",
+      "motionScore": 4,
+      "label": "交叉制止 / 不可以 · Clapping.vrma",
+      "storyBeat": "Showcase 02 / success",
+      "directive": "Alicia replays a mined human description from Clapping.vrma.",
+      "text": "我從 Clapping.vrma 挖到這個：雙手在面前連續交叉數次。用途像是「這件事情不對，不是這樣」，可以拿來這件事情不對，不是這樣。",
+      "minedDescription": "雙手在面前連續交叉數次",
+      "usageDescription": "這件事情不對，不是這樣",
+      "agentUsage": [
+        "這件事情不對，不是這樣",
+        "這樣不行，很不好",
+        "嚴格禁止，不能這樣"
+      ],
+      "selectionReason": "preferred semantic motion source",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_003",
+      "topic": "motion",
+      "prop": "motionOrb",
+      "intent": "explain",
+      "motion": "idle",
+      "actState": "thinking",
+      "animation": "touch_model",
+      "sceneAction": "touch",
+      "walkTo": {
+        "x": -36,
+        "y": 3,
+        "scale": 1.04
+      },
+      "gaze": {
+        "x": -0.34,
+        "y": -0.16
+      },
+      "marker": {
+        "left": "36%",
+        "bottom": "24%"
+      },
+      "semanticMotionId": "thinking_chin",
+      "semanticLabel": "托腮思考 / 分析中",
+      "sourceMotion": "Thinking.vrma",
+      "sourceMotionPath": "motions/showcase/Thinking.vrma",
+      "motionCategory": "think",
+      "motionScore": 5,
+      "label": "托腮思考 / 分析中 · Thinking.vrma",
+      "storyBeat": "Showcase 03 / think",
+      "directive": "Alicia replays a mined human description from Thinking.vrma.",
+      "text": "我從 Thinking.vrma 挖到這個：雙手叉交在腹部前，頭低低左晃右晃，像是在想事情。用途像是「雙手叉交在腹部前，頭低低左晃右晃，像是在想事情」，可以拿來雙手叉交在腹部前，頭低低左晃右晃，像是在想事情。",
+      "minedDescription": "雙手叉交在腹部前，頭低低左晃右晃，像是在想事情",
+      "usageDescription": "雙手叉交在腹部前，頭低低左晃右晃，像是在想事情",
+      "agentUsage": [
+        "雙手叉交在腹部前，頭低低左晃右晃，像是在想事情"
+      ],
+      "selectionReason": "high-scoring human-described motion sample",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_004",
+      "topic": "target",
+      "prop": "warningTarget",
+      "intent": "explain",
+      "motion": "presenting",
+      "animation": "point_right",
+      "sceneAction": "touch",
+      "walkTo": {
+        "x": 72,
+        "y": -5,
+        "scale": 1.06
+      },
+      "gaze": {
+        "x": 0.5,
+        "y": -0.1
+      },
+      "marker": {
+        "left": "68%",
+        "bottom": "23%"
+      },
+      "tone": "hot",
+      "semanticMotionId": "point_target",
+      "semanticLabel": "指向目標 / 看這裡",
+      "sourceMotion": "davinci_happyHandGesture.vrma",
+      "sourceMotionPath": "motions/showcase/davinci_happyHandGesture.vrma",
+      "motionCategory": "point",
+      "motionScore": 3,
+      "label": "指向目標 / 看這裡 · davinci_happyHandGesture.vrma",
+      "storyBeat": "Showcase 04 / point",
+      "directive": "Alicia replays a mined human description from davinci_happyHandGesture.vrma.",
+      "text": "我從 davinci_happyHandGesture.vrma 挖到這個：原是立正的姿勢，忽然伸出右手向前約腹部高的位置，像是要握手，但忽然又收回。用途像是「假裝握手」，可以拿來原是立正的姿勢，忽然伸出右手向前約腹部高的位置，像是要握手，但忽然又收回。",
+      "minedDescription": "原是立正的姿勢，忽然伸出右手向前約腹部高的位置，像是要握手，但忽然又收回",
+      "usageDescription": "假裝握手",
+      "agentUsage": [
+        "原是立正的姿勢，忽然伸出右手向前約腹部高的位置，像是要握手，但忽然又收回"
+      ],
+      "selectionReason": "preferred semantic motion source",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_005",
+      "topic": "release",
+      "prop": "releaseCore",
+      "intent": "greeting",
+      "motion": "wave",
+      "animation": "touch_model",
+      "sceneAction": "touch",
+      "walkTo": {
+        "x": -66,
+        "y": 5,
+        "scale": 1.05
+      },
+      "gaze": {
+        "x": -0.46,
+        "y": 0.12
+      },
+      "marker": {
+        "left": "31%",
+        "bottom": "42%"
+      },
+      "semanticMotionId": "come_here",
+      "semanticLabel": "招手靠近 / 跟我來",
+      "sourceMotion": "davinci_beckoning.vrma",
+      "sourceMotionPath": "motions/showcase/davinci_beckoning.vrma",
+      "motionCategory": "point",
+      "motionScore": 3,
+      "label": "招手靠近 / 跟我來 · davinci_beckoning.vrma",
+      "storyBeat": "Showcase 05 / point",
+      "directive": "Alicia replays a mined human description from davinci_beckoning.vrma.",
+      "text": "我從 davinci_beckoning.vrma 挖到這個：右手在前方抓著自己的裙子，作出往自己靠近擺動數次。用途像是「希望讓對方跟過來，有 come on come here 的用途 有點色的動作」，可以拿來希望讓對方跟過來，有 come on come here 的用途。",
+      "minedDescription": "右手在前方抓著自己的裙子，作出往自己靠近擺動數次",
+      "usageDescription": "希望讓對方跟過來，有 come on come here 的用途\n有點色的動作",
+      "agentUsage": [
+        "希望讓對方跟過來，有 come on come here 的用途",
+        "有點色的動作，會看到小褲褲"
+      ],
+      "selectionReason": "preferred semantic motion source",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_006",
+      "topic": "release",
+      "prop": "releaseCore",
+      "intent": "greeting",
+      "motion": "wave",
+      "animation": "shy_wave",
+      "walkTo": {
+        "x": -50,
+        "y": 2,
+        "scale": 1.04
+      },
+      "gaze": {
+        "x": -0.44,
+        "y": 0.12
+      },
+      "marker": {
+        "left": "30%",
+        "bottom": "42%"
+      },
+      "semanticMotionId": "wave_goodbye",
+      "semanticLabel": "揮手告別 / 打招呼",
+      "sourceMotion": "davinci_acknowledging.vrma",
+      "sourceMotionPath": "motions/showcase/davinci_acknowledging.vrma",
+      "motionCategory": "point",
+      "motionScore": 3,
+      "label": "揮手告別 / 打招呼 · davinci_acknowledging.vrma",
+      "storyBeat": "Showcase 06 / point",
+      "directive": "Alicia replays a mined human description from davinci_acknowledging.vrma.",
+      "text": "我從 davinci_acknowledging.vrma 挖到這個：頭約歪5度左左，向前點頭了一次，像是在打招呼的感覺,，頭髮自然飄散。用途像是「打招呼，或是我懂了，微微點頭示意」，可以拿來打招呼。",
+      "minedDescription": "頭約歪5度左左，向前點頭了一次，像是在打招呼的感覺,，頭髮自然飄散",
+      "usageDescription": "打招呼，或是我懂了，微微點頭示意",
+      "agentUsage": [
+        "打招呼",
+        "我懂了",
+        "微微點頭示意"
+      ],
+      "selectionReason": "preferred semantic motion source",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_007",
+      "topic": "assets",
+      "prop": "assetCrate",
+      "intent": "success",
+      "motion": "victory",
+      "animation": "twirl",
+      "sceneAction": "touch",
+      "walkTo": {
+        "x": 40,
+        "y": 0,
+        "scale": 1.05
+      },
+      "gaze": {
+        "x": 0.48,
+        "y": 0.08
+      },
+      "marker": {
+        "left": "65%",
+        "bottom": "41%"
+      },
+      "semanticMotionId": "victory_pose",
+      "semanticLabel": "勝利完成 / 做到了",
+      "sourceMotion": "davinci_happyIdle.vrma",
+      "sourceMotionPath": "motions/showcase/davinci_happyIdle.vrma",
+      "motionCategory": "candidate_future",
+      "motionScore": 3,
+      "label": "勝利完成 / 做到了 · davinci_happyIdle.vrma",
+      "storyBeat": "Showcase 07 / candidate_future",
+      "directive": "Alicia replays a mined human description from davinci_happyIdle.vrma.",
+      "text": "我從 davinci_happyIdle.vrma 挖到這個：左右手張開在身體旁二邊，微微劃圈。用途像是「開心的張開雙手微微晃動」，可以拿來開心的張開雙手微微晃動。",
+      "minedDescription": "左右手張開在身體旁二邊，微微劃圈",
+      "usageDescription": "開心的張開雙手微微晃動",
+      "agentUsage": [
+        "開心的張開雙手微微晃動"
+      ],
+      "selectionReason": "preferred semantic motion source",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_008",
+      "topic": "motion",
+      "prop": "motionOrb",
+      "intent": "searching",
+      "motion": "dance_short",
+      "animation": "walk_cycle",
+      "walkTo": {
+        "x": -48,
+        "y": 7,
+        "scale": 1.03
+      },
+      "gaze": {
+        "x": -0.35,
+        "y": -0.18
+      },
+      "marker": {
+        "left": "36%",
+        "bottom": "24%"
+      },
+      "semanticMotionId": "look_around",
+      "semanticLabel": "左右觀察 / 搜尋中",
+      "sourceMotion": "LookAround.vrma",
+      "sourceMotionPath": "motions/showcase/LookAround.vrma",
+      "motionCategory": "think",
+      "motionScore": 5,
+      "label": "左右觀察 / 搜尋中 · LookAround.vrma",
+      "storyBeat": "Showcase 08 / think",
+      "directive": "Alicia replays a mined human description from LookAround.vrma.",
+      "text": "我從 LookAround.vrma 挖到這個：身體左轉往左看，身體右轉往右看，環看四週。用途像是「身體左轉往左看，身體右轉往右看，環看四週」，可以拿來身體左轉往左看，身體右轉往右看，環看四週。",
+      "minedDescription": "身體左轉往左看，身體右轉往右看，環看四週",
+      "usageDescription": "身體左轉往左看，身體右轉往右看，環看四週",
+      "agentUsage": [
+        "身體左轉往左看，身體右轉往右看，環看四週"
+      ],
+      "selectionReason": "high-scoring human-described motion sample",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_009",
+      "topic": "target",
+      "prop": "warningTarget",
+      "intent": "error",
+      "motion": "shake_head",
+      "animation": "kick_forward",
+      "sceneAction": "kick-back",
+      "walkTo": {
+        "x": 74,
+        "y": -5,
+        "scale": 1.06,
+        "roomPath": "right-front-return"
+      },
+      "gaze": {
+        "x": 0.48,
+        "y": -0.1
+      },
+      "marker": {
+        "left": "70%",
+        "bottom": "24%"
+      },
+      "tone": "hot",
+      "semanticMotionId": "hands_up_surrender",
+      "semanticLabel": "舉手投降 / 嚇一跳",
+      "sourceMotion": "Goodbye.vrma",
+      "sourceMotionPath": "motions/showcase/Goodbye.vrma",
+      "motionCategory": "success",
+      "motionScore": 4,
+      "label": "舉手投降 / 嚇一跳 · Goodbye.vrma",
+      "storyBeat": "Showcase 09 / success",
+      "directive": "Alicia replays a mined human description from Goodbye.vrma.",
+      "text": "我從 Goodbye.vrma 挖到這個：雙手往上舉高，再回到腰旁，左右一擺，再回到投降的姿勢，然後手放下。用途像是「像是要跟某人說再見，但他沒看到，覺得有點失望，就不揮手了」，可以拿來像是要跟某人說再見，但他沒看到，覺得有點失望，就不揮手了。",
+      "minedDescription": "雙手往上舉高，再回到腰旁，左右一擺，再回到投降的姿勢，然後手放下",
+      "usageDescription": "像是要跟某人說再見，但他沒看到，覺得有點失望，就不揮手了",
+      "agentUsage": [
+        "像是要跟某人說再見，但他沒看到，覺得有點失望，就不揮手了"
+      ],
+      "selectionReason": "high-scoring human-described motion sample",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_010",
+      "topic": "release",
+      "prop": "releaseCore",
+      "intent": "explain",
+      "motion": "shake_head",
+      "animation": "shy_wave",
+      "sceneAction": "touch",
+      "walkTo": {
+        "x": -56,
+        "y": 3,
+        "scale": 1.04
+      },
+      "gaze": {
+        "x": -0.48,
+        "y": 0.12
+      },
+      "marker": {
+        "left": "31%",
+        "bottom": "42%"
+      },
+      "semanticMotionId": "shy_head_touch",
+      "semanticLabel": "害羞摸頭 / 不好意思",
+      "sourceMotion": "Blush.vrma",
+      "sourceMotionPath": "motions/showcase/Blush.vrma",
+      "motionCategory": "think",
+      "motionScore": 3,
+      "label": "害羞摸頭 / 不好意思 · Blush.vrma",
+      "storyBeat": "Showcase 10 / think",
+      "directive": "Alicia replays a mined human description from Blush.vrma.",
+      "text": "我從 Blush.vrma 挖到這個：微微擺頭，左手伸後到後腦摸了二下。用途像是「在想事情，或是不小心犯錯時的不好意思的動作」，可以拿來在想事情，或是不小心犯錯時的不好意思的動作。",
+      "minedDescription": "微微擺頭，左手伸後到後腦摸了二下",
+      "usageDescription": "在想事情，或是不小心犯錯時的不好意思的動作",
+      "agentUsage": [
+        "在想事情，或是不小心犯錯時的不好意思的動作"
+      ],
+      "selectionReason": "preferred semantic motion source",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_011",
+      "topic": "motion",
+      "prop": "motionOrb",
+      "intent": "searching",
+      "motion": "dance_short",
+      "animation": "walk_cycle",
+      "walkTo": {
+        "x": -48,
+        "y": 7,
+        "scale": 1.03
+      },
+      "gaze": {
+        "x": -0.35,
+        "y": -0.18
+      },
+      "marker": {
+        "left": "36%",
+        "bottom": "24%"
+      },
+      "semanticMotionId": "look_around",
+      "semanticLabel": "左右觀察 / 搜尋中",
+      "sourceMotion": "davinci_annoyedHeadShake.vrma",
+      "sourceMotionPath": "motions/showcase/davinci_annoyedHeadShake.vrma",
+      "motionCategory": "think",
+      "motionScore": 3,
+      "label": "左右觀察 / 搜尋中 · davinci_annoyedHeadShake.vrma",
+      "storyBeat": "Showcase 11 / think",
+      "directive": "Alicia replays a mined human description from davinci_annoyedHeadShake.vrma.",
+      "text": "我從 davinci_annoyedHeadShake.vrma 挖到這個：頭往左看了一下又回正。用途像是「頭往左看了一下又回正」，可以拿來頭往左看了一下又回正。",
+      "minedDescription": "頭往左看了一下又回正",
+      "usageDescription": "頭往左看了一下又回正",
+      "agentUsage": [
+        "頭往左看了一下又回正"
+      ],
+      "selectionReason": "preferred semantic motion source",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_012",
+      "topic": "target",
+      "prop": "warningTarget",
+      "intent": "warning",
+      "motion": "warning_nod",
+      "animation": "hands_waist",
+      "walkTo": {
+        "x": 58,
+        "y": -2,
+        "scale": 1.06
+      },
+      "gaze": {
+        "x": 0.46,
+        "y": -0.12
+      },
+      "marker": {
+        "left": "70%",
+        "bottom": "24%"
+      },
+      "tone": "hot",
+      "semanticMotionId": "angry_hands_waist",
+      "semanticLabel": "插腰生氣 / 有態度提醒",
+      "sourceMotion": "davinci_angryGesture.vrma",
+      "sourceMotionPath": "motions/showcase/davinci_angryGesture.vrma",
+      "motionCategory": "warning",
+      "motionScore": 4,
+      "label": "插腰生氣 / 有態度提醒 · davinci_angryGesture.vrma",
+      "storyBeat": "Showcase 12 / warning",
+      "directive": "Alicia replays a mined human description from davinci_angryGesture.vrma.",
+      "text": "我從 davinci_angryGesture.vrma 挖到這個：自然下垂的雙手，微微前前擺了一點點後回復。用途像是「整理一下裙子」，可以拿來整理裙子的小動作。",
+      "minedDescription": "自然下垂的雙手，微微前前擺了一點點後回復",
+      "usageDescription": "整理一下裙子",
+      "agentUsage": [
+        "整理裙子的小動作"
+      ],
+      "selectionReason": "high-scoring human-described motion sample",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_013",
+      "topic": "target",
+      "prop": "warningTarget",
+      "intent": "warning",
+      "motion": "warning_nod",
+      "animation": "hands_waist",
+      "walkTo": {
+        "x": 58,
+        "y": -2,
+        "scale": 1.06
+      },
+      "gaze": {
+        "x": 0.46,
+        "y": -0.12
+      },
+      "marker": {
+        "left": "70%",
+        "bottom": "24%"
+      },
+      "tone": "hot",
+      "semanticMotionId": "angry_hands_waist",
+      "semanticLabel": "插腰生氣 / 有態度提醒",
+      "sourceMotion": "davinci_strongGesture.vrma",
+      "sourceMotionPath": "motions/showcase/davinci_strongGesture.vrma",
+      "motionCategory": "warning",
+      "motionScore": 3,
+      "label": "插腰生氣 / 有態度提醒 · davinci_strongGesture.vrma",
+      "storyBeat": "Showcase 13 / warning",
+      "directive": "Alicia replays a mined human description from davinci_strongGesture.vrma.",
+      "text": "我從 davinci_strongGesture.vrma 挖到這個：雙手外擴後在左右耳旁約5~10公分處停下抖動。用途像是「有一種腦力激蕩的感覺，要爆了，壓力很大，奇怪的知識增加了」，可以拿來有一種腦力激蕩的感覺。",
+      "minedDescription": "雙手外擴後在左右耳旁約5~10公分處停下抖動",
+      "usageDescription": "有一種腦力激蕩的感覺，要爆了，壓力很大，奇怪的知識增加了",
+      "agentUsage": [
+        "有一種腦力激蕩的感覺",
+        "要爆了",
+        "壓力很大",
+        "奇怪的知識增加了"
+      ],
+      "selectionReason": "high-scoring human-described motion sample",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_014",
+      "topic": "target",
+      "prop": "warningTarget",
+      "intent": "warning",
+      "motion": "warning_nod",
+      "animation": "hands_waist",
+      "walkTo": {
+        "x": 58,
+        "y": -2,
+        "scale": 1.06
+      },
+      "gaze": {
+        "x": 0.46,
+        "y": -0.12
+      },
+      "marker": {
+        "left": "70%",
+        "bottom": "24%"
+      },
+      "tone": "hot",
+      "semanticMotionId": "angry_hands_waist",
+      "semanticLabel": "插腰生氣 / 有態度提醒",
+      "sourceMotion": "davinci2_push.vrma",
+      "sourceMotionPath": "motions/showcase/davinci2_push.vrma",
+      "motionCategory": "warning",
+      "motionScore": 3,
+      "label": "插腰生氣 / 有態度提醒 · davinci2_push.vrma",
+      "storyBeat": "Showcase 14 / warning",
+      "directive": "Alicia replays a mined human description from davinci2_push.vrma.",
+      "text": "我從 davinci2_push.vrma 挖到這個：雙手在面醹作出隔檔的感覺，從右邊往中間移動一些，一邊退後。用途像是「雙手在面醹作出隔檔的感覺，從右邊往中間移動一些，一邊退後」，可以拿來雙手在面醹作出隔檔的感覺，從右邊往中間移動一些，一邊退後。",
+      "minedDescription": "雙手在面醹作出隔檔的感覺，從右邊往中間移動一些，一邊退後",
+      "usageDescription": "雙手在面醹作出隔檔的感覺，從右邊往中間移動一些，一邊退後",
+      "agentUsage": [
+        "雙手在面醹作出隔檔的感覺，從右邊往中間移動一些，一邊退後"
+      ],
+      "selectionReason": "high-scoring human-described motion sample",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_015",
+      "topic": "target",
+      "prop": "warningTarget",
+      "intent": "warning",
+      "motion": "warning_nod",
+      "animation": "hands_waist",
+      "walkTo": {
+        "x": 54,
+        "y": -3,
+        "scale": 1.05
+      },
+      "gaze": {
+        "x": 0.46,
+        "y": -0.12
+      },
+      "marker": {
+        "left": "69%",
+        "bottom": "24%"
+      },
+      "tone": "hot",
+      "semanticMotionId": "cross_no",
+      "semanticLabel": "交叉制止 / 不可以",
+      "sourceMotion": "davinci_nervouslyLookAround.vrma",
+      "sourceMotionPath": "motions/showcase/davinci_nervouslyLookAround.vrma",
+      "motionCategory": "point",
+      "motionScore": 5,
+      "label": "交叉制止 / 不可以 · davinci_nervouslyLookAround.vrma",
+      "storyBeat": "Showcase 15 / point",
+      "directive": "Alicia replays a mined human description from davinci_nervouslyLookAround.vrma.",
+      "text": "我從 davinci_nervouslyLookAround.vrma 挖到這個：雙手張開往前伸。用途像是「要阻止某件事發生，像是有暴王龍在面前」，可以拿來要阻止某件事發生，像是有暴王龍在面前。",
+      "minedDescription": "雙手張開往前伸",
+      "usageDescription": "要阻止某件事發生，像是有暴王龍在面前",
+      "agentUsage": [
+        "要阻止某件事發生，像是有暴王龍在面前",
+        "請不要這樣",
+        "停車，快停車"
+      ],
+      "selectionReason": "high-scoring human-described motion sample",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_016",
+      "topic": "target",
+      "prop": "warningTarget",
+      "intent": "warning",
+      "motion": "warning_nod",
+      "animation": "hands_waist",
+      "walkTo": {
+        "x": 54,
+        "y": -3,
+        "scale": 1.05
+      },
+      "gaze": {
+        "x": 0.46,
+        "y": -0.12
+      },
+      "marker": {
+        "left": "69%",
+        "bottom": "24%"
+      },
+      "tone": "hot",
+      "semanticMotionId": "cross_no",
+      "semanticLabel": "交叉制止 / 不可以",
+      "sourceMotion": "Surprised.vrma",
+      "sourceMotionPath": "motions/showcase/Surprised.vrma",
+      "motionCategory": "warning",
+      "motionScore": 4,
+      "label": "交叉制止 / 不可以 · Surprised.vrma",
+      "storyBeat": "Showcase 16 / warning",
+      "directive": "Alicia replays a mined human description from Surprised.vrma.",
+      "text": "我從 Surprised.vrma 挖到這個：嚇了一跳，雙手在面前交叉，可能有什麼 jump scare 出現。用途像是「嚇了一跳，雙手在面前交叉，可能有什麼 jump scare 出現」，可以拿來嚇了一跳，雙手在面前交叉，可能有什麼 jump scare 出現。",
+      "minedDescription": "嚇了一跳，雙手在面前交叉，可能有什麼 jump scare 出現",
+      "usageDescription": "嚇了一跳，雙手在面前交叉，可能有什麼 jump scare 出現",
+      "agentUsage": [
+        "嚇了一跳，雙手在面前交叉，可能有什麼 jump scare 出現"
+      ],
+      "selectionReason": "high-scoring human-described motion sample",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_017",
+      "topic": "target",
+      "prop": "warningTarget",
+      "intent": "warning",
+      "motion": "warning_nod",
+      "animation": "hands_waist",
+      "walkTo": {
+        "x": 54,
+        "y": -3,
+        "scale": 1.05
+      },
+      "gaze": {
+        "x": 0.46,
+        "y": -0.12
+      },
+      "marker": {
+        "left": "69%",
+        "bottom": "24%"
+      },
+      "tone": "hot",
+      "semanticMotionId": "cross_no",
+      "semanticLabel": "交叉制止 / 不可以",
+      "sourceMotion": "davinci2_bodyBlock.vrma",
+      "sourceMotionPath": "motions/showcase/davinci2_bodyBlock.vrma",
+      "motionCategory": "warning",
+      "motionScore": 3,
+      "label": "交叉制止 / 不可以 · davinci2_bodyBlock.vrma",
+      "storyBeat": "Showcase 17 / warning",
+      "directive": "Alicia replays a mined human description from davinci2_bodyBlock.vrma.",
+      "text": "我從 davinci2_bodyBlock.vrma 挖到這個：人物左傾，二手檔在面前，像是有個汽球快要爆炸，手在臉前交叉，好像真要報了，然後繼續檔摭檔著。用途像是「人物左傾，二手檔在面前，像是有個汽球快要爆炸，手在臉前交叉，好像真要報了，然後繼續檔摭檔著 似乎想阻止什麼事」，可以拿來人物左傾，二手檔在面前，像是有個汽球快要爆炸，手在臉前交叉，好像真要報了，然後繼續檔摭檔著。",
+      "minedDescription": "人物左傾，二手檔在面前，像是有個汽球快要爆炸，手在臉前交叉，好像真要報了，然後繼續檔摭檔著",
+      "usageDescription": "人物左傾，二手檔在面前，像是有個汽球快要爆炸，手在臉前交叉，好像真要報了，然後繼續檔摭檔著\n似乎想阻止什麼事",
+      "agentUsage": [
+        "人物左傾，二手檔在面前，像是有個汽球快要爆炸，手在臉前交叉，好像真要報了，然後繼續檔摭檔著",
+        "似乎想阻止什麼事",
+        "前面有個過動兒小朋友也適合用這個，手按著他的頭，但他仍跳來跳去"
+      ],
+      "selectionReason": "high-scoring human-described motion sample",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_018",
+      "topic": "motion",
+      "prop": "motionOrb",
+      "intent": "explain",
+      "motion": "idle",
+      "actState": "thinking",
+      "animation": "touch_model",
+      "sceneAction": "touch",
+      "walkTo": {
+        "x": -36,
+        "y": 3,
+        "scale": 1.04
+      },
+      "gaze": {
+        "x": -0.34,
+        "y": -0.16
+      },
+      "marker": {
+        "left": "36%",
+        "bottom": "24%"
+      },
+      "semanticMotionId": "thinking_chin",
+      "semanticLabel": "托腮思考 / 分析中",
+      "sourceMotion": "davinci_thinking.vrma",
+      "sourceMotionPath": "motions/showcase/davinci_thinking.vrma",
+      "motionCategory": "think",
+      "motionScore": 5,
+      "label": "托腮思考 / 分析中 · davinci_thinking.vrma",
+      "storyBeat": "Showcase 18 / think",
+      "directive": "Alicia replays a mined human description from davinci_thinking.vrma.",
+      "text": "我從 davinci_thinking.vrma 挖到這個：右手斜到左臉下巴，手背向上，頭微微往右斜，有一種呵呵呵笑的感覺，以前秀逗魔導士裡的娜卡很常作這個動作。用途像是「右手斜到左臉下巴，手背向上，頭微微往右斜，有一種呵呵呵笑的感覺 娜卡的特有笑聲招牌動作」，可以拿來右手斜到左臉下巴，手背向上，頭微微往右斜，有一種呵呵呵笑的感覺。",
+      "minedDescription": "右手斜到左臉下巴，手背向上，頭微微往右斜，有一種呵呵呵笑的感覺，以前秀逗魔導士裡的娜卡很常作這個動作",
+      "usageDescription": "右手斜到左臉下巴，手背向上，頭微微往右斜，有一種呵呵呵笑的感覺\n娜卡的特有笑聲招牌動作",
+      "agentUsage": [
+        "右手斜到左臉下巴，手背向上，頭微微往右斜，有一種呵呵呵笑的感覺",
+        "娜卡的特有笑聲招牌動作"
+      ],
+      "selectionReason": "high-scoring human-described motion sample",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_019",
+      "topic": "motion",
+      "prop": "motionOrb",
+      "intent": "explain",
+      "motion": "idle",
+      "actState": "thinking",
+      "animation": "touch_model",
+      "sceneAction": "touch",
+      "walkTo": {
+        "x": -36,
+        "y": 3,
+        "scale": 1.04
+      },
+      "gaze": {
+        "x": -0.34,
+        "y": -0.16
+      },
+      "marker": {
+        "left": "36%",
+        "bottom": "24%"
+      },
+      "semanticMotionId": "thinking_chin",
+      "semanticLabel": "托腮思考 / 分析中",
+      "sourceMotion": "davinci2_crouchToStand.vrma",
+      "sourceMotionPath": "motions/showcase/davinci2_crouchToStand.vrma",
+      "motionCategory": "warning",
+      "motionScore": 3,
+      "label": "托腮思考 / 分析中 · davinci2_crouchToStand.vrma",
+      "storyBeat": "Showcase 19 / warning",
+      "directive": "Alicia replays a mined human description from davinci2_crouchToStand.vrma.",
+      "text": "我從 davinci2_crouchToStand.vrma 挖到這個：左手向前，右手指著左手手腕。用途像是「也許在問人現在時間幾點幾分 也可以像是剛打針，右手壓著綿花按著傷口 或是在思考時間幾點了」，可以拿來也許在問人現在時間幾點幾分。",
+      "minedDescription": "左手向前，右手指著左手手腕",
+      "usageDescription": "也許在問人現在時間幾點幾分\n也可以像是剛打針，右手壓著綿花按著傷口\n或是在思考時間幾點了",
+      "agentUsage": [
+        "也許在問人現在時間幾點幾分",
+        "也可以像是剛打針，右手壓著綿花按著傷口",
+        "或是在思考時間幾點了"
+      ],
+      "selectionReason": "high-scoring human-described motion sample",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_020",
+      "topic": "motion",
+      "prop": "motionOrb",
+      "intent": "explain",
+      "motion": "idle",
+      "actState": "thinking",
+      "animation": "touch_model",
+      "sceneAction": "touch",
+      "walkTo": {
+        "x": -36,
+        "y": 3,
+        "scale": 1.04
+      },
+      "gaze": {
+        "x": -0.34,
+        "y": -0.16
+      },
+      "marker": {
+        "left": "36%",
+        "bottom": "24%"
+      },
+      "semanticMotionId": "thinking_chin",
+      "semanticLabel": "托腮思考 / 分析中",
+      "sourceMotion": "davinci2_rummaging.vrma",
+      "sourceMotionPath": "motions/showcase/davinci2_rummaging.vrma",
+      "motionCategory": "think",
+      "motionScore": 3,
+      "label": "托腮思考 / 分析中 · davinci2_rummaging.vrma",
+      "storyBeat": "Showcase 20 / think",
+      "directive": "Alicia replays a mined human description from davinci2_rummaging.vrma.",
+      "text": "我從 davinci2_rummaging.vrma 挖到這個：右手在眼前約20cm處平舉，左手在下巴前10cm左右，這姿勢維持了4秒，像在翻找抽屜裡的文件。用途像是「右手在眼前約20cm處平舉，左手在下巴前10cm左右，這姿勢維持了4秒，像在翻找抽屜裡的文件」，可以拿來右手在眼前約20cm處平舉，左手在下巴前10cm左右，這姿勢維持了4秒，像在翻找抽屜裡的文件。",
+      "minedDescription": "右手在眼前約20cm處平舉，左手在下巴前10cm左右，這姿勢維持了4秒，像在翻找抽屜裡的文件",
+      "usageDescription": "右手在眼前約20cm處平舉，左手在下巴前10cm左右，這姿勢維持了4秒，像在翻找抽屜裡的文件",
+      "agentUsage": [
+        "右手在眼前約20cm處平舉，左手在下巴前10cm左右，這姿勢維持了4秒，像在翻找抽屜裡的文件"
+      ],
+      "selectionReason": "high-scoring human-described motion sample",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_021",
+      "topic": "target",
+      "prop": "warningTarget",
+      "intent": "explain",
+      "motion": "presenting",
+      "animation": "point_right",
+      "sceneAction": "touch",
+      "walkTo": {
+        "x": 72,
+        "y": -5,
+        "scale": 1.06
+      },
+      "gaze": {
+        "x": 0.5,
+        "y": -0.1
+      },
+      "marker": {
+        "left": "68%",
+        "bottom": "23%"
+      },
+      "tone": "hot",
+      "semanticMotionId": "point_target",
+      "semanticLabel": "指向目標 / 看這裡",
+      "sourceMotion": "davinci2_pacingAndTalkingOnAPhone.vrma",
+      "sourceMotionPath": "motions/showcase/davinci2_pacingAndTalkingOnAPhone.vrma",
+      "motionCategory": "point",
+      "motionScore": 3,
+      "label": "指向目標 / 看這裡 · davinci2_pacingAndTalkingOnAPhone.vrma",
+      "storyBeat": "Showcase 21 / point",
+      "directive": "Alicia replays a mined human description from davinci2_pacingAndTalkingOnAPhone.vrma.",
+      "text": "我從 davinci2_pacingAndTalkingOnAPhone.vrma 挖到這個：一個長達37秒的演示，右手在嘴邊像是對著麥克風唱歌，或是對著人的耳朵講敲敲話 一邊退著走一邊又往前，繞來繞去。用途像是「一個長達37秒的演示，右手在嘴邊像是對著麥克風唱歌，或是對著人的耳朵講敲敲話 一邊退著走一邊又往前，繞來繞去」，可以拿來一個長達37秒的演示，右手在嘴邊像是對著麥克風唱歌，或是對著人的耳朵講敲敲話。",
+      "minedDescription": "一個長達37秒的演示，右手在嘴邊像是對著麥克風唱歌，或是對著人的耳朵講敲敲話\n一邊退著走一邊又往前，繞來繞去",
+      "usageDescription": "一個長達37秒的演示，右手在嘴邊像是對著麥克風唱歌，或是對著人的耳朵講敲敲話\n一邊退著走一邊又往前，繞來繞去",
+      "agentUsage": [
+        "一個長達37秒的演示，右手在嘴邊像是對著麥克風唱歌，或是對著人的耳朵講敲敲話",
+        "一邊退著走一邊又往前，繞來繞去"
+      ],
+      "selectionReason": "high-scoring human-described motion sample",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_022",
+      "topic": "target",
+      "prop": "warningTarget",
+      "intent": "explain",
+      "motion": "presenting",
+      "animation": "point_right",
+      "sceneAction": "touch",
+      "walkTo": {
+        "x": 72,
+        "y": -5,
+        "scale": 1.06
+      },
+      "gaze": {
+        "x": 0.5,
+        "y": -0.1
+      },
+      "marker": {
+        "left": "68%",
+        "bottom": "23%"
+      },
+      "tone": "hot",
+      "semanticMotionId": "point_target",
+      "semanticLabel": "指向目標 / 看這裡",
+      "sourceMotion": "davinci4_VRMA_04.vrma",
+      "sourceMotionPath": "motions/showcase/davinci4_VRMA_04.vrma",
+      "motionCategory": "point",
+      "motionScore": 3,
+      "label": "指向目標 / 看這裡 · davinci4_VRMA_04.vrma",
+      "storyBeat": "Showcase 22 / point",
+      "directive": "Alicia replays a mined human description from davinci4_VRMA_04.vrma.",
+      "text": "我從 davinci4_VRMA_04.vrma 挖到這個：朝鏡頭伸出右手平舉，開了一槍，手因後座力舉起到面前，然後手臂90度轉到側身，舉槍的姿勢在耳邊，然後右手放下。用途像是「朝鏡頭伸出右手平舉，開了一槍，手因後座力舉起到面前，然後手臂90度轉到側身，舉槍的姿勢在耳邊，然後右手放下」，可以拿來朝鏡頭伸出右手平舉，開了一槍，手因後座力舉起到面前，然後手臂90度轉到側身，舉槍的姿勢在耳邊，然後右手放下。",
+      "minedDescription": "朝鏡頭伸出右手平舉，開了一槍，手因後座力舉起到面前，然後手臂90度轉到側身，舉槍的姿勢在耳邊，然後右手放下",
+      "usageDescription": "朝鏡頭伸出右手平舉，開了一槍，手因後座力舉起到面前，然後手臂90度轉到側身，舉槍的姿勢在耳邊，然後右手放下",
+      "agentUsage": [
+        "朝鏡頭伸出右手平舉，開了一槍，手因後座力舉起到面前，然後手臂90度轉到側身，舉槍的姿勢在耳邊，然後右手放下"
+      ],
+      "selectionReason": "high-scoring human-described motion sample",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_023",
+      "topic": "target",
+      "prop": "warningTarget",
+      "intent": "explain",
+      "motion": "presenting",
+      "animation": "point_right",
+      "sceneAction": "touch",
+      "walkTo": {
+        "x": 72,
+        "y": -5,
+        "scale": 1.06
+      },
+      "gaze": {
+        "x": 0.5,
+        "y": -0.1
+      },
+      "marker": {
+        "left": "68%",
+        "bottom": "23%"
+      },
+      "tone": "hot",
+      "semanticMotionId": "point_target",
+      "semanticLabel": "指向目標 / 看這裡",
+      "sourceMotion": "davinci_dismissingGesture.vrma",
+      "sourceMotionPath": "motions/showcase/davinci_dismissingGesture.vrma",
+      "motionCategory": "point",
+      "motionScore": 3,
+      "label": "指向目標 / 看這裡 · davinci_dismissingGesture.vrma",
+      "storyBeat": "Showcase 23 / point",
+      "directive": "Alicia replays a mined human description from davinci_dismissingGesture.vrma.",
+      "text": "我從 davinci_dismissingGesture.vrma 挖到這個：原本是立正舒服的姿勢，上半身往往左傾，右手往前揮了一下，手又回到立正的姿勢。用途像是「右手往前揮了一下」，可以拿來原本是立正舒服的姿勢，上半身往往左傾，右手往前揮了一下，手又回到立正的姿勢。",
+      "minedDescription": "原本是立正舒服的姿勢，上半身往往左傾，右手往前揮了一下，手又回到立正的姿勢",
+      "usageDescription": "右手往前揮了一下",
+      "agentUsage": [
+        "原本是立正舒服的姿勢，上半身往往左傾，右手往前揮了一下，手又回到立正的姿勢"
+      ],
+      "selectionReason": "high-scoring human-described motion sample",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_024",
+      "topic": "release",
+      "prop": "releaseCore",
+      "intent": "greeting",
+      "motion": "wave",
+      "animation": "touch_model",
+      "sceneAction": "touch",
+      "walkTo": {
+        "x": -66,
+        "y": 5,
+        "scale": 1.05
+      },
+      "gaze": {
+        "x": -0.46,
+        "y": 0.12
+      },
+      "marker": {
+        "left": "31%",
+        "bottom": "42%"
+      },
+      "semanticMotionId": "come_here",
+      "semanticLabel": "招手靠近 / 跟我來",
+      "sourceMotion": "davinci_lookAround.vrma",
+      "sourceMotionPath": "motions/showcase/davinci_lookAround.vrma",
+      "motionCategory": "think",
+      "motionScore": 5,
+      "label": "招手靠近 / 跟我來 · davinci_lookAround.vrma",
+      "storyBeat": "Showcase 24 / think",
+      "directive": "Alicia replays a mined human description from davinci_lookAround.vrma.",
+      "text": "我從 davinci_lookAround.vrma 挖到這個：雙手微微張開，擺頭左看看，再擺頭右看看。用途像是「雙手微微張開，擺頭左看看，再擺頭右看看 看看發生什麼事 左邊或右邊有什麼事，或是左右二邊有人靠近」，可以拿來雙手微微張開，擺頭左看看，再擺頭右看看。",
+      "minedDescription": "雙手微微張開，擺頭左看看，再擺頭右看看",
+      "usageDescription": "雙手微微張開，擺頭左看看，再擺頭右看看\n看看發生什麼事\n左邊或右邊有什麼事，或是左右二邊有人靠近",
+      "agentUsage": [
+        "雙手微微張開，擺頭左看看，再擺頭右看看",
+        "看看發生什麼事",
+        "左邊或右邊有什麼事，或是左右二邊有人靠近"
+      ],
+      "selectionReason": "high-scoring human-described motion sample",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_025",
+      "topic": "release",
+      "prop": "releaseCore",
+      "intent": "greeting",
+      "motion": "wave",
+      "animation": "touch_model",
+      "sceneAction": "touch",
+      "walkTo": {
+        "x": -66,
+        "y": 5,
+        "scale": 1.05
+      },
+      "gaze": {
+        "x": -0.46,
+        "y": 0.12
+      },
+      "marker": {
+        "left": "31%",
+        "bottom": "42%"
+      },
+      "semanticMotionId": "come_here",
+      "semanticLabel": "招手靠近 / 跟我來",
+      "sourceMotion": "Relax.vrma",
+      "sourceMotionPath": "motions/showcase/Relax.vrma",
+      "motionCategory": "present",
+      "motionScore": 4,
+      "label": "招手靠近 / 跟我來 · Relax.vrma",
+      "storyBeat": "Showcase 25 / present",
+      "directive": "Alicia replays a mined human description from Relax.vrma.",
+      "text": "我從 Relax.vrma 挖到這個：雙手張開伸了個懶腰，最後維持手張開。用途像是「雙手張開伸了個懶腰，最後維持手張開」，可以拿來雙手張開伸了個懶腰，最後維持手張開。",
+      "minedDescription": "雙手張開伸了個懶腰，最後維持手張開",
+      "usageDescription": "雙手張開伸了個懶腰，最後維持手張開",
+      "agentUsage": [
+        "雙手張開伸了個懶腰，最後維持手張開"
+      ],
+      "selectionReason": "high-scoring human-described motion sample",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_026",
+      "topic": "release",
+      "prop": "releaseCore",
+      "intent": "greeting",
+      "motion": "wave",
+      "animation": "touch_model",
+      "sceneAction": "touch",
+      "walkTo": {
+        "x": -66,
+        "y": 5,
+        "scale": 1.05
+      },
+      "gaze": {
+        "x": -0.46,
+        "y": 0.12
+      },
+      "marker": {
+        "left": "31%",
+        "bottom": "42%"
+      },
+      "semanticMotionId": "come_here",
+      "semanticLabel": "招手靠近 / 跟我來",
+      "sourceMotion": "davinci2_blowAKiss.vrma",
+      "sourceMotionPath": "motions/showcase/davinci2_blowAKiss.vrma",
+      "motionCategory": "point",
+      "motionScore": 3,
+      "label": "招手靠近 / 跟我來 · davinci2_blowAKiss.vrma",
+      "storyBeat": "Showcase 26 / point",
+      "directive": "Alicia replays a mined human description from davinci2_blowAKiss.vrma.",
+      "text": "我從 davinci2_blowAKiss.vrma 挖到這個：左手先靠近嘴邊，然後往前一伸，送出一個飛吻。用途像是「左手先靠近嘴邊，然後往前一伸，送出一個飛吻 送出飛吻」，可以拿來左手先靠近嘴邊，然後往前一伸，送出一個飛吻。",
+      "minedDescription": "左手先靠近嘴邊，然後往前一伸，送出一個飛吻",
+      "usageDescription": "左手先靠近嘴邊，然後往前一伸，送出一個飛吻\n送出飛吻",
+      "agentUsage": [
+        "左手先靠近嘴邊，然後往前一伸，送出一個飛吻",
+        "送出飛吻"
+      ],
+      "selectionReason": "high-scoring human-described motion sample",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_027",
+      "topic": "release",
+      "prop": "releaseCore",
+      "intent": "greeting",
+      "motion": "wave",
+      "animation": "shy_wave",
+      "walkTo": {
+        "x": -50,
+        "y": 2,
+        "scale": 1.04
+      },
+      "gaze": {
+        "x": -0.44,
+        "y": 0.12
+      },
+      "marker": {
+        "left": "30%",
+        "bottom": "42%"
+      },
+      "semanticMotionId": "wave_goodbye",
+      "semanticLabel": "揮手告別 / 打招呼",
+      "sourceMotion": "davinci2_entry.vrma",
+      "sourceMotionPath": "motions/showcase/davinci2_entry.vrma",
+      "motionCategory": "warning",
+      "motionScore": 3,
+      "label": "揮手告別 / 打招呼 · davinci2_entry.vrma",
+      "storyBeat": "Showcase 27 / warning",
+      "directive": "Alicia replays a mined human description from davinci2_entry.vrma.",
+      "text": "我從 davinci2_entry.vrma 挖到這個：行進中，右手往上比出敬禮的手勢，然後左看看右看看，也像是登場時大家歡迎她的到來，一邊敬禮一邊退著走。用途像是「行進中，右手往上比出敬禮的手勢，然後左看看右看看，也像是登場時大家歡迎她的到來 登場時 我們歡迎羽山娘 一邊敬禮一邊退著走」，可以拿來行進中，右手往上比出敬禮的手勢，然後左看看右看看，也像是登場時大家歡迎她的到來。",
+      "minedDescription": "行進中，右手往上比出敬禮的手勢，然後左看看右看看，也像是登場時大家歡迎她的到來，一邊敬禮一邊退著走",
+      "usageDescription": "行進中，右手往上比出敬禮的手勢，然後左看看右看看，也像是登場時大家歡迎她的到來\n登場時\n我們歡迎羽山娘\n一邊敬禮一邊退著走",
+      "agentUsage": [
+        "行進中，右手往上比出敬禮的手勢，然後左看看右看看，也像是登場時大家歡迎她的到來",
+        "登場時",
+        "我們歡迎羽山娘",
+        "一邊敬禮一邊退著走"
+      ],
+      "selectionReason": "high-scoring human-described motion sample",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_028",
+      "topic": "release",
+      "prop": "releaseCore",
+      "intent": "greeting",
+      "motion": "wave",
+      "animation": "shy_wave",
+      "walkTo": {
+        "x": -50,
+        "y": 2,
+        "scale": 1.04
+      },
+      "gaze": {
+        "x": -0.44,
+        "y": 0.12
+      },
+      "marker": {
+        "left": "30%",
+        "bottom": "42%"
+      },
+      "semanticMotionId": "wave_goodbye",
+      "semanticLabel": "揮手告別 / 打招呼",
+      "sourceMotion": "davinci2_floating.vrma",
+      "sourceMotionPath": "motions/showcase/davinci2_floating.vrma",
+      "motionCategory": "warning",
+      "motionScore": 3,
+      "label": "揮手告別 / 打招呼 · davinci2_floating.vrma",
+      "storyBeat": "Showcase 28 / warning",
+      "directive": "Alicia replays a mined human description from davinci2_floating.vrma.",
+      "text": "我從 davinci2_floating.vrma 挖到這個：左手往外滑一下，右手往外滑一下，是一個往外滑的自由式。用途像是「左手往外滑一下，右手往外滑一下，是一個往外滑的自由式，用途不明但很可愛 跟左、右的觀眾打招呼」，可以拿來左手往外滑一下，右手往外滑一下，是一個往外滑的自由式，用途不明但很可愛。",
+      "minedDescription": "左手往外滑一下，右手往外滑一下，是一個往外滑的自由式",
+      "usageDescription": "左手往外滑一下，右手往外滑一下，是一個往外滑的自由式，用途不明但很可愛\n跟左、右的觀眾打招呼",
+      "agentUsage": [
+        "左手往外滑一下，右手往外滑一下，是一個往外滑的自由式，用途不明但很可愛",
+        "跟左、右的觀眾打招呼"
+      ],
+      "selectionReason": "high-scoring human-described motion sample",
+      "runtimeMotionStatus": "metadata_ready"
+    }
+  ]
+}

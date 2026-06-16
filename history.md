@@ -17,3 +17,7 @@
 - 補強 release 鎖點：`build_release.bat vX.Y.Z` 固定輸出到 `dist/releases/vX.Y.Z/`，`release.json.version` 不含 `v`，且 `asset_manifest.json` 的每個 VRMA 必須列出 `licenseStatus`、`source`、`distributable`。
 - 實作 `build_release.bat vX.Y.Z` 與 `scripts/build_release.ps1`，打包 Alicia Runtime 到 `dist/releases/vX.Y.Z/`，包含 runtime、approved assets、manifests、skill docs、usage docs、adapter examples、`release.json` 與 `asset_manifest.json`。
 - 新增 `scratch/test_release_build.mjs`，用實際產出的 `dist/releases/v0.0.0/` 驗證 release 結構、`release.json.version`、VRMA 授權欄位，以及排除 `scratch/`、`local_assets/`、內部 specs 與 Motion Mine workbench。
+- 新增 v0.1.2 Alicia Showcase Pack：由 172 筆 `motion_profiles.json` 人工描述與 `semantic_motion_registry.json` 產生 `showcase_motion_pack.json`、`showcase_events.json` 與報表，挑出 28 筆 mined showcase motions。
+- `demo.php` 改成優先讀 `showcase_events.json`，讓 Director 先展示採礦成果；沒有 showcase pack 時才 fallback 到原本 semantic motion catalog。
+- release build 會複製 `demo.php`、showcase manifests 與 `motions/showcase/` 精選 VRMA，並在 `asset_manifest.json` 保留 `approved` / `research_preview` / `distributable` 欄位，不假裝未驗證素材已授權。
+- 新增 v0.1.3 Alicia Showcase 空間感修正：`VrmMascot` 公開 shared Three.js scene API，`demo.php` 的 toy room / props 改掛同一個 scene、共用 camera/depth/lighting，避免四周物件像 overlay 浮在畫面前方。

@@ -1,0 +1,847 @@
+{
+  "schemaVersion": 1,
+  "phase": "v0.1.2 Alicia Showcase Pack",
+  "source": [
+    "motion_profiles.json",
+    "semantic_motion_registry.json",
+    "semantic_motion_library.json"
+  ],
+  "generatedAt": "2026-06-16T01:01:22+08:00",
+  "summary": {
+    "totalSelectedMotions": 28,
+    "categoryCounts": {
+      "warning": 9,
+      "success": 2,
+      "think": 7,
+      "point": 8,
+      "candidate_future": 1,
+      "present": 1
+    },
+    "semanticMotionCounts": {
+      "angry_hands_waist": 4,
+      "cross_no": 4,
+      "thinking_chin": 4,
+      "point_target": 4,
+      "come_here": 4,
+      "wave_goodbye": 3,
+      "victory_pose": 1,
+      "look_around": 2,
+      "hands_up_surrender": 1,
+      "shy_head_touch": 1
+    },
+    "approvedCount": 8,
+    "researchPreviewCount": 20,
+    "note": "research_preview motions are included for local/showcase evaluation and require license review before broad redistribution."
+  },
+  "motions": [
+    {
+      "id": "showcase_001",
+      "sourceMotion": "Angry.vrma",
+      "releasePath": "motions/showcase/Angry.vrma",
+      "localSourcePath": "local_assets/vrma/Angry.vrma",
+      "semanticMotionId": "angry_hands_waist",
+      "semanticDisplayName": "插腰生氣 / 有態度提醒",
+      "displayName": "插腰生氣 / 有態度提醒 / Angry.vrma",
+      "motionCategory": "warning",
+      "motionScore": 4,
+      "description": "雙手插腰，頭微微歪一邊晃頭",
+      "usageDescription": "羽山娘生氣中",
+      "agentUsage": [
+        "可能因為使用者犯錯講不聽，羽山娘生氣中",
+        "這是個生氣中的動作",
+        "羽山娘氣噗噗"
+      ],
+      "selectionScore": 81.1,
+      "selectionReason": "preferred semantic motion source",
+      "licenseStatus": "approved",
+      "distributable": true,
+      "sourceProvider": "tk256ailab/vrm-viewer",
+      "poseHints": {
+        "activeSide": "both",
+        "primaryAction": "hands_on_waist",
+        "bodyLean": "slight_forward",
+        "repeatable": false,
+        "expression": "angry"
+      }
+    },
+    {
+      "id": "showcase_002",
+      "sourceMotion": "Clapping.vrma",
+      "releasePath": "motions/showcase/Clapping.vrma",
+      "localSourcePath": "local_assets/vrma/Clapping.vrma",
+      "semanticMotionId": "cross_no",
+      "semanticDisplayName": "交叉制止 / 不可以",
+      "displayName": "交叉制止 / 不可以 / Clapping.vrma",
+      "motionCategory": "success",
+      "motionScore": 4,
+      "description": "雙手在面前連續交叉數次",
+      "usageDescription": "這件事情不對，不是這樣",
+      "agentUsage": [
+        "這件事情不對，不是這樣",
+        "這樣不行，很不好",
+        "嚴格禁止，不能這樣"
+      ],
+      "selectionScore": 79.6,
+      "selectionReason": "preferred semantic motion source",
+      "licenseStatus": "approved",
+      "distributable": true,
+      "sourceProvider": "tk256ailab/vrm-viewer",
+      "poseHints": {
+        "activeSide": "both",
+        "primaryAction": "cross_block",
+        "bodyLean": "slight_back",
+        "repeatable": false,
+        "expression": "serious"
+      }
+    },
+    {
+      "id": "showcase_003",
+      "sourceMotion": "Thinking.vrma",
+      "releasePath": "motions/showcase/Thinking.vrma",
+      "localSourcePath": "local_assets/vrma/Thinking.vrma",
+      "semanticMotionId": "thinking_chin",
+      "semanticDisplayName": "托腮思考 / 分析中",
+      "displayName": "托腮思考 / 分析中 / Thinking.vrma",
+      "motionCategory": "think",
+      "motionScore": 5,
+      "description": "雙手叉交在腹部前，頭低低左晃右晃，像是在想事情",
+      "usageDescription": "雙手叉交在腹部前，頭低低左晃右晃，像是在想事情",
+      "agentUsage": [
+        "雙手叉交在腹部前，頭低低左晃右晃，像是在想事情"
+      ],
+      "selectionScore": 69.1,
+      "selectionReason": "high-scoring human-described motion sample",
+      "licenseStatus": "approved",
+      "distributable": true,
+      "sourceProvider": "tk256ailab/vrm-viewer",
+      "poseHints": {
+        "activeSide": "right",
+        "primaryAction": "chin_touch",
+        "bodyLean": "slight_forward",
+        "repeatable": false,
+        "gaze": "up_left"
+      }
+    },
+    {
+      "id": "showcase_004",
+      "sourceMotion": "davinci_happyHandGesture.vrma",
+      "releasePath": "motions/showcase/davinci_happyHandGesture.vrma",
+      "localSourcePath": "local_assets/vrma/external/davinci_3dchat/davinci_happyHandGesture.vrma",
+      "semanticMotionId": "point_target",
+      "semanticDisplayName": "指向目標 / 看這裡",
+      "displayName": "指向目標 / 看這裡 / davinci_happyHandGesture.vrma",
+      "motionCategory": "point",
+      "motionScore": 3,
+      "description": "原是立正的姿勢，忽然伸出右手向前約腹部高的位置，像是要握手，但忽然又收回",
+      "usageDescription": "假裝握手",
+      "agentUsage": [
+        "原是立正的姿勢，忽然伸出右手向前約腹部高的位置，像是要握手，但忽然又收回"
+      ],
+      "selectionScore": 65,
+      "selectionReason": "preferred semantic motion source",
+      "licenseStatus": "research_preview",
+      "distributable": false,
+      "sourceProvider": "local_mining_corpus",
+      "poseHints": {
+        "activeSide": "right",
+        "primaryAction": "point",
+        "bodyLean": "slight_forward",
+        "repeatable": false,
+        "gaze": "target"
+      }
+    },
+    {
+      "id": "showcase_005",
+      "sourceMotion": "davinci_beckoning.vrma",
+      "releasePath": "motions/showcase/davinci_beckoning.vrma",
+      "localSourcePath": "local_assets/vrma/external/davinci_3dchat/davinci_beckoning.vrma",
+      "semanticMotionId": "come_here",
+      "semanticDisplayName": "招手靠近 / 跟我來",
+      "displayName": "招手靠近 / 跟我來 / davinci_beckoning.vrma",
+      "motionCategory": "point",
+      "motionScore": 3,
+      "description": "右手在前方抓著自己的裙子，作出往自己靠近擺動數次",
+      "usageDescription": "希望讓對方跟過來，有 come on come here 的用途\n有點色的動作",
+      "agentUsage": [
+        "希望讓對方跟過來，有 come on come here 的用途",
+        "有點色的動作，會看到小褲褲"
+      ],
+      "selectionScore": 65,
+      "selectionReason": "preferred semantic motion source",
+      "licenseStatus": "research_preview",
+      "distributable": false,
+      "sourceProvider": "local_mining_corpus",
+      "poseHints": {
+        "activeSide": "right",
+        "primaryAction": "beckon",
+        "bodyLean": "slight_forward",
+        "repeatable": true,
+        "rhythm": "short_loop"
+      }
+    },
+    {
+      "id": "showcase_006",
+      "sourceMotion": "davinci_acknowledging.vrma",
+      "releasePath": "motions/showcase/davinci_acknowledging.vrma",
+      "localSourcePath": "local_assets/vrma/external/davinci_3dchat/davinci_acknowledging.vrma",
+      "semanticMotionId": "wave_goodbye",
+      "semanticDisplayName": "揮手告別 / 打招呼",
+      "displayName": "揮手告別 / 打招呼 / davinci_acknowledging.vrma",
+      "motionCategory": "point",
+      "motionScore": 3,
+      "description": "頭約歪5度左左，向前點頭了一次，像是在打招呼的感覺,，頭髮自然飄散",
+      "usageDescription": "打招呼，或是我懂了，微微點頭示意",
+      "agentUsage": [
+        "打招呼",
+        "我懂了",
+        "微微點頭示意"
+      ],
+      "selectionScore": 66,
+      "selectionReason": "preferred semantic motion source",
+      "licenseStatus": "research_preview",
+      "distributable": false,
+      "sourceProvider": "local_mining_corpus",
+      "poseHints": {
+        "activeSide": "right",
+        "primaryAction": "wave",
+        "bodyLean": "neutral",
+        "repeatable": true,
+        "rhythm": "friendly_loop"
+      }
+    },
+    {
+      "id": "showcase_007",
+      "sourceMotion": "davinci_happyIdle.vrma",
+      "releasePath": "motions/showcase/davinci_happyIdle.vrma",
+      "localSourcePath": "local_assets/vrma/external/davinci_3dchat/davinci_happyIdle.vrma",
+      "semanticMotionId": "victory_pose",
+      "semanticDisplayName": "勝利完成 / 做到了",
+      "displayName": "勝利完成 / 做到了 / davinci_happyIdle.vrma",
+      "motionCategory": "candidate_future",
+      "motionScore": 3,
+      "description": "左右手張開在身體旁二邊，微微劃圈",
+      "usageDescription": "開心的張開雙手微微晃動",
+      "agentUsage": [
+        "開心的張開雙手微微晃動"
+      ],
+      "selectionScore": 59.6,
+      "selectionReason": "preferred semantic motion source",
+      "licenseStatus": "research_preview",
+      "distributable": false,
+      "sourceProvider": "local_mining_corpus",
+      "poseHints": {
+        "activeSide": "both",
+        "primaryAction": "victory",
+        "bodyLean": "slight_up",
+        "repeatable": false,
+        "expression": "happy"
+      }
+    },
+    {
+      "id": "showcase_008",
+      "sourceMotion": "LookAround.vrma",
+      "releasePath": "motions/showcase/LookAround.vrma",
+      "localSourcePath": "local_assets/vrma/LookAround.vrma",
+      "semanticMotionId": "look_around",
+      "semanticDisplayName": "左右觀察 / 搜尋中",
+      "displayName": "左右觀察 / 搜尋中 / LookAround.vrma",
+      "motionCategory": "think",
+      "motionScore": 5,
+      "description": "身體左轉往左看，身體右轉往右看，環看四週",
+      "usageDescription": "身體左轉往左看，身體右轉往右看，環看四週",
+      "agentUsage": [
+        "身體左轉往左看，身體右轉往右看，環看四週"
+      ],
+      "selectionScore": 69.9,
+      "selectionReason": "high-scoring human-described motion sample",
+      "licenseStatus": "approved",
+      "distributable": true,
+      "sourceProvider": "tk256ailab/vrm-viewer",
+      "poseHints": {
+        "activeSide": "none",
+        "primaryAction": "look_around",
+        "bodyLean": "neutral",
+        "repeatable": true,
+        "gaze": "scan"
+      }
+    },
+    {
+      "id": "showcase_009",
+      "sourceMotion": "Goodbye.vrma",
+      "releasePath": "motions/showcase/Goodbye.vrma",
+      "localSourcePath": "local_assets/vrma/Goodbye.vrma",
+      "semanticMotionId": "hands_up_surrender",
+      "semanticDisplayName": "舉手投降 / 嚇一跳",
+      "displayName": "舉手投降 / 嚇一跳 / Goodbye.vrma",
+      "motionCategory": "success",
+      "motionScore": 4,
+      "description": "雙手往上舉高，再回到腰旁，左右一擺，再回到投降的姿勢，然後手放下",
+      "usageDescription": "像是要跟某人說再見，但他沒看到，覺得有點失望，就不揮手了",
+      "agentUsage": [
+        "像是要跟某人說再見，但他沒看到，覺得有點失望，就不揮手了"
+      ],
+      "selectionScore": 60.5,
+      "selectionReason": "high-scoring human-described motion sample",
+      "licenseStatus": "approved",
+      "distributable": true,
+      "sourceProvider": "tk256ailab/vrm-viewer",
+      "poseHints": {
+        "activeSide": "both",
+        "primaryAction": "hands_up",
+        "bodyLean": "slight_back",
+        "repeatable": false,
+        "expression": "surprised"
+      }
+    },
+    {
+      "id": "showcase_010",
+      "sourceMotion": "Blush.vrma",
+      "releasePath": "motions/showcase/Blush.vrma",
+      "localSourcePath": "local_assets/vrma/Blush.vrma",
+      "semanticMotionId": "shy_head_touch",
+      "semanticDisplayName": "害羞摸頭 / 不好意思",
+      "displayName": "害羞摸頭 / 不好意思 / Blush.vrma",
+      "motionCategory": "think",
+      "motionScore": 3,
+      "description": "微微擺頭，左手伸後到後腦摸了二下",
+      "usageDescription": "在想事情，或是不小心犯錯時的不好意思的動作",
+      "agentUsage": [
+        "在想事情，或是不小心犯錯時的不好意思的動作"
+      ],
+      "selectionScore": 67.7,
+      "selectionReason": "preferred semantic motion source",
+      "licenseStatus": "approved",
+      "distributable": true,
+      "sourceProvider": "tk256ailab/vrm-viewer",
+      "poseHints": {
+        "activeSide": "left",
+        "primaryAction": "head_touch",
+        "bodyLean": "slight_side",
+        "repeatable": false,
+        "expression": "shy"
+      }
+    },
+    {
+      "id": "showcase_011",
+      "sourceMotion": "davinci_annoyedHeadShake.vrma",
+      "releasePath": "motions/showcase/davinci_annoyedHeadShake.vrma",
+      "localSourcePath": "local_assets/vrma/external/davinci_3dchat/davinci_annoyedHeadShake.vrma",
+      "semanticMotionId": "look_around",
+      "semanticDisplayName": "左右觀察 / 搜尋中",
+      "displayName": "左右觀察 / 搜尋中 / davinci_annoyedHeadShake.vrma",
+      "motionCategory": "think",
+      "motionScore": 3,
+      "description": "頭往左看了一下又回正",
+      "usageDescription": "頭往左看了一下又回正",
+      "agentUsage": [
+        "頭往左看了一下又回正"
+      ],
+      "selectionScore": 64.9,
+      "selectionReason": "preferred semantic motion source",
+      "licenseStatus": "research_preview",
+      "distributable": false,
+      "sourceProvider": "local_mining_corpus",
+      "poseHints": {
+        "activeSide": "none",
+        "primaryAction": "look_around",
+        "bodyLean": "neutral",
+        "repeatable": true,
+        "gaze": "scan"
+      }
+    },
+    {
+      "id": "showcase_012",
+      "sourceMotion": "davinci_angryGesture.vrma",
+      "releasePath": "motions/showcase/davinci_angryGesture.vrma",
+      "localSourcePath": "local_assets/vrma/external/davinci_3dchat/davinci_angryGesture.vrma",
+      "semanticMotionId": "angry_hands_waist",
+      "semanticDisplayName": "插腰生氣 / 有態度提醒",
+      "displayName": "插腰生氣 / 有態度提醒 / davinci_angryGesture.vrma",
+      "motionCategory": "warning",
+      "motionScore": 4,
+      "description": "自然下垂的雙手，微微前前擺了一點點後回復",
+      "usageDescription": "整理一下裙子",
+      "agentUsage": [
+        "整理裙子的小動作"
+      ],
+      "selectionScore": 56.1,
+      "selectionReason": "high-scoring human-described motion sample",
+      "licenseStatus": "research_preview",
+      "distributable": false,
+      "sourceProvider": "local_mining_corpus",
+      "poseHints": {
+        "activeSide": "both",
+        "primaryAction": "hands_on_waist",
+        "bodyLean": "slight_forward",
+        "repeatable": false,
+        "expression": "angry"
+      }
+    },
+    {
+      "id": "showcase_013",
+      "sourceMotion": "davinci_strongGesture.vrma",
+      "releasePath": "motions/showcase/davinci_strongGesture.vrma",
+      "localSourcePath": "local_assets/vrma/external/davinci_3dchat/davinci_strongGesture.vrma",
+      "semanticMotionId": "angry_hands_waist",
+      "semanticDisplayName": "插腰生氣 / 有態度提醒",
+      "displayName": "插腰生氣 / 有態度提醒 / davinci_strongGesture.vrma",
+      "motionCategory": "warning",
+      "motionScore": 3,
+      "description": "雙手外擴後在左右耳旁約5~10公分處停下抖動",
+      "usageDescription": "有一種腦力激蕩的感覺，要爆了，壓力很大，奇怪的知識增加了",
+      "agentUsage": [
+        "有一種腦力激蕩的感覺",
+        "要爆了",
+        "壓力很大",
+        "奇怪的知識增加了"
+      ],
+      "selectionScore": 47.1,
+      "selectionReason": "high-scoring human-described motion sample",
+      "licenseStatus": "research_preview",
+      "distributable": false,
+      "sourceProvider": "local_mining_corpus",
+      "poseHints": {
+        "activeSide": "both",
+        "primaryAction": "hands_on_waist",
+        "bodyLean": "slight_forward",
+        "repeatable": false,
+        "expression": "angry"
+      }
+    },
+    {
+      "id": "showcase_014",
+      "sourceMotion": "davinci2_push.vrma",
+      "releasePath": "motions/showcase/davinci2_push.vrma",
+      "localSourcePath": "local_assets/vrma/external/davinci_3dchat_batch2/davinci2_push.vrma",
+      "semanticMotionId": "angry_hands_waist",
+      "semanticDisplayName": "插腰生氣 / 有態度提醒",
+      "displayName": "插腰生氣 / 有態度提醒 / davinci2_push.vrma",
+      "motionCategory": "warning",
+      "motionScore": 3,
+      "description": "雙手在面醹作出隔檔的感覺，從右邊往中間移動一些，一邊退後",
+      "usageDescription": "雙手在面醹作出隔檔的感覺，從右邊往中間移動一些，一邊退後",
+      "agentUsage": [
+        "雙手在面醹作出隔檔的感覺，從右邊往中間移動一些，一邊退後"
+      ],
+      "selectionScore": 47.1,
+      "selectionReason": "high-scoring human-described motion sample",
+      "licenseStatus": "research_preview",
+      "distributable": false,
+      "sourceProvider": "local_mining_corpus",
+      "poseHints": {
+        "activeSide": "both",
+        "primaryAction": "hands_on_waist",
+        "bodyLean": "slight_forward",
+        "repeatable": false,
+        "expression": "angry"
+      }
+    },
+    {
+      "id": "showcase_015",
+      "sourceMotion": "davinci_nervouslyLookAround.vrma",
+      "releasePath": "motions/showcase/davinci_nervouslyLookAround.vrma",
+      "localSourcePath": "local_assets/vrma/external/davinci_3dchat/davinci_nervouslyLookAround.vrma",
+      "semanticMotionId": "cross_no",
+      "semanticDisplayName": "交叉制止 / 不可以",
+      "displayName": "交叉制止 / 不可以 / davinci_nervouslyLookAround.vrma",
+      "motionCategory": "point",
+      "motionScore": 5,
+      "description": "雙手張開往前伸",
+      "usageDescription": "要阻止某件事發生，像是有暴王龍在面前",
+      "agentUsage": [
+        "要阻止某件事發生，像是有暴王龍在面前",
+        "請不要這樣",
+        "停車，快停車"
+      ],
+      "selectionScore": 66.6,
+      "selectionReason": "high-scoring human-described motion sample",
+      "licenseStatus": "research_preview",
+      "distributable": false,
+      "sourceProvider": "local_mining_corpus",
+      "poseHints": {
+        "activeSide": "both",
+        "primaryAction": "cross_block",
+        "bodyLean": "slight_back",
+        "repeatable": false,
+        "expression": "serious"
+      }
+    },
+    {
+      "id": "showcase_016",
+      "sourceMotion": "Surprised.vrma",
+      "releasePath": "motions/showcase/Surprised.vrma",
+      "localSourcePath": "local_assets/vrma/Surprised.vrma",
+      "semanticMotionId": "cross_no",
+      "semanticDisplayName": "交叉制止 / 不可以",
+      "displayName": "交叉制止 / 不可以 / Surprised.vrma",
+      "motionCategory": "warning",
+      "motionScore": 4,
+      "description": "嚇了一跳，雙手在面前交叉，可能有什麼 jump scare 出現",
+      "usageDescription": "嚇了一跳，雙手在面前交叉，可能有什麼 jump scare 出現",
+      "agentUsage": [
+        "嚇了一跳，雙手在面前交叉，可能有什麼 jump scare 出現"
+      ],
+      "selectionScore": 62.6,
+      "selectionReason": "high-scoring human-described motion sample",
+      "licenseStatus": "approved",
+      "distributable": true,
+      "sourceProvider": "tk256ailab/vrm-viewer",
+      "poseHints": {
+        "activeSide": "both",
+        "primaryAction": "cross_block",
+        "bodyLean": "slight_back",
+        "repeatable": false,
+        "expression": "serious"
+      }
+    },
+    {
+      "id": "showcase_017",
+      "sourceMotion": "davinci2_bodyBlock.vrma",
+      "releasePath": "motions/showcase/davinci2_bodyBlock.vrma",
+      "localSourcePath": "local_assets/vrma/external/davinci_3dchat_batch2/davinci2_bodyBlock.vrma",
+      "semanticMotionId": "cross_no",
+      "semanticDisplayName": "交叉制止 / 不可以",
+      "displayName": "交叉制止 / 不可以 / davinci2_bodyBlock.vrma",
+      "motionCategory": "warning",
+      "motionScore": 3,
+      "description": "人物左傾，二手檔在面前，像是有個汽球快要爆炸，手在臉前交叉，好像真要報了，然後繼續檔摭檔著",
+      "usageDescription": "人物左傾，二手檔在面前，像是有個汽球快要爆炸，手在臉前交叉，好像真要報了，然後繼續檔摭檔著\n似乎想阻止什麼事",
+      "agentUsage": [
+        "人物左傾，二手檔在面前，像是有個汽球快要爆炸，手在臉前交叉，好像真要報了，然後繼續檔摭檔著",
+        "似乎想阻止什麼事",
+        "前面有個過動兒小朋友也適合用這個，手按著他的頭，但他仍跳來跳去"
+      ],
+      "selectionScore": 48.6,
+      "selectionReason": "high-scoring human-described motion sample",
+      "licenseStatus": "research_preview",
+      "distributable": false,
+      "sourceProvider": "local_mining_corpus",
+      "poseHints": {
+        "activeSide": "both",
+        "primaryAction": "cross_block",
+        "bodyLean": "slight_back",
+        "repeatable": false,
+        "expression": "serious"
+      }
+    },
+    {
+      "id": "showcase_018",
+      "sourceMotion": "davinci_thinking.vrma",
+      "releasePath": "motions/showcase/davinci_thinking.vrma",
+      "localSourcePath": "local_assets/vrma/external/davinci_3dchat/davinci_thinking.vrma",
+      "semanticMotionId": "thinking_chin",
+      "semanticDisplayName": "托腮思考 / 分析中",
+      "displayName": "托腮思考 / 分析中 / davinci_thinking.vrma",
+      "motionCategory": "think",
+      "motionScore": 5,
+      "description": "右手斜到左臉下巴，手背向上，頭微微往右斜，有一種呵呵呵笑的感覺，以前秀逗魔導士裡的娜卡很常作這個動作",
+      "usageDescription": "右手斜到左臉下巴，手背向上，頭微微往右斜，有一種呵呵呵笑的感覺\n娜卡的特有笑聲招牌動作",
+      "agentUsage": [
+        "右手斜到左臉下巴，手背向上，頭微微往右斜，有一種呵呵呵笑的感覺",
+        "娜卡的特有笑聲招牌動作"
+      ],
+      "selectionScore": 65.1,
+      "selectionReason": "high-scoring human-described motion sample",
+      "licenseStatus": "research_preview",
+      "distributable": false,
+      "sourceProvider": "local_mining_corpus",
+      "poseHints": {
+        "activeSide": "right",
+        "primaryAction": "chin_touch",
+        "bodyLean": "slight_forward",
+        "repeatable": false,
+        "gaze": "up_left"
+      }
+    },
+    {
+      "id": "showcase_019",
+      "sourceMotion": "davinci2_crouchToStand.vrma",
+      "releasePath": "motions/showcase/davinci2_crouchToStand.vrma",
+      "localSourcePath": "local_assets/vrma/external/davinci_3dchat_batch2/davinci2_crouchToStand.vrma",
+      "semanticMotionId": "thinking_chin",
+      "semanticDisplayName": "托腮思考 / 分析中",
+      "displayName": "托腮思考 / 分析中 / davinci2_crouchToStand.vrma",
+      "motionCategory": "warning",
+      "motionScore": 3,
+      "description": "左手向前，右手指著左手手腕",
+      "usageDescription": "也許在問人現在時間幾點幾分\n也可以像是剛打針，右手壓著綿花按著傷口\n或是在思考時間幾點了",
+      "agentUsage": [
+        "也許在問人現在時間幾點幾分",
+        "也可以像是剛打針，右手壓著綿花按著傷口",
+        "或是在思考時間幾點了"
+      ],
+      "selectionScore": 46.1,
+      "selectionReason": "high-scoring human-described motion sample",
+      "licenseStatus": "research_preview",
+      "distributable": false,
+      "sourceProvider": "local_mining_corpus",
+      "poseHints": {
+        "activeSide": "right",
+        "primaryAction": "chin_touch",
+        "bodyLean": "slight_forward",
+        "repeatable": false,
+        "gaze": "up_left"
+      }
+    },
+    {
+      "id": "showcase_020",
+      "sourceMotion": "davinci2_rummaging.vrma",
+      "releasePath": "motions/showcase/davinci2_rummaging.vrma",
+      "localSourcePath": "local_assets/vrma/external/davinci_3dchat_batch2/davinci2_rummaging.vrma",
+      "semanticMotionId": "thinking_chin",
+      "semanticDisplayName": "托腮思考 / 分析中",
+      "displayName": "托腮思考 / 分析中 / davinci2_rummaging.vrma",
+      "motionCategory": "think",
+      "motionScore": 3,
+      "description": "右手在眼前約20cm處平舉，左手在下巴前10cm左右，這姿勢維持了4秒，像在翻找抽屜裡的文件",
+      "usageDescription": "右手在眼前約20cm處平舉，左手在下巴前10cm左右，這姿勢維持了4秒，像在翻找抽屜裡的文件",
+      "agentUsage": [
+        "右手在眼前約20cm處平舉，左手在下巴前10cm左右，這姿勢維持了4秒，像在翻找抽屜裡的文件"
+      ],
+      "selectionScore": 45.1,
+      "selectionReason": "high-scoring human-described motion sample",
+      "licenseStatus": "research_preview",
+      "distributable": false,
+      "sourceProvider": "local_mining_corpus",
+      "poseHints": {
+        "activeSide": "right",
+        "primaryAction": "chin_touch",
+        "bodyLean": "slight_forward",
+        "repeatable": false,
+        "gaze": "up_left"
+      }
+    },
+    {
+      "id": "showcase_021",
+      "sourceMotion": "davinci2_pacingAndTalkingOnAPhone.vrma",
+      "releasePath": "motions/showcase/davinci2_pacingAndTalkingOnAPhone.vrma",
+      "localSourcePath": "local_assets/vrma/external/davinci_3dchat_batch2/davinci2_pacingAndTalkingOnAPhone.vrma",
+      "semanticMotionId": "point_target",
+      "semanticDisplayName": "指向目標 / 看這裡",
+      "displayName": "指向目標 / 看這裡 / davinci2_pacingAndTalkingOnAPhone.vrma",
+      "motionCategory": "point",
+      "motionScore": 3,
+      "description": "一個長達37秒的演示，右手在嘴邊像是對著麥克風唱歌，或是對著人的耳朵講敲敲話\n一邊退著走一邊又往前，繞來繞去",
+      "usageDescription": "一個長達37秒的演示，右手在嘴邊像是對著麥克風唱歌，或是對著人的耳朵講敲敲話\n一邊退著走一邊又往前，繞來繞去",
+      "agentUsage": [
+        "一個長達37秒的演示，右手在嘴邊像是對著麥克風唱歌，或是對著人的耳朵講敲敲話",
+        "一邊退著走一邊又往前，繞來繞去"
+      ],
+      "selectionScore": 47,
+      "selectionReason": "high-scoring human-described motion sample",
+      "licenseStatus": "research_preview",
+      "distributable": false,
+      "sourceProvider": "local_mining_corpus",
+      "poseHints": {
+        "activeSide": "right",
+        "primaryAction": "point",
+        "bodyLean": "slight_forward",
+        "repeatable": false,
+        "gaze": "target"
+      }
+    },
+    {
+      "id": "showcase_022",
+      "sourceMotion": "davinci4_VRMA_04.vrma",
+      "releasePath": "motions/showcase/davinci4_VRMA_04.vrma",
+      "localSourcePath": "local_assets/vrma/external/davinci_3dchat_batch4/davinci4_VRMA_04.vrma",
+      "semanticMotionId": "point_target",
+      "semanticDisplayName": "指向目標 / 看這裡",
+      "displayName": "指向目標 / 看這裡 / davinci4_VRMA_04.vrma",
+      "motionCategory": "point",
+      "motionScore": 3,
+      "description": "朝鏡頭伸出右手平舉，開了一槍，手因後座力舉起到面前，然後手臂90度轉到側身，舉槍的姿勢在耳邊，然後右手放下",
+      "usageDescription": "朝鏡頭伸出右手平舉，開了一槍，手因後座力舉起到面前，然後手臂90度轉到側身，舉槍的姿勢在耳邊，然後右手放下",
+      "agentUsage": [
+        "朝鏡頭伸出右手平舉，開了一槍，手因後座力舉起到面前，然後手臂90度轉到側身，舉槍的姿勢在耳邊，然後右手放下"
+      ],
+      "selectionScore": 47,
+      "selectionReason": "high-scoring human-described motion sample",
+      "licenseStatus": "research_preview",
+      "distributable": false,
+      "sourceProvider": "local_mining_corpus",
+      "poseHints": {
+        "activeSide": "right",
+        "primaryAction": "point",
+        "bodyLean": "slight_forward",
+        "repeatable": false,
+        "gaze": "target"
+      }
+    },
+    {
+      "id": "showcase_023",
+      "sourceMotion": "davinci_dismissingGesture.vrma",
+      "releasePath": "motions/showcase/davinci_dismissingGesture.vrma",
+      "localSourcePath": "local_assets/vrma/external/davinci_3dchat/davinci_dismissingGesture.vrma",
+      "semanticMotionId": "point_target",
+      "semanticDisplayName": "指向目標 / 看這裡",
+      "displayName": "指向目標 / 看這裡 / davinci_dismissingGesture.vrma",
+      "motionCategory": "point",
+      "motionScore": 3,
+      "description": "原本是立正舒服的姿勢，上半身往往左傾，右手往前揮了一下，手又回到立正的姿勢",
+      "usageDescription": "右手往前揮了一下",
+      "agentUsage": [
+        "原本是立正舒服的姿勢，上半身往往左傾，右手往前揮了一下，手又回到立正的姿勢"
+      ],
+      "selectionScore": 46,
+      "selectionReason": "high-scoring human-described motion sample",
+      "licenseStatus": "research_preview",
+      "distributable": false,
+      "sourceProvider": "local_mining_corpus",
+      "poseHints": {
+        "activeSide": "right",
+        "primaryAction": "point",
+        "bodyLean": "slight_forward",
+        "repeatable": false,
+        "gaze": "target"
+      }
+    },
+    {
+      "id": "showcase_024",
+      "sourceMotion": "davinci_lookAround.vrma",
+      "releasePath": "motions/showcase/davinci_lookAround.vrma",
+      "localSourcePath": "local_assets/vrma/external/davinci_3dchat/davinci_lookAround.vrma",
+      "semanticMotionId": "come_here",
+      "semanticDisplayName": "招手靠近 / 跟我來",
+      "displayName": "招手靠近 / 跟我來 / davinci_lookAround.vrma",
+      "motionCategory": "think",
+      "motionScore": 5,
+      "description": "雙手微微張開，擺頭左看看，再擺頭右看看",
+      "usageDescription": "雙手微微張開，擺頭左看看，再擺頭右看看\n看看發生什麼事\n左邊或右邊有什麼事，或是左右二邊有人靠近",
+      "agentUsage": [
+        "雙手微微張開，擺頭左看看，再擺頭右看看",
+        "看看發生什麼事",
+        "左邊或右邊有什麼事，或是左右二邊有人靠近"
+      ],
+      "selectionScore": 64,
+      "selectionReason": "high-scoring human-described motion sample",
+      "licenseStatus": "research_preview",
+      "distributable": false,
+      "sourceProvider": "local_mining_corpus",
+      "poseHints": {
+        "activeSide": "right",
+        "primaryAction": "beckon",
+        "bodyLean": "slight_forward",
+        "repeatable": true,
+        "rhythm": "short_loop"
+      }
+    },
+    {
+      "id": "showcase_025",
+      "sourceMotion": "Relax.vrma",
+      "releasePath": "motions/showcase/Relax.vrma",
+      "localSourcePath": "local_assets/vrma/Relax.vrma",
+      "semanticMotionId": "come_here",
+      "semanticDisplayName": "招手靠近 / 跟我來",
+      "displayName": "招手靠近 / 跟我來 / Relax.vrma",
+      "motionCategory": "present",
+      "motionScore": 4,
+      "description": "雙手張開伸了個懶腰，最後維持手張開",
+      "usageDescription": "雙手張開伸了個懶腰，最後維持手張開",
+      "agentUsage": [
+        "雙手張開伸了個懶腰，最後維持手張開"
+      ],
+      "selectionScore": 57,
+      "selectionReason": "high-scoring human-described motion sample",
+      "licenseStatus": "approved",
+      "distributable": true,
+      "sourceProvider": "tk256ailab/vrm-viewer",
+      "poseHints": {
+        "activeSide": "right",
+        "primaryAction": "beckon",
+        "bodyLean": "slight_forward",
+        "repeatable": true,
+        "rhythm": "short_loop"
+      }
+    },
+    {
+      "id": "showcase_026",
+      "sourceMotion": "davinci2_blowAKiss.vrma",
+      "releasePath": "motions/showcase/davinci2_blowAKiss.vrma",
+      "localSourcePath": "local_assets/vrma/external/davinci_3dchat_batch2/davinci2_blowAKiss.vrma",
+      "semanticMotionId": "come_here",
+      "semanticDisplayName": "招手靠近 / 跟我來",
+      "displayName": "招手靠近 / 跟我來 / davinci2_blowAKiss.vrma",
+      "motionCategory": "point",
+      "motionScore": 3,
+      "description": "左手先靠近嘴邊，然後往前一伸，送出一個飛吻",
+      "usageDescription": "左手先靠近嘴邊，然後往前一伸，送出一個飛吻\n送出飛吻",
+      "agentUsage": [
+        "左手先靠近嘴邊，然後往前一伸，送出一個飛吻",
+        "送出飛吻"
+      ],
+      "selectionScore": 44,
+      "selectionReason": "high-scoring human-described motion sample",
+      "licenseStatus": "research_preview",
+      "distributable": false,
+      "sourceProvider": "local_mining_corpus",
+      "poseHints": {
+        "activeSide": "right",
+        "primaryAction": "beckon",
+        "bodyLean": "slight_forward",
+        "repeatable": true,
+        "rhythm": "short_loop"
+      }
+    },
+    {
+      "id": "showcase_027",
+      "sourceMotion": "davinci2_entry.vrma",
+      "releasePath": "motions/showcase/davinci2_entry.vrma",
+      "localSourcePath": "local_assets/vrma/external/davinci_3dchat_batch2/davinci2_entry.vrma",
+      "semanticMotionId": "wave_goodbye",
+      "semanticDisplayName": "揮手告別 / 打招呼",
+      "displayName": "揮手告別 / 打招呼 / davinci2_entry.vrma",
+      "motionCategory": "warning",
+      "motionScore": 3,
+      "description": "行進中，右手往上比出敬禮的手勢，然後左看看右看看，也像是登場時大家歡迎她的到來，一邊敬禮一邊退著走",
+      "usageDescription": "行進中，右手往上比出敬禮的手勢，然後左看看右看看，也像是登場時大家歡迎她的到來\n登場時\n我們歡迎羽山娘\n一邊敬禮一邊退著走",
+      "agentUsage": [
+        "行進中，右手往上比出敬禮的手勢，然後左看看右看看，也像是登場時大家歡迎她的到來",
+        "登場時",
+        "我們歡迎羽山娘",
+        "一邊敬禮一邊退著走"
+      ],
+      "selectionScore": 48,
+      "selectionReason": "high-scoring human-described motion sample",
+      "licenseStatus": "research_preview",
+      "distributable": false,
+      "sourceProvider": "local_mining_corpus",
+      "poseHints": {
+        "activeSide": "right",
+        "primaryAction": "wave",
+        "bodyLean": "neutral",
+        "repeatable": true,
+        "rhythm": "friendly_loop"
+      }
+    },
+    {
+      "id": "showcase_028",
+      "sourceMotion": "davinci2_floating.vrma",
+      "releasePath": "motions/showcase/davinci2_floating.vrma",
+      "localSourcePath": "local_assets/vrma/external/davinci_3dchat_batch2/davinci2_floating.vrma",
+      "semanticMotionId": "wave_goodbye",
+      "semanticDisplayName": "揮手告別 / 打招呼",
+      "displayName": "揮手告別 / 打招呼 / davinci2_floating.vrma",
+      "motionCategory": "warning",
+      "motionScore": 3,
+      "description": "左手往外滑一下，右手往外滑一下，是一個往外滑的自由式",
+      "usageDescription": "左手往外滑一下，右手往外滑一下，是一個往外滑的自由式，用途不明但很可愛\n跟左、右的觀眾打招呼",
+      "agentUsage": [
+        "左手往外滑一下，右手往外滑一下，是一個往外滑的自由式，用途不明但很可愛",
+        "跟左、右的觀眾打招呼"
+      ],
+      "selectionScore": 47,
+      "selectionReason": "high-scoring human-described motion sample",
+      "licenseStatus": "research_preview",
+      "distributable": false,
+      "sourceProvider": "local_mining_corpus",
+      "poseHints": {
+        "activeSide": "right",
+        "primaryAction": "wave",
+        "bodyLean": "neutral",
+        "repeatable": true,
+        "rhythm": "friendly_loop"
+      }
+    }
+  ]
+}

@@ -199,6 +199,19 @@ M6.7.5～M6.13 讓 `motion_template_lab.html` 從 importer 升級成 Alicia Moti
 - Semantic Motion Picker / Registry / Variant Selector：可從 intent/trigger 選出 semantic motion，再找 preferred variant。
 - Semantic Motion Preview Bridge：只在 Lab 內安全預覽 variant 對應的 VRMA，不接正式 Acting runtime。
 
+v0.1.2 Alicia Showcase Pack 把採礦資料接到公開展示層：
+
+- `scratch/generate_showcase_pack.mjs` 會讀取 172 筆 `motion_profiles.json` 人工描述與 semantic registry。
+- 輸出 `showcase_motion_pack.json`、`showcase_events.json` 與 `showcase_motion_pack_report.md`。
+- `demo.php` 優先使用 `showcase_events.json` 作為 Director 事件來源，沒有 showcase pack 時才 fallback 到原本 semantic motion catalog。
+- release build 會把精選 VRMA 複製到 `motions/showcase/`；未驗證來源會標為 `research_preview`，不當成 approved asset。
+
+v0.1.3 修正 Showcase Demo 的空間感：
+
+- `VrmMascot.getSceneContext()` / `addSceneObject()` / `removeSceneObject()` 讓外部展示物件可掛進 Alicia 原本的 Three.js scene。
+- `demo.php` 的 toy room / props 會優先使用 shared scene，共用 camera、depth、lighting；overlay renderer 只保留作 fallback。
+- demo 物件改成落在 Alicia 周圍與地面深度上，避免看起來像浮在畫面前方的 2D UI。
+
 目前資料集狀態：
 
 | 項目 | 數量 |

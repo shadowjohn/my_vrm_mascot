@@ -81,6 +81,31 @@ function ConvertTo-JsonFile {
     Write-Utf8NoBom -Path $Path -Content ($json + "`n")
 }
 
+function Find-VrmaAssetSource {
+    param([string]$Name)
+    $candidateSources = @(
+        (Join-Path $Root "local_assets\vrma\$Name"),
+        (Join-Path $Root "examples\m6_7_vrma_samples\$Name")
+    )
+    foreach ($candidate in $candidateSources) {
+        if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+            return $candidate
+        }
+    }
+
+    $localVrmaRoot = Join-Path $Root 'local_assets\vrma'
+    if (Test-Path -LiteralPath $localVrmaRoot -PathType Container) {
+        $found = Get-ChildItem -LiteralPath $localVrmaRoot -Recurse -File -Filter '*.vrma' |
+            Where-Object { $_.Name -eq $Name } |
+            Select-Object -First 1
+        if ($found) {
+            return $found.FullName
+        }
+    }
+
+    return $null
+}
+
 function Get-ProfileSummary {
     param([string]$ProfilePath)
     if (-not (Test-Path -LiteralPath $ProfilePath -PathType Leaf)) {
@@ -151,7 +176,7 @@ finally {
 
 Write-Step "Creating $ReleaseRoot"
 Ensure-Dir $ReleaseRoot
-foreach ($dir in @('js', 'js\vendor', 'models', 'motions', 'motions\poses', 'manifests', 'skills', 'examples', 'docs')) {
+foreach ($dir in @('js', 'js\vendor', 'models', 'motions', 'motions\poses', 'motions\showcase', 'manifests', 'skills', 'examples', 'docs')) {
     Ensure-Dir (Join-Path $ReleaseRoot $dir)
 }
 
@@ -225,15 +250,40 @@ $approvedVrmaNames = @(
 )
 
 foreach ($name in $approvedVrmaNames) {
-    $candidateSources = @(
-        (Join-Path $Root "local_assets\vrma\$name"),
-        (Join-Path $Root "examples\m6_7_vrma_samples\$name")
-    )
-    $source = $candidateSources | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
+    $source = Find-VrmaAssetSource -Name $name
     if ($source) {
         Copy-FileToRelease -Source $source -Destination (Join-Path $ReleaseRoot "motions\$name")
         Add-Asset -Assets $assets -Path "motions/$name" -Type 'vrma' -LicenseStatus 'approved' -Distributable $true -Source 'tk256ailab/vrm-viewer'
     }
+}
+
+$showcasePackPath = Join-Path $Root 'examples\m6_7_vrma_samples\review\showcase_motion_pack.json'
+$showcaseEventsPath = Join-Path $Root 'examples\m6_7_vrma_samples\review\showcase_events.json'
+if (Test-Path -LiteralPath $showcasePackPath -PathType Leaf) {
+    Copy-FileToRelease -Source $showcasePackPath -Destination (Join-Path $ReleaseRoot 'manifests\showcase_motion_pack.json')
+    $showcasePack = Get-Content -Raw -LiteralPath $showcasePackPath | ConvertFrom-Json
+    foreach ($motion in @($showcasePack.motions)) {
+        $sourceMotion = [string]$motion.sourceMotion
+        $releasePath = [string]$motion.releasePath
+        if ([string]::IsNullOrWhiteSpace($sourceMotion) -or [string]::IsNullOrWhiteSpace($releasePath)) {
+            continue
+        }
+        $source = Find-VrmaAssetSource -Name $sourceMotion
+        if (-not $source) {
+            Fail "Missing showcase VRMA source: $sourceMotion"
+        }
+        Copy-FileToRelease -Source $source -Destination (Join-Path $ReleaseRoot $releasePath.Replace('/', '\'))
+        Add-Asset `
+            -Assets $assets `
+            -Path $releasePath `
+            -Type 'vrma' `
+            -LicenseStatus ([string]$motion.licenseStatus) `
+            -Distributable ([bool]$motion.distributable) `
+            -Source ([string]$motion.sourceProvider)
+    }
+}
+if (Test-Path -LiteralPath $showcaseEventsPath -PathType Leaf) {
+    Copy-FileToRelease -Source $showcaseEventsPath -Destination (Join-Path $ReleaseRoot 'manifests\showcase_events.json')
 }
 
 Copy-FileToRelease `
@@ -261,14 +311,23 @@ $sourceManifest = [ordered]@{
             url = 'https://github.com/tk256ailab/vrm-viewer/tree/main/VRMA'
             licenseStatus = 'approved'
             note = 'README records MIT license. Only approved demo VRMA files are copied.'
+        },
+        [ordered]@{
+            name = 'Alicia local motion mining corpus'
+            type = 'local_research_motion'
+            url = 'local_assets/vrma'
+            licenseStatus = 'research_preview'
+            note = 'Curated showcase motions may be copied for local/showcase evaluation. Verify upstream license before broad redistribution.'
         }
     )
 }
 ConvertTo-JsonFile -Path (Join-Path $ReleaseRoot 'manifests\source_manifest.json') -Value $sourceManifest
-ConvertTo-JsonFile -Path (Join-Path $ReleaseRoot 'manifests\asset_manifest.json') -Value ([ordered]@{
-    schemaVersion = 1
-    assets = @($assets)
-})
+
+$demoPage = Join-Path $Root 'demo.php'
+if (Test-Path -LiteralPath $demoPage -PathType Leaf) {
+    Copy-FileToRelease -Source $demoPage -Destination (Join-Path $ReleaseRoot 'demo.php')
+    Add-Asset -Assets $assets -Path 'demo.php' -Type 'demo_page' -LicenseStatus 'project' -Distributable $true -Source 'my_vrm_mascot'
+}
 
 $runtimeEntry = @'
 import { VrmMascot } from './js/VrmMascot.js';
@@ -419,6 +478,7 @@ $releaseNotes = @'
 
 - Ships Alicia Runtime entrypoint.
 - Includes approved runtime JS, manifests, skill schema, docs, and adapter examples.
+- Includes a curated Alicia Showcase Pack generated from the local motion mining corpus.
 - Keeps Motion Mine, tests, scratch files, and local assets out of the release package.
 '@.Replace('{{version}}', $Version)
 Write-Utf8NoBom -Path (Join-Path $ReleaseRoot 'docs\release-notes.md') -Content ($releaseNotes + "`n")
@@ -428,7 +488,7 @@ $assetPolicy = @'
 
 Release packages include only approved distributable assets.
 
-Files in `local_assets/` are never copied directly. VRMA files require `licenseStatus: "approved"` and `distributable: true` in `manifests/asset_manifest.json`.
+General local mining assets are not copied directly. The release builder may copy the curated Showcase Pack into `motions/showcase/`; those files keep their explicit `licenseStatus` and `distributable` flags in `manifests/asset_manifest.json`.
 '@
 Write-Utf8NoBom -Path (Join-Path $ReleaseRoot 'docs\asset-policy.md') -Content ($assetPolicy + "`n")
 
@@ -451,6 +511,11 @@ See:
 Write-Utf8NoBom -Path (Join-Path $ReleaseRoot 'README.md') -Content ($readme + "`n")
 
 $containsThirdPartyAssets = @($assets | Where-Object { $_.source -notin @('my_vrm_mascot', 'local-approved') }).Count -gt 0
+ConvertTo-JsonFile -Path (Join-Path $ReleaseRoot 'manifests\asset_manifest.json') -Value ([ordered]@{
+    schemaVersion = 1
+    assets = @($assets)
+})
+
 $releaseJson = [ordered]@{
     name = 'Alicia Runtime'
     version = $VersionNumber

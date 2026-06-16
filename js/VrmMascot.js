@@ -429,6 +429,49 @@ export class VrmMascot {
   /** @returns {boolean} 是否已載入模型 */
   get isLoaded() { return this.#currentVRM !== null; }
 
+  /**
+   * 取得目前 Three.js 場景上下文，供展示頁或外部 adapter 掛載 3D 物件。
+   * 外部只能新增/移除場景物件，不應直接接管 render loop。
+   *
+   * @returns {{scene: object|null, camera: object|null, renderer: object|null, controls: object|null, vrm: object|null, vrmRoot: object|null, container: HTMLElement|null}}
+   */
+  getSceneContext() {
+    return {
+      scene: this.#scene,
+      camera: this.#camera,
+      renderer: this.#renderer,
+      controls: this.#orbitControls,
+      vrm: this.#currentVRM,
+      vrmRoot: this.#currentVRM?.scene ?? null,
+      container: this.#container,
+    };
+  }
+
+  /**
+   * 將外部展示物件掛到 Alicia 的同一個 Three.js scene。
+   * 這讓 demo props 與 VRM 共用 camera、depth、lighting，而不是浮在 overlay canvas。
+   *
+   * @param {object} object3d - THREE.Object3D
+   * @returns {boolean}
+   */
+  addSceneObject(object3d) {
+    if (!this.#scene || !object3d) return false;
+    this.#scene.add(object3d);
+    return true;
+  }
+
+  /**
+   * 從 Alicia scene 移除外部展示物件。
+   *
+   * @param {object} object3d - THREE.Object3D
+   * @returns {boolean}
+   */
+  removeSceneObject(object3d) {
+    if (!this.#scene || !object3d) return false;
+    this.#scene.remove(object3d);
+    return true;
+  }
+
   // ── 狀態機頂層 API ─────────────────
 
   /**

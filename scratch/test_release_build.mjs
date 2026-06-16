@@ -75,11 +75,14 @@ function testReleaseBuildCreatesVersionedPackage() {
   );
 
   assertFile(join(RELEASE_DIR, 'alicia-runtime.js'));
+  assertFile(join(RELEASE_DIR, 'demo.php'));
   assertFile(join(RELEASE_DIR, 'release.json'));
   assertFile(join(RELEASE_DIR, 'README.md'));
   assertFile(join(RELEASE_DIR, 'manifests', 'asset_manifest.json'));
   assertFile(join(RELEASE_DIR, 'manifests', 'semantic_motion_library.json'));
   assertFile(join(RELEASE_DIR, 'manifests', 'semantic_motion_registry.json'));
+  assertFile(join(RELEASE_DIR, 'manifests', 'showcase_motion_pack.json'));
+  assertFile(join(RELEASE_DIR, 'manifests', 'showcase_events.json'));
   assertFile(join(RELEASE_DIR, 'skills', 'alicia-skill-bridge.schema.json'));
   assertFile(join(RELEASE_DIR, 'skills', 'alicia-skill.md'));
   assertFile(join(RELEASE_DIR, 'skills', 'alicia-skill.examples.md'));
@@ -102,11 +105,18 @@ function testReleaseBuildCreatesVersionedPackage() {
   assert.ok(Array.isArray(assetManifest.assets));
   const vrmaAssets = assetManifest.assets.filter((asset) => asset.type === 'vrma');
   assert.ok(vrmaAssets.length > 0, 'release should include approved demo VRMA assets when restored locally');
+  assert.ok(assetManifest.assets.some((asset) => asset.path === 'alicia-runtime.js'));
+  assert.ok(assetManifest.assets.some((asset) => asset.path === 'demo.php'));
+  assert.ok(vrmaAssets.some((asset) => asset.path.startsWith('motions/showcase/')), 'release should include curated showcase VRMA assets');
   for (const asset of vrmaAssets) {
     assert.equal(typeof asset.path, 'string');
     assert.equal(typeof asset.source, 'string');
-    assert.equal(asset.licenseStatus, 'approved');
-    assert.equal(asset.distributable, true);
+    assert.equal(typeof asset.licenseStatus, 'string');
+    assert.equal(typeof asset.distributable, 'boolean');
+    assert.ok(['approved', 'research_preview'].includes(asset.licenseStatus));
+    if (asset.licenseStatus === 'approved') {
+      assert.equal(asset.distributable, true);
+    }
   }
 
   const files = listFiles(RELEASE_DIR);
