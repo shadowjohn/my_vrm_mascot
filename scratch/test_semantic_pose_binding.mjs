@@ -55,8 +55,9 @@ function createRotation() {
   };
 }
 
-function createBone() {
+function createBone(name = '') {
   return {
+    name,
     rotation: createRotation(),
     position: { x: 0, y: 1, z: 0 },
   };
@@ -74,13 +75,17 @@ function createFakeVrm() {
     'leftHand',
     'rightHand',
     'leftUpperLeg',
+    'leftLowerLeg',
+    'leftFoot',
     'rightUpperLeg',
+    'rightLowerLeg',
+    'rightFoot',
     'leftShoulder',
     'rightShoulder',
     'head',
     'neck',
   ];
-  const bones = Object.fromEntries(names.map(name => [name, createBone()]));
+  const bones = Object.fromEntries(names.map(name => [name, createBone(name)]));
   bones.hips.position.y = 1.2;
 
   return {
@@ -542,6 +547,184 @@ function testLegacyPlayRoutesClipNamesDeterministically() {
   assert.ok(Math.abs(bones.spine.rotation.x - radians(2)) > radians(1));
 }
 
+function testWalkCycleUsesProceduralLegMotionInsteadOfVrmaPlayback() {
+  const motion = new MotionController();
+  const { vrm, bones } = createFakeVrm();
+
+  motion.setVrm(vrm);
+  motion.play('walk_cycle');
+  motion.update(0.12);
+
+  const firstFrame = {
+    leftUpperLegX: bones.leftUpperLeg.rotation.x,
+    rightUpperLegX: bones.rightUpperLeg.rotation.x,
+    leftLowerLegX: bones.leftLowerLeg.rotation.x,
+    rightLowerLegX: bones.rightLowerLeg.rotation.x,
+    leftFootX: bones.leftFoot.rotation.x,
+    rightFootX: bones.rightFoot.rotation.x,
+  };
+
+  motion.update(0.18);
+
+  assert.equal(motion.currentAction, 'walk_cycle');
+  assert.equal(motion.isVrmaActive, false);
+  assert.ok(
+    Math.abs(firstFrame.leftUpperLegX - bones.leftUpperLeg.rotation.x) > radians(2) ||
+    Math.abs(firstFrame.rightUpperLegX - bones.rightUpperLeg.rotation.x) > radians(2),
+    'walk_cycle should visibly swing upper legs'
+  );
+  assert.ok(
+    Math.abs(bones.leftLowerLeg.rotation.x) > radians(2) ||
+    Math.abs(bones.rightLowerLeg.rotation.x) > radians(2),
+    'walk_cycle should bend lower legs'
+  );
+  assert.ok(
+    Math.abs(bones.leftFoot.rotation.x) > radians(1) ||
+    Math.abs(bones.rightFoot.rotation.x) > radians(1),
+    'walk_cycle should animate feet instead of sliding with locked feet'
+  );
+}
+
+function testVrmaRetargetAcceptsMixamoColonAliasesForLegTracks() {
+  const previousThree = globalThis.THREE;
+  class FakeTrack {
+    constructor(name, times, values) {
+      this.name = name;
+      this.times = times;
+      this.values = values;
+    }
+  }
+  class FakeAnimationClip {
+    constructor(name, duration, tracks) {
+      this.name = name;
+      this.duration = duration;
+      this.tracks = tracks;
+    }
+  }
+
+  globalThis.THREE = {
+    AnimationClip: FakeAnimationClip,
+    VRMHumanoidBoneName: {
+      Hips: 'hips',
+      Spine: 'spine',
+      Chest: 'chest',
+      LeftUpperLeg: 'leftUpperLeg',
+      LeftLowerLeg: 'leftLowerLeg',
+      LeftFoot: 'leftFoot',
+      RightUpperLeg: 'rightUpperLeg',
+      RightLowerLeg: 'rightLowerLeg',
+      RightFoot: 'rightFoot',
+    },
+  };
+
+  try {
+    const motion = new MotionController();
+    const { vrm } = createFakeVrm();
+    motion.setVrm(vrm);
+
+    const clip = new FakeAnimationClip('mixamo.com', 1.4, [
+      new FakeTrack('mixamorigHips.position', [0, 1], new Float32Array([0, 1.2, 0, 0, 1.24, 0.6])),
+      new FakeTrack('mixamorigRightUpLeg.quaternion', [0, 1], new Float32Array([0, 0, 0, 1, 0.2, 0, 0, 0.98])),
+      new FakeTrack('mixamorigRightLeg.quaternion', [0, 1], new Float32Array([0, 0, 0, 1, -0.2, 0, 0, 0.98])),
+      new FakeTrack('mixamorigRightFoot.quaternion', [0, 1], new Float32Array([0, 0, 0, 1, 0, 0.1, 0, 0.99])),
+      new FakeTrack('mixamorigLeftUpLeg.quaternion', [0, 1], new Float32Array([0, 0, 0, 1, -0.2, 0, 0, 0.98])),
+      new FakeTrack('mixamorigLeftLeg.quaternion', [0, 1], new Float32Array([0, 0, 0, 1, 0.2, 0, 0, 0.98])),
+      new FakeTrack('mixamorigLeftFoot.quaternion', [0, 1], new Float32Array([0, 0, 0, 1, 0, -0.1, 0, 0.99])),
+    ]);
+    clip.userData = {
+      nodeNameToBoneName: new Map([
+        ['mixamorig:Hips', 'hips'],
+        ['mixamorig:RightUpLeg', 'rightUpperLeg'],
+        ['mixamorig:RightLeg', 'rightLowerLeg'],
+        ['mixamorig:RightFoot', 'rightFoot'],
+        ['mixamorig:LeftUpLeg', 'leftUpperLeg'],
+        ['mixamorig:LeftLeg', 'leftLowerLeg'],
+        ['mixamorig:LeftFoot', 'leftFoot'],
+      ]),
+    };
+
+    const retargeted = motion.retargetVrmaClip(clip, 'walk_cycle');
+    const trackNames = retargeted.tracks.map(track => track.name);
+
+    assert.ok(trackNames.includes('rightUpperLeg.quaternion'));
+    assert.ok(trackNames.includes('rightLowerLeg.quaternion'));
+    assert.ok(trackNames.includes('rightFoot.quaternion'));
+    assert.ok(trackNames.includes('leftUpperLeg.quaternion'));
+    assert.ok(trackNames.includes('leftLowerLeg.quaternion'));
+    assert.ok(trackNames.includes('leftFoot.quaternion'));
+    assert.ok(trackNames.includes('hips.position'));
+  } finally {
+    globalThis.THREE = previousThree;
+  }
+}
+
+function testVrmaRetargetLocksLowerBodyForNonLocomotionRuntimeClips() {
+  const previousThree = globalThis.THREE;
+  class FakeTrack {
+    constructor(name, times, values) {
+      this.name = name;
+      this.times = times;
+      this.values = values;
+    }
+  }
+  class FakeAnimationClip {
+    constructor(name, duration, tracks) {
+      this.name = name;
+      this.duration = duration;
+      this.tracks = tracks;
+    }
+  }
+
+  globalThis.THREE = {
+    AnimationClip: FakeAnimationClip,
+    VRMHumanoidBoneName: {
+      Hips: 'hips',
+      Spine: 'spine',
+      RightUpperArm: 'rightUpperArm',
+      RightUpperLeg: 'rightUpperLeg',
+      RightLowerLeg: 'rightLowerLeg',
+      RightFoot: 'rightFoot',
+    },
+  };
+
+  try {
+    const motion = new MotionController();
+    const { vrm } = createFakeVrm();
+    motion.setVrm(vrm);
+
+    const clip = new FakeAnimationClip('mixamo.com', 1.4, [
+      new FakeTrack('mixamorigSpine.quaternion', [0, 1], new Float32Array([0, 0, 0, 1, 0.1, 0, 0, 0.99])),
+      new FakeTrack('mixamorigRightArm.quaternion', [0, 1], new Float32Array([0, 0, 0, 1, 0, 0.2, 0, 0.98])),
+      new FakeTrack('mixamorigHips.position', [0, 1], new Float32Array([0, 1.2, 0, 0, 1.24, 0.6])),
+      new FakeTrack('mixamorigRightUpLeg.quaternion', [0, 1], new Float32Array([0, 0, 0, 1, 0.2, 0, 0, 0.98])),
+      new FakeTrack('mixamorigRightLeg.quaternion', [0, 1], new Float32Array([0, 0, 0, 1, -0.2, 0, 0, 0.98])),
+      new FakeTrack('mixamorigRightFoot.quaternion', [0, 1], new Float32Array([0, 0, 0, 1, 0, 0.1, 0, 0.99])),
+    ]);
+    clip.userData = {
+      nodeNameToBoneName: new Map([
+        ['mixamorig:Spine', 'spine'],
+        ['mixamorig:RightArm', 'rightUpperArm'],
+        ['mixamorig:Hips', 'hips'],
+        ['mixamorig:RightUpLeg', 'rightUpperLeg'],
+        ['mixamorig:RightLeg', 'rightLowerLeg'],
+        ['mixamorig:RightFoot', 'rightFoot'],
+      ]),
+    };
+
+    const retargeted = motion.retargetVrmaClip(clip, 'punch_short');
+    const trackNames = retargeted.tracks.map(track => track.name);
+
+    assert.ok(trackNames.includes('spine.quaternion'));
+    assert.ok(trackNames.includes('rightUpperArm.quaternion'));
+    assert.ok(!trackNames.some(name => name.startsWith('hips.')));
+    assert.ok(!trackNames.some(name => name.startsWith('rightUpperLeg.')));
+    assert.ok(!trackNames.some(name => name.startsWith('rightLowerLeg.')));
+    assert.ok(!trackNames.some(name => name.startsWith('rightFoot.')));
+  } finally {
+    globalThis.THREE = previousThree;
+  }
+}
+
 const tests = [
   testRunningTraceResolvesPresentingPose,
   testDoneTraceResolvesWavePose,
@@ -570,6 +753,9 @@ const tests = [
   testClipDoesNotMutateIdleMicroMotionState,
   testShortClipsDoNotProduceTPose,
   testLegacyPlayRoutesClipNamesDeterministically,
+  testWalkCycleUsesProceduralLegMotionInsteadOfVrmaPlayback,
+  testVrmaRetargetAcceptsMixamoColonAliasesForLegTracks,
+  testVrmaRetargetLocksLowerBodyForNonLocomotionRuntimeClips,
 ];
 
 for (const test of tests) {

@@ -246,6 +246,25 @@ v0.1.9 補強 Showcase smoke 驗證入口：
 - `demo.php?noAuto=1` 或 `demo.php?manual=1` 會停用自動 Director，方便單獨測試 `AliciaStageWalker.moveTo()`、VRMA preload 與走路同步。
 - 預設 `demo.php` 行為不變，仍會自動播放 showcase events。
 
+v0.1.10 修正 Mixamo VRMA 腿部 retarget：
+
+- `davinci2_walking.vrma` 的原始 track 使用 `mixamorigRightUpLeg`，但 VRMA humanoid map 使用 `mixamorig:RightUpLeg`；舊版對不上時 retargeted clip 會變成 0 tracks。
+- `MotionController` 現在會用 normalized node alias 比對 VRMA bone map，讓 hips、upper/lower leg、foot tracks 能正確進入 retargeted clip。
+- 新增 regression test，避免 Mixamo 冒號命名差異再次讓走路動畫只剩場景 root 位移。
+
+v0.1.11 修正公開展示滑步觀感：
+
+- 保留 VRMA retarget / preload 能力給 Motion Mine 與研究素材，但 `walk` / `walk_cycle` 在公開 showcase 中改走程序步態。
+- 程序步態每幀套 Natural Pose，再疊加大腿、小腿、腳掌、hips 與手臂擺動，避免只移動 scene root 造成滑行感。
+- `AliciaStageWalker.moveTo()` 不再為 `walk_cycle` 預載 raw Mixamo VRMA，避免 rest-pose / coordinate mismatch 讓公開展示走路變成扭曲骨架。
+- 新增 regression test：`walk_cycle` 不啟動 VRMA mixer，且 upper/lower legs 與 feet 會隨時間改變。
+
+v0.1.12 修正非走路 VRMA 腿部飛天：
+
+- `retargetVrmaClip()` 預設只允許上半身 track 進入 runtime；hips / legs / feet 只在 `walk` / `run` / locomotion 類型保留。
+- `punch_short`、`warning`、`wave`、`presenting` 等語意動作不再吃 raw VRMA 的下半身資料，避免拳頭或手勢動作把 Alicia 雙腳帶飛。
+- 新增 regression test：同一份 Mixamo-like clip 在 `walk_cycle` 可保留腿部 track，在 `punch_short` 必須濾掉 hips / legs / feet。
+
 目前資料集狀態：
 
 | 項目 | 數量 |

@@ -22,9 +22,34 @@ function getBoneNames() {
     RightUpperArm: 'rightUpperArm', RightLowerArm: 'rightLowerArm',
     LeftHand: 'leftHand', RightHand: 'rightHand',
     LeftUpperLeg: 'leftUpperLeg', LeftLowerLeg: 'leftLowerLeg',
+    LeftFoot: 'leftFoot',
     RightUpperLeg: 'rightUpperLeg', RightLowerLeg: 'rightLowerLeg',
+    RightFoot: 'rightFoot',
     LeftShoulder: 'leftShoulder', RightShoulder: 'rightShoulder',
   };
+}
+
+function normalizeVrmaNodeName(name) {
+  return String(name || '').replace(/[:_\s.-]/g, '').toLowerCase();
+}
+
+function addVrmaNodeBoneMapping(map, nodeName, boneName) {
+  if (!map || !nodeName || !boneName) return;
+  map.set(nodeName, boneName);
+  map.set(normalizeVrmaNodeName(nodeName), boneName);
+}
+
+function resolveVrmaMappedBoneName(map, nodeName) {
+  if (!map || !nodeName) return null;
+  const normalized = normalizeVrmaNodeName(nodeName);
+  const direct = map.get(nodeName) || map.get(normalized);
+  if (direct) return direct;
+  for (const [key, boneName] of map.entries()) {
+    if (normalizeVrmaNodeName(key) === normalized) {
+      return boneName;
+    }
+  }
+  return null;
 }
 
 const DEG = Math.PI / 180;
@@ -36,6 +61,30 @@ const MODEL_POSE_PRESET_URLS = {
   'models/mascot.vrm': ALICIA_SOLID_POSE_PRESET_URL,
   'mascot.vrm': ALICIA_SOLID_POSE_PRESET_URL,
 };
+
+const PROCEDURAL_ACTIONS = new Set(['walk', 'walk_cycle']);
+const LOWER_BODY_RUNTIME_BONES = new Set([
+  'hips',
+  'leftUpperLeg',
+  'leftLowerLeg',
+  'leftFoot',
+  'leftToes',
+  'rightUpperLeg',
+  'rightLowerLeg',
+  'rightFoot',
+  'rightToes',
+]);
+
+function isLocomotionActionName(name = '') {
+  const normalized = String(name || '').toLowerCase();
+  return (
+    normalized === 'walk' ||
+    normalized === 'walk_cycle' ||
+    normalized.includes('walk') ||
+    normalized.includes('run') ||
+    normalized.includes('locomotion')
+  );
+}
 
 export const POSE_CALIBRATION_BONES = [
   'hips',
@@ -65,6 +114,10 @@ export const DEFAULT_POSE_PRESET = {
       rightHand:      { x: 0, y: 0, z: 0 },
       leftUpperLeg:   { x: 1, y: 0, z: 2 },
       rightUpperLeg:  { x: -1, y: 0, z: -2 },
+      leftLowerLeg:   { x: 0, y: 0, z: 0 },
+      rightLowerLeg:  { x: 0, y: 0, z: 0 },
+      leftFoot:       { x: 0, y: 0, z: 0 },
+      rightFoot:      { x: 0, y: 0, z: 0 },
     },
     position: {
       hips:           { x: -0.008, y: 0, z: 0 },
@@ -210,7 +263,11 @@ export class MotionController {
       leftHand:       h.getBoneNode(bn.LeftHand || 'leftHand'),
       rightHand:      h.getBoneNode(bn.RightHand || 'rightHand'),
       leftUpperLeg:   h.getBoneNode(bn.LeftUpperLeg),
+      leftLowerLeg:   h.getBoneNode(bn.LeftLowerLeg || 'leftLowerLeg'),
+      leftFoot:       h.getBoneNode(bn.LeftFoot || 'leftFoot'),
       rightUpperLeg:  h.getBoneNode(bn.RightUpperLeg),
+      rightLowerLeg:  h.getBoneNode(bn.RightLowerLeg || 'rightLowerLeg'),
+      rightFoot:      h.getBoneNode(bn.RightFoot || 'rightFoot'),
       leftShoulder:   h.getBoneNode(bn.LeftShoulder),
       rightShoulder:  h.getBoneNode(bn.RightShoulder),
     };
@@ -248,19 +305,8 @@ export class MotionController {
    * @returns {number}
    */
   getWalkSpeed() {
-    const walkUrl = this.getVrmaUrlForName('walk_cycle');
-    if (walkUrl) {
-      const resolvedUrl = this.#resolveVrmaUrl(walkUrl);
-      const clip = this.#vrmaCache.get(resolvedUrl);
-      if (clip && clip.userData) {
-        const initialY = clip.userData.vrmaHipsInitialY || 1.0;
-        const speed = clip.userData.vrmaSpeed || 0.9711;
-        const scale = (this.#hipsBaseY && initialY) ? (this.#hipsBaseY / initialY) : 1.0;
-        return speed * scale;
-      }
-    }
     const scale = this.#hipsBaseY ? (this.#hipsBaseY / 1.0) : 1.0;
-    return 0.9711 * scale;
+    return 0.78 * scale;
   }
 
   /**
@@ -289,6 +335,7 @@ export class MotionController {
 
     const newTracks = [];
     const bn = getBoneNames();
+    const allowLowerBodyTracks = isLocomotionActionName(name);
 
     // 建立合法的 humanoid 骨骼名稱集合，避開 getBoneNode 傳入非標準名稱導致內部 crash
     const validNames = new Set();
@@ -310,9 +357,12 @@ export class MotionController {
       const propertyName = parts[1];
 
       // 使用 VRMC_vrm_animation 映射表配對骨骼名稱，若無則 fallback 到首字母小寫邏輯
-      let humanoidBoneName = clip.userData?.nodeNameToBoneName?.get(nodeName);
+      let humanoidBoneName = resolveVrmaMappedBoneName(clip.userData?.nodeNameToBoneName, nodeName);
       if (!humanoidBoneName) {
         humanoidBoneName = nodeName.charAt(0).toLowerCase() + nodeName.slice(1);
+      }
+      if (!allowLowerBodyTracks && LOWER_BODY_RUNTIME_BONES.has(humanoidBoneName)) {
+        continue;
       }
 
       // 只有當確定該骨骼為 validNames 中的標準骨骼時，才呼叫 getBoneNode，避免程式內部報錯，無須使用 try-catch
@@ -441,7 +491,7 @@ export class MotionController {
               const nodeIdx = boneInfo.node;
               const nodeObj = json.nodes?.[nodeIdx];
               if (nodeObj && nodeObj.name) {
-                nodeNameToBoneName.set(nodeObj.name, boneName);
+                addVrmaNodeBoneMapping(nodeNameToBoneName, nodeObj.name, boneName);
               }
             }
           }
@@ -459,7 +509,7 @@ export class MotionController {
           const parts = t.name.split('.');
           const nodeName = parts[0];
           const prop = parts[1];
-          const isHips = nodeNameToBoneName.get(nodeName) === 'hips' || nodeName.toLowerCase().includes('hips');
+          const isHips = resolveVrmaMappedBoneName(nodeNameToBoneName, nodeName) === 'hips' || nodeName.toLowerCase().includes('hips');
           const isTranslation = prop === 'position' || prop === 'translation';
           return isHips && isTranslation;
         });
@@ -636,6 +686,17 @@ export class MotionController {
    */
   play(name) {
     this.#stopActiveVrma();
+
+    if (PROCEDURAL_ACTIONS.has(name)) {
+      if (this.#currentAction !== name) {
+        this.resetToNaturalPose(0);
+      }
+      this.#activeClip = null;
+      this.#currentAction = name;
+      this.#elapsed = 0;
+      this.#clearMotionOverlay();
+      return true;
+    }
 
     const vrmaUrl = this.getVrmaUrlForName(name);
     if (vrmaUrl) {
@@ -832,6 +893,8 @@ export class MotionController {
       case 'happy':       this.#doHappy(); break;
       case 'presenting':  this.#doPresenting(); break;
       case 'warning':     this.#doWarning(); break;
+      case 'walk':
+      case 'walk_cycle':  this.#doWalkCycle(); break;
       case 'custom':      this.#doCustom(); break;
       default:            this.#doIdle(); break;
     }
@@ -998,6 +1061,72 @@ export class MotionController {
     }
     if (this.#bones.rightLowerArm) {
       this.#bones.rightLowerArm.rotation.y += 45 * DEG * intensity;
+    }
+  }
+
+  // ── Walk Cycle：公開展示用的穩定程序步態 ──
+
+  #doWalkCycle() {
+    const t = this.#elapsed;
+    const cadence = 2.35;
+    const phase = t * Math.PI * 2 * cadence;
+    const left = Math.sin(phase);
+    const right = -left;
+    const leftLift = Math.max(0, left);
+    const rightLift = Math.max(0, right);
+    const leftPlant = Math.max(0, -left);
+    const rightPlant = Math.max(0, -right);
+
+    this.#applyNaturalPose(t);
+    this.#applyBreathingOverlay(t, 0.2);
+
+    if (this.#bones.hips) {
+      this.#bones.hips.position.y += (leftLift + rightLift) * 0.006;
+      this.#bones.hips.position.x += Math.sin(phase * 0.5) * 0.004;
+    }
+    if (this.#bones.spine) {
+      this.#bones.spine.rotation.z += Math.sin(phase * 0.5 + Math.PI) * 1.8 * DEG;
+      this.#bones.spine.rotation.x += Math.sin(phase * 0.5) * 0.9 * DEG;
+    }
+    if (this.#bones.chest) {
+      this.#bones.chest.rotation.y += Math.sin(phase) * 1.4 * DEG;
+    }
+
+    this.#applyWalkLeg('left', left, leftLift, leftPlant);
+    this.#applyWalkLeg('right', right, rightLift, rightPlant);
+
+    if (this.#bones.leftUpperArm) {
+      this.#bones.leftUpperArm.rotation.x += right * 9 * DEG;
+      this.#bones.leftUpperArm.rotation.z += leftLift * 2 * DEG;
+    }
+    if (this.#bones.rightUpperArm) {
+      this.#bones.rightUpperArm.rotation.x += left * 9 * DEG;
+      this.#bones.rightUpperArm.rotation.z -= rightLift * 2 * DEG;
+    }
+    if (this.#bones.leftLowerArm) {
+      this.#bones.leftLowerArm.rotation.y += Math.max(0, right) * 8 * DEG;
+    }
+    if (this.#bones.rightLowerArm) {
+      this.#bones.rightLowerArm.rotation.y -= Math.max(0, left) * 8 * DEG;
+    }
+  }
+
+  #applyWalkLeg(side, phaseValue, lift, plant) {
+    const upper = this.#bones[`${side}UpperLeg`];
+    const lower = this.#bones[`${side}LowerLeg`];
+    const foot = this.#bones[`${side}Foot`];
+    const sideSign = side === 'left' ? 1 : -1;
+
+    if (upper) {
+      upper.rotation.x += phaseValue * 17 * DEG;
+      upper.rotation.z += sideSign * (1.2 + lift * 1.4) * DEG;
+    }
+    if (lower) {
+      lower.rotation.x += (lift * 23 - plant * 7) * DEG;
+    }
+    if (foot) {
+      foot.rotation.x += (plant * 9 - lift * 8) * DEG;
+      foot.rotation.z += sideSign * Math.sin(this.#elapsed * Math.PI * 2 * 2.35) * 1.2 * DEG;
     }
   }
 

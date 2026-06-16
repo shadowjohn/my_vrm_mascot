@@ -1,5 +1,13 @@
 # My VRM Mascot — 開發歷程
 
+## 2026-06-17
+
+- 新增 v0.1.11 Alicia Showcase 程序步態修正：`walk` / `walk_cycle` 改走 MotionController 內建 procedural gait，公開展示不再依賴 raw Mixamo walking VRMA 直接播放。
+- 保留 v0.1.10 的 Mixamo VRMA retarget alias 修正作為研究與 Motion Mine 能力，但 `AliciaStageWalker.moveTo()` 不再預載 `walk_cycle` VRMA，避免 raw retarget 座標差異造成骨架扭曲。
+- 新增 regression test：確認 `walk_cycle` 不啟動 VRMA mixer，且 upper/lower legs 與 feet 會隨時間變化，避免回到只有 scene root 位移的滑步狀態。
+- 新增 v0.1.12 Alicia Showcase runtime lower-body lock：非 locomotion VRMA 只 retarget 上半身，`punch_short` / warning / wave / presenting 不再讓 raw VRMA 的 hips、legs、feet track 把腳帶飛。
+- 新增 regression test：`walk_cycle` 仍可保留 Mixamo leg tracks，`punch_short` 會濾掉 hips / legs / feet，只保留 spine / arms。
+
 ## 2026-06-16
 
 - 從 `D:\mytools\my_yolo_train_tool\my_vrm_mascot` 拆成獨立專案，移到 `D:\mytools\my_vrm_mascot`。
@@ -27,3 +35,4 @@
 - 新增 v0.1.7 Alicia Showcase 蹲姿安全修正：`crouch_touch` 改成半蹲伸手，降低 hips 下沉與腿部 rotation，避免沒有 IK / foot locking 時出現骨架折疊；測試加入腿部角度上限。
 - 接續 antigravity 的 v0.1.8 Alicia Showcase VRMA playback 研究：`MotionController` 增加 VRMA 載入、retarget、AnimationMixer 播放與 walk speed 推估；`AliciaStageWalker` 會先 preload `walk_cycle` 再開始位移，修正第一次走路時動畫未 ready 導致的滑步。
 - 新增 v0.1.9 Alicia Showcase smoke mode：`demo.php?noAuto=1` / `?manual=1` 可停用自動 Director，方便單獨驗證走路、VRMA preload 與場景 root 位移同步；預設展示行為不變。
+- 新增 v0.1.10 Alicia Showcase Mixamo retarget 修正：支援 `mixamorig:RightUpLeg` 與 `mixamorigRightUpLeg` 這類 node name alias，避免 retargeted walk clip 變成 0 tracks，讓 legs / feet tracks 能實際驅動 Alicia 腳步。

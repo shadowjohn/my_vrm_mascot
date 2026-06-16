@@ -2240,7 +2240,6 @@ $serverChecks = [
 
         if (distance > 5 && this.mascot) {
           isWalking = true;
-          await this.mascot.motion?.preloadVrmaForName?.('walk_cycle');
           const root = this.getSceneRoot();
           if (root && this.rootBasePosition) {
             const sceneTarget = this.sceneTargetFor(next, compact, scale);

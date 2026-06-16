@@ -155,7 +155,7 @@ function testDemoStagesPhysicalContactAndGaze() {
   assert.match(demo, /auto director disabled by query flag/);
   assert.match(motionController, /async preloadVrmaForName\(name\)/);
   assert.match(motionController, /preloadOnly:\s*true/);
-  assert.match(demo, /preloadVrmaForName\?\.\('walk_cycle'\)/);
+  assert.doesNotMatch(demo, /preloadVrmaForName\?\.\('walk_cycle'\)/);
   assert.match(demo, /await this\.mascot\.motion\?\.play\?\.\('walk_cycle'\)/);
   assert.match(demo, /await this\.walker\.moveTo\(event\.walkTo/);
   assert.match(demo, /this\.mascot\.dispatch\?\.\('talking'/);
