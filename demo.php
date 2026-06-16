@@ -2124,8 +2124,10 @@ $serverChecks = [
       facingRotationFor(fromX, fromZ, toX, toZ) {
         const dx = toX - fromX;
         const dz = toZ - fromZ;
-        const sideYaw = Math.atan2(dx, Math.max(0.22, Math.abs(dz)));
-        return this.rootBaseRotationY - this.clamp(sideYaw, -0.9, 0.9);
+        if (Math.hypot(dx, dz) < 0.0001) {
+          return this.rootBaseRotationY;
+        }
+        return this.rootBaseRotationY + Math.atan2(dx, dz);
       }
 
       sceneTargetFor(next, compact, scale, facingRotationY = null) {
@@ -2160,13 +2162,14 @@ $serverChecks = [
         const step = (now) => {
           if (token !== this.sceneMoveToken) return;
           const p = this.clamp((now - start) / duration, 0, 1);
-          const t = ease(p);
-          root.position.x = from.x + (to.x - from.x) * t;
-          root.position.z = from.z + (to.z - from.z) * t;
+          const moveT = isWalking ? this.clamp((p - 0.18) / 0.82, 0, 1) : ease(p);
+          const turnT = isWalking ? (1 - Math.pow(1 - this.clamp(p / 0.32, 0, 1), 3)) : moveT;
+          root.position.x = from.x + (to.x - from.x) * moveT;
+          root.position.z = from.z + (to.z - from.z) * moveT;
           root.position.y = this.rootBasePosition.y;
-          const scale = from.scale + (to.scale - from.scale) * t;
+          const scale = from.scale + (to.scale - from.scale) * moveT;
           root.scale.setScalar(scale);
-          root.rotation.y = from.rotationY + this.shortestAngleDelta(from.rotationY, to.rotationY) * t;
+          root.rotation.y = from.rotationY + this.shortestAngleDelta(from.rotationY, to.rotationY) * turnT;
           if (p < 1) {
             requestAnimationFrame(step);
           }
@@ -2265,7 +2268,7 @@ $serverChecks = [
         let duration = 1150;
         let isWalking = false;
 
-        if (this.mascot && ((root && distance3d > 0.018) || distance > 2)) {
+        if (this.mascot && ((root && distance3d > 0.006) || distance > 2)) {
           isWalking = true;
           if (root && this.rootBasePosition) {
             const walkSpeed = this.mascot.motion?.getWalkSpeed?.() || 0.85;

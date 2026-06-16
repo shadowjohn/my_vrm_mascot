@@ -155,8 +155,11 @@ function testDemoStagesPhysicalContactAndGaze() {
   assert.match(demo, /async moveTo\(target = \{\}, options = \{\}\)/);
   assert.match(demo, /const faceWorld = this\.propLayer\?\.getPropWorldPosition\?\.\(event\.prop\) \|\| null/);
   assert.match(demo, /this\.walker\.moveTo\(event\.walkTo \|\| \{ x: 0, y: 0, scale: 1 \}, \{ faceWorld \}\)/);
-  assert.match(demo, /distance3d > 0\.018/);
+  assert.match(demo, /this\.rootBaseRotationY \+ Math\.atan2\(dx, dz\)/);
+  assert.match(demo, /distance3d > 0\.006/);
   assert.match(demo, /this\.shortestAngleDelta\(from\.rotationY, to\.rotationY\)/);
+  assert.match(demo, /const moveT = isWalking \? this\.clamp\(\(p - 0\.18\) \/ 0\.82, 0, 1\) : ease\(p\)/);
+  assert.match(demo, /const turnT = isWalking \? \(1 - Math\.pow\(1 - this\.clamp\(p \/ 0\.32, 0, 1\), 3\)\) : moveT/);
   assert.match(demo, /const noAutoDirector = query\.has\('noAuto'\) \|\| query\.has\('manual'\)/);
   assert.match(demo, /auto director disabled by query flag/);
   assert.match(motionController, /async preloadVrmaForName\(name\)/);

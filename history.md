@@ -11,6 +11,9 @@
 - 明確切開素材層與演出層：raw VRMA 只留給 Motion Mine / Lab 預覽與後續 recipe 生產，不直接接公開 demo runtime，避免手臂跑到背後或下半身偶發失控。
 - 新增 v0.1.14 Alicia StageWalker 面向修正：`moveTo()` 接受互動物件 `faceWorld`，移動時以目標物件方向決定 root yaw，並用 shortest-angle interpolation 平滑轉身。
 - 3D root 位移改以 `distance3d` 觸發 `walk_cycle`，避免短距離場景位移只有 root 平移、腳沒有步態。
+- 新增 v0.1.15 Alicia StageWalker 倒退走修正：`facingRotationFor()` 改用 `rootBaseRotationY + atan2(dx, dz)` 的完整 2D 目標向量 yaw，補上目標在角色後方時的 180 度轉向。
+- 3D walk 啟動門檻降低到 `distance3d > 0.006`，減少短距離 root 位移但腳不動的觀感。
+- 新增 v0.1.16 Alicia StageWalker 起步轉身修正：walking 模式下 rotation 先行、position 延後，避免轉身與位移同時開始時仍像背對目標倒退滑行。
 
 ## 2026-06-16
 

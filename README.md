@@ -277,6 +277,17 @@ v0.1.14 修正行走面向與短距離滑步：
 - 場景 root 旋轉改用 shortest-angle interpolation，避免轉身走遠路或背對目標。
 - 3D 場景下改以實際 `distance3d` 判斷是否啟動 `walk_cycle`，短距離但可見的 root 位移也會播放步態，不再只是平移。
 
+v0.1.15 修正倒退走：
+
+- `facingRotationFor()` 改用完整目標向量 `rootBaseRotationY + atan2(dx, dz)`，處理目標在角色後方時的 180 度轉向。
+- 移動旋轉仍走 shortest-angle interpolation，讓 Alicia 正面朝移動/互動物件方向接近，不再背面倒退走。
+- 3D walk 啟動門檻再降到 `distance3d > 0.006`，降低短距離可見位移但腳不動的機率。
+
+v0.1.16 修正起步背對滑行：
+
+- `animateSceneRoot()` 在 walking 模式下拆成轉身與位移兩個進度：前段先快速轉向，主要 root 位移延後到轉身後開始。
+- 走路 rotation 在前 32% duration 完成，position 在 18% duration 後才開始主要前進，避免剛起步看起來仍在倒退滑行。
+
 目前資料集狀態：
 
 | 項目 | 數量 |
