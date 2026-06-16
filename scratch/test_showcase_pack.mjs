@@ -9,6 +9,7 @@ const REPORT_PATH = join('examples', 'm6_7_vrma_samples', 'review', 'showcase_mo
 const GENERATOR_PATH = join('scratch', 'generate_showcase_pack.mjs');
 const DEMO_PATH = 'demo.php';
 const VRM_MASCOT_PATH = join('js', 'VrmMascot.js');
+const MOTION_CONTROLLER_PATH = join('js', 'MotionController.js');
 
 const REQUIRED_SEMANTIC_MOTIONS = [
   'angry_hands_waist',
@@ -126,6 +127,7 @@ function testDemoPropsUseSharedThreeScene() {
 
 function testDemoStagesPhysicalContactAndGaze() {
   const demo = readFileSync(DEMO_PATH, 'utf8');
+  const motionController = readFileSync(MOTION_CONTROLLER_PATH, 'utf8');
   const crouchBlock = demo.match(/crouch_touch:\s*{([\s\S]*?)\n\s*},\n\s*kick_forward:/)?.[1] || '';
   const hipsY = [...crouchBlock.matchAll(/pos:\s*\[[^,\]]+,\s*([^,\]]+)/g)]
     .map((match) => Number(match[1]))
@@ -148,6 +150,14 @@ function testDemoStagesPhysicalContactAndGaze() {
   assert.match(demo, /mouseOverrideUntil = performance\.now\(\) \+ 1150/);
   assert.match(demo, /gazeDirector\.focusEvent\(event\)/);
   assert.match(demo, /aliciaGazeDirector\?\.handleMouseMove/);
+  assert.match(demo, /async moveTo\(target = \{\}\)/);
+  assert.match(demo, /const noAutoDirector = query\.has\('noAuto'\) \|\| query\.has\('manual'\)/);
+  assert.match(demo, /auto director disabled by query flag/);
+  assert.match(motionController, /async preloadVrmaForName\(name\)/);
+  assert.match(motionController, /preloadOnly:\s*true/);
+  assert.match(demo, /preloadVrmaForName\?\.\('walk_cycle'\)/);
+  assert.match(demo, /await this\.mascot\.motion\?\.play\?\.\('walk_cycle'\)/);
+  assert.match(demo, /await this\.walker\.moveTo\(event\.walkTo/);
   assert.match(demo, /this\.mascot\.dispatch\?\.\('talking'/);
   assert.doesNotMatch(demo, /this\.mascot\.performIntent\(\{[\s\S]*?motion:\s*event\.motion/);
   assert.match(demo, /sceneAction} \$\{event\.prop\}\$\{contact \? ' \+ contact' : ''\}/);

@@ -8,9 +8,9 @@
   ],
   "generatedAt": "2026-06-16T01:01:22+08:00",
   "summary": {
-    "totalSelectedMotions": 28,
+    "totalSelectedMotions": 29,
     "categoryCounts": {
-      "warning": 9,
+      "warning": 10,
       "success": 2,
       "think": 7,
       "point": 8,
@@ -23,13 +23,13 @@
       "thinking_chin": 4,
       "point_target": 4,
       "come_here": 4,
-      "wave_goodbye": 3,
+      "wave_goodbye": 4,
       "victory_pose": 1,
       "look_around": 2,
       "hands_up_surrender": 1,
       "shy_head_touch": 1
     },
-    "approvedCount": 8,
+    "approvedCount": 9,
     "researchPreviewCount": 20,
     "note": "research_preview motions are included for local/showcase evaluation and require license review before broad redistribution."
   },
@@ -613,6 +613,34 @@
     },
     {
       "id": "showcase_021",
+      "sourceMotion": "davinci2_walking.vrma",
+      "releasePath": "motions/showcase/davinci2_walking.vrma",
+      "localSourcePath": "local_assets/vrma/external/davinci_3dchat_batch2/davinci2_walking.vrma",
+      "semanticMotionId": "point_target",
+      "semanticDisplayName": "指向目標 / 看這裡",
+      "displayName": "指向目標 / 看這裡 / davinci2_walking.vrma",
+      "motionCategory": "point",
+      "motionScore": 3,
+      "description": "向流氓一樣的往前走路的姿勢",
+      "usageDescription": "向流氓一樣的往前走路的姿勢",
+      "agentUsage": [
+        "向流氓一樣的往前走路的姿勢"
+      ],
+      "selectionScore": 50,
+      "selectionReason": "high-scoring human-described motion sample",
+      "licenseStatus": "approved",
+      "distributable": true,
+      "sourceProvider": "tk256ailab/vrm-viewer",
+      "poseHints": {
+        "activeSide": "right",
+        "primaryAction": "point",
+        "bodyLean": "slight_forward",
+        "repeatable": false,
+        "gaze": "target"
+      }
+    },
+    {
+      "id": "showcase_022",
       "sourceMotion": "davinci2_pacingAndTalkingOnAPhone.vrma",
       "releasePath": "motions/showcase/davinci2_pacingAndTalkingOnAPhone.vrma",
       "localSourcePath": "local_assets/vrma/external/davinci_3dchat_batch2/davinci2_pacingAndTalkingOnAPhone.vrma",
@@ -641,7 +669,7 @@
       }
     },
     {
-      "id": "showcase_022",
+      "id": "showcase_023",
       "sourceMotion": "davinci4_VRMA_04.vrma",
       "releasePath": "motions/showcase/davinci4_VRMA_04.vrma",
       "localSourcePath": "local_assets/vrma/external/davinci_3dchat_batch4/davinci4_VRMA_04.vrma",
@@ -656,34 +684,6 @@
         "朝鏡頭伸出右手平舉，開了一槍，手因後座力舉起到面前，然後手臂90度轉到側身，舉槍的姿勢在耳邊，然後右手放下"
       ],
       "selectionScore": 47,
-      "selectionReason": "high-scoring human-described motion sample",
-      "licenseStatus": "research_preview",
-      "distributable": false,
-      "sourceProvider": "local_mining_corpus",
-      "poseHints": {
-        "activeSide": "right",
-        "primaryAction": "point",
-        "bodyLean": "slight_forward",
-        "repeatable": false,
-        "gaze": "target"
-      }
-    },
-    {
-      "id": "showcase_023",
-      "sourceMotion": "davinci_dismissingGesture.vrma",
-      "releasePath": "motions/showcase/davinci_dismissingGesture.vrma",
-      "localSourcePath": "local_assets/vrma/external/davinci_3dchat/davinci_dismissingGesture.vrma",
-      "semanticMotionId": "point_target",
-      "semanticDisplayName": "指向目標 / 看這裡",
-      "displayName": "指向目標 / 看這裡 / davinci_dismissingGesture.vrma",
-      "motionCategory": "point",
-      "motionScore": 3,
-      "description": "原本是立正舒服的姿勢，上半身往往左傾，右手往前揮了一下，手又回到立正的姿勢",
-      "usageDescription": "右手往前揮了一下",
-      "agentUsage": [
-        "原本是立正舒服的姿勢，上半身往往左傾，右手往前揮了一下，手又回到立正的姿勢"
-      ],
-      "selectionScore": 46,
       "selectionReason": "high-scoring human-described motion sample",
       "licenseStatus": "research_preview",
       "distributable": false,
@@ -829,6 +829,34 @@
       "agentUsage": [
         "左手往外滑一下，右手往外滑一下，是一個往外滑的自由式，用途不明但很可愛",
         "跟左、右的觀眾打招呼"
+      ],
+      "selectionScore": 47,
+      "selectionReason": "high-scoring human-described motion sample",
+      "licenseStatus": "research_preview",
+      "distributable": false,
+      "sourceProvider": "local_mining_corpus",
+      "poseHints": {
+        "activeSide": "right",
+        "primaryAction": "wave",
+        "bodyLean": "neutral",
+        "repeatable": true,
+        "rhythm": "friendly_loop"
+      }
+    },
+    {
+      "id": "showcase_029",
+      "sourceMotion": "davinci4_VRMA_02.vrma",
+      "releasePath": "motions/showcase/davinci4_VRMA_02.vrma",
+      "localSourcePath": "local_assets/vrma/external/davinci_3dchat_batch4/davinci4_VRMA_02.vrma",
+      "semanticMotionId": "wave_goodbye",
+      "semanticDisplayName": "揮手告別 / 打招呼",
+      "displayName": "揮手告別 / 打招呼 / davinci4_VRMA_02.vrma",
+      "motionCategory": "warning",
+      "motionScore": 3,
+      "description": "蹲著然後站起，站起後雙手在二耳邊，左手放下，人側一邊，右手在耳邊與大家朝手，很可愛的打招呼",
+      "usageDescription": "蹲著然後站起，站起後雙手在二耳邊，左手放下，人側一邊，右手在耳邊與大家朝手，很可愛的打招呼",
+      "agentUsage": [
+        "蹲著然後站起，站起後雙手在二耳邊，左手放下，人側一邊，右手在耳邊與大家朝手，很可愛的打招呼"
       ],
       "selectionScore": 47,
       "selectionReason": "high-scoring human-described motion sample",

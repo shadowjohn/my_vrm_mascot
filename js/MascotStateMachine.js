@@ -264,6 +264,12 @@ class TalkingState extends MascotState {
   #vowelTimer = 0;
   #vowelWeights = { a: 0, i: 0, u: 0, e: 0, o: 0 };
 
+  // TTS 語音合成
+  #utterance = null;
+  #ttsActive = false;
+  #ttsFinished = false;
+  #savedCtx = null;
+
   get name() { return 'talking'; }
 
   onEnter(ctx, params) {
@@ -275,6 +281,10 @@ class TalkingState extends MascotState {
     this.#vowelTimer = 0;
     this.#currentVowel = 'a';
     this.#vowels.forEach(v => this.#vowelWeights[v] = 0);
+    this.#ttsActive = false;
+    this.#ttsFinished = false;
+    this.#utterance = null;
+    this.#savedCtx = ctx;
 
     ctx.showBubble(this.#text);
 
@@ -290,6 +300,54 @@ class TalkingState extends MascotState {
     }
     if (canApplyLegacyPose && params?.motion) {
       ctx.motion.play(params.motion);
+    }
+
+    // TTS 語音合成：若 enableTts 為 true 且瀏覽器支援 speechSynthesis
+    this.#tryStartTts(ctx);
+  }
+
+  /**
+   * 嘗試啟動 Web Speech API 語音合成
+   */
+  #tryStartTts(ctx) {
+    const enableTts = ctx.mascot?.options?.enableTts ?? ctx.mascot?._enableTts ?? false;
+    if (!enableTts) return;
+    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+    if (!this.#text || this.#text.length === 0) return;
+
+    try {
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(this.#text);
+      utterance.lang = 'zh-TW';
+      utterance.rate = 1.05;
+      utterance.pitch = 1.15;
+
+      // 嘗試選擇中文語音
+      const voices = window.speechSynthesis.getVoices();
+      const zhVoice = voices.find(v =>
+        v.lang.startsWith('zh') && (v.lang.includes('TW') || v.lang.includes('Hant'))
+      ) || voices.find(v => v.lang.startsWith('zh'));
+      if (zhVoice) {
+        utterance.voice = zhVoice;
+      }
+
+      utterance.onend = () => {
+        this.#ttsFinished = true;
+        this.#ttsActive = false;
+      };
+      utterance.onerror = () => {
+        this.#ttsFinished = true;
+        this.#ttsActive = false;
+      };
+
+      window.speechSynthesis.speak(utterance);
+      this.#utterance = utterance;
+      this.#ttsActive = true;
+      // TTS 啟動後，延長 duration 為最大值，讓語音播完才結束
+      this.#duration = 60;
+    } catch (e) {
+      console.warn('[TalkingState] TTS failed to start:', e);
     }
   }
 
@@ -323,6 +381,16 @@ class TalkingState extends MascotState {
       }
     }
 
+    // TTS 模式：語音播完後才結束
+    if (this.#ttsActive) {
+      return; // 等待 TTS onend 回呼
+    }
+    if (this.#ttsFinished) {
+      this.finish(ctx);
+      return;
+    }
+
+    // 非 TTS 模式：依據計算的 duration 結束
     if (this.#elapsed >= this.#duration) {
       this.finish(ctx);
     }
@@ -330,6 +398,18 @@ class TalkingState extends MascotState {
 
   onExit(ctx) {
     super.onExit(ctx);
+
+    // 停止 TTS
+    if (this.#ttsActive || this.#utterance) {
+      try {
+        if (typeof window !== 'undefined' && window.speechSynthesis) {
+          window.speechSynthesis.cancel();
+        }
+      } catch (e) { /* ignore */ }
+      this.#ttsActive = false;
+      this.#utterance = null;
+    }
+
     const proxy = ctx.getProxy();
     if (proxy) {
       for (const v of this.#vowels) {

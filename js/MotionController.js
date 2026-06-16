@@ -167,17 +167,31 @@ export class MotionController {
   #tempQ2 = null;
   #posePreset = normalizePosePreset(DEFAULT_POSE_PRESET);
   #activeClip = null;
+  #modelUrl = null;
+  #mixer = null;
+  #vrmaCache = new Map();
+  #vrmaLoadPromises = new Map();
+  #retargetedClips = new Map();
+  #activeVrmaFinishedListener = null;
+  #previousAction = null;
+  #isVrmaActive = false;
 
   /**
    * 綁定 VRM 模型
    * @param {object} vrm
    */
-  setVrm(vrm) {
+  setVrm(vrm, url) {
     this.#vrm = vrm;
+    this.#modelUrl = url || null;
     this.#cacheBones();
     this.#currentAction = 'idle';
     this.#elapsed = 0;
     this.#activeClip = null;
+    if (this.#mixer) {
+      this.#mixer.stopAllAction();
+      this.#mixer = null;
+    }
+    this.#activeVrmaFinishedListener = null;
     this.resetToNaturalPose(0);
   }
 
@@ -207,10 +221,431 @@ export class MotionController {
   }
 
   /**
+   * 取得指定名稱對應的 VRMA 檔案路徑
+   * @param {string} name
+   * @returns {string|null}
+   */
+  getVrmaUrlForName(name) {
+    const map = {
+      idle: 'motions/showcase/davinci_happyIdle.vrma',
+      think: 'motions/Thinking.vrma',
+      presenting: 'motions/showcase/davinci_strongGesture.vrma',
+      warning: 'motions/Angry.vrma',
+      wave: 'motions/Goodbye.vrma',
+      victory: 'motions/showcase/davinci_happyHandGesture.vrma',
+      warning_nod: 'motions/showcase/davinci_annoyedHeadShake.vrma',
+      shake_head: 'motions/showcase/davinci_annoyedHeadShake.vrma',
+      dance_short: 'motions/showcase/davinci_happyIdle.vrma',
+      punch_short: 'motions/showcase/davinci_angryGesture.vrma',
+      walk: 'motions/showcase/davinci2_walking.vrma',
+      walk_cycle: 'motions/showcase/davinci2_walking.vrma',
+    };
+    return map[name] || null;
+  }
+
+  /**
+   * 取得目前模型搭配走路動畫的 3D 移動速度 (單位/秒)
+   * @returns {number}
+   */
+  getWalkSpeed() {
+    const walkUrl = this.getVrmaUrlForName('walk_cycle');
+    if (walkUrl) {
+      const resolvedUrl = this.#resolveVrmaUrl(walkUrl);
+      const clip = this.#vrmaCache.get(resolvedUrl);
+      if (clip && clip.userData) {
+        const initialY = clip.userData.vrmaHipsInitialY || 1.0;
+        const speed = clip.userData.vrmaSpeed || 0.9711;
+        const scale = (this.#hipsBaseY && initialY) ? (this.#hipsBaseY / initialY) : 1.0;
+        return speed * scale;
+      }
+    }
+    const scale = this.#hipsBaseY ? (this.#hipsBaseY / 1.0) : 1.0;
+    return 0.9711 * scale;
+  }
+
+  /**
+   * 預先載入指定語意動作的 VRMA，避免角色已開始位移但走路動畫還在下載。
+   * @param {string} name
+   * @returns {Promise<boolean>}
+   */
+  async preloadVrmaForName(name) {
+    const vrmaUrl = this.getVrmaUrlForName(name);
+    if (!vrmaUrl) return false;
+    const resolvedUrl = this.#resolveVrmaUrl(vrmaUrl);
+    return this.playVrmaFile(resolvedUrl, {
+      originalName: name,
+      preloadOnly: true,
+    });
+  }
+
+  /**
+   * 將 VRMA 動畫軌跡重配對到目前 VRM 模型的實際骨骼節點
+   * @param {THREE.AnimationClip} clip
+   * @param {string} [name=''] - 原始動作名稱，用於特定動作根運動萃取 (Root Motion Extraction)
+   * @returns {THREE.AnimationClip}
+   */
+  retargetVrmaClip(clip, name = '') {
+    if (!this.#vrm || typeof THREE === 'undefined') return clip;
+
+    const newTracks = [];
+    const bn = getBoneNames();
+
+    // 建立合法的 humanoid 骨骼名稱集合，避開 getBoneNode 傳入非標準名稱導致內部 crash
+    const validNames = new Set();
+    if (typeof THREE !== 'undefined' && THREE.VRMHumanoidBoneName) {
+      for (const val of Object.values(THREE.VRMHumanoidBoneName)) {
+        if (typeof val === 'string' && val.length > 0 && val.charAt(0) === val.charAt(0).toLowerCase()) {
+          validNames.add(val);
+        }
+      }
+    } else {
+      for (const val of Object.values(bn)) {
+        validNames.add(val);
+      }
+    }
+
+    for (const track of clip.tracks) {
+      const parts = track.name.split('.');
+      const nodeName = parts[0];
+      const propertyName = parts[1];
+
+      // 使用 VRMC_vrm_animation 映射表配對骨骼名稱，若無則 fallback 到首字母小寫邏輯
+      let humanoidBoneName = clip.userData?.nodeNameToBoneName?.get(nodeName);
+      if (!humanoidBoneName) {
+        humanoidBoneName = nodeName.charAt(0).toLowerCase() + nodeName.slice(1);
+      }
+
+      // 只有當確定該骨骼為 validNames 中的標準骨骼時，才呼叫 getBoneNode，避免程式內部報錯，無須使用 try-catch
+      let boneNode = null;
+      if (validNames.has(humanoidBoneName)) {
+        boneNode = this.#vrm.humanoid.getBoneNode(humanoidBoneName);
+      }
+
+      if (boneNode) {
+        let prop = propertyName;
+        if (prop === 'translation') prop = 'position';
+        if (prop === 'rotation') prop = 'quaternion';
+        if (prop === 'scale') prop = 'scale';
+
+        const newTrackName = `${boneNode.name}.${prop}`;
+        const trackConstructor = track.constructor;
+        let values = track.values;
+
+        // 處理 Hips 的 position 軌跡比例縮放與位移
+        if (humanoidBoneName === 'hips' && prop === 'position') {
+          const initialX = clip.userData?.vrmaHipsInitialX ?? values[0];
+          const initialY = clip.userData?.vrmaHipsInitialY ?? values[1];
+          const initialZ = clip.userData?.vrmaHipsInitialZ ?? values[2];
+
+          const scale = (this.#hipsBaseY && initialY) ? (this.#hipsBaseY / initialY) : 1.0;
+          const isWalking = name === 'walk_cycle' || name === 'walk' || name.toLowerCase().includes('walk');
+
+          const newValues = new Float32Array(values.length);
+          for (let i = 0; i < values.length; i += 3) {
+            if (isWalking) {
+              newValues[i] = 0;                  // X 歸零 (原地踏步)
+              newValues[i + 1] = this.#hipsBaseY + (values[i + 1] - initialY) * scale; // Y 軸依比例起伏
+              newValues[i + 2] = 0;                  // Z 歸零 (原地踏步)
+            } else {
+              newValues[i] = (values[i] - initialX) * scale;  // 非走路時 X 位移依比例縮放
+              newValues[i + 1] = this.#hipsBaseY + (values[i + 1] - initialY) * scale; // Y 軸依比例起伏 + 偏移
+              newValues[i + 2] = (values[i + 2] - initialZ) * scale;  // 非走路時 Z 位移依比例縮放
+            }
+          }
+          values = newValues;
+        }
+
+        const newTrack = new trackConstructor(newTrackName, track.times, values);
+        newTracks.push(newTrack);
+      }
+    }
+
+    return new THREE.AnimationClip(clip.name || 'vrma', clip.duration, newTracks);
+  }
+
+  /**
+   * 停止目前的 VRMA 動畫播放並清除監聽器
+   */
+  #stopActiveVrma() {
+    this.#isVrmaActive = false;
+    if (this.#mixer) {
+      this.#mixer.stopAllAction();
+      if (this.#activeVrmaFinishedListener) {
+        this.#mixer.removeEventListener('finished', this.#activeVrmaFinishedListener);
+        this.#activeVrmaFinishedListener = null;
+      }
+    }
+  }
+
+  /**
+   * 載入並播放指定的 VRMA 檔案，支援 Cross-fade 平滑過渡
+   * @param {string} url
+   * @param {object} [options]
+   * @param {boolean} [options.loop=false]
+   * @param {function} [options.onComplete]
+   * @param {number} [options.fadeDuration=0.25] Cross-fade 過渡秒數
+   */
+  async playVrmaFile(url, options = {}) {
+    if (this.#vrmaCache.has(url)) {
+      const clip = this.#vrmaCache.get(url);
+      if (!options.preloadOnly) {
+        this.playVrma(clip, options);
+      }
+      return true;
+    }
+
+    if (this.#vrmaLoadPromises.has(url)) {
+      await this.#vrmaLoadPromises.get(url);
+      const clip = this.#vrmaCache.get(url);
+      if (!clip) return false;
+      if (!options.preloadOnly) {
+        this.playVrma(clip, options);
+      }
+      return true;
+    }
+
+    try {
+      if (typeof THREE === 'undefined' || !THREE.GLTFLoader) {
+        throw new Error('THREE.GLTFLoader is not available');
+      }
+
+      // 使用 LoadingManager 攔截所有可能出現的相對路徑貼圖 Image 載入 (如 Image_0.jpg)
+      // 避免 GLTFLoader 載入動畫 VRMA 時因缺少貼圖導致 InvalidStateError 崩潰
+      const manager = new THREE.LoadingManager();
+      manager.setURLModifier((requestUrl) => {
+        if (requestUrl.match(/\.(jpg|jpeg|png|gif|webp)/i)) {
+          return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+        }
+        return requestUrl;
+      });
+
+      const loader = new THREE.GLTFLoader(manager);
+      const loadPromise = new Promise((resolve, reject) => {
+        loader.load(url, resolve, undefined, reject);
+      });
+      this.#vrmaLoadPromises.set(url, loadPromise);
+      const gltf = await loadPromise;
+      this.#vrmaLoadPromises.delete(url);
+
+      if (gltf.animations && gltf.animations.length > 0) {
+        const clip = gltf.animations[0];
+
+        // 解析 VRMC_vrm_animation 協議，建立 nodeNameToBoneName 映射
+        const nodeNameToBoneName = new Map();
+        try {
+          const json = gltf.parser?.json || {};
+          const vrmaExt = json.extensions?.VRMC_vrm_animation;
+          if (vrmaExt && vrmaExt.humanoid && vrmaExt.humanoid.humanBones) {
+            const humanBones = vrmaExt.humanoid.humanBones;
+            for (const [boneName, boneInfo] of Object.entries(humanBones)) {
+              const nodeIdx = boneInfo.node;
+              const nodeObj = json.nodes?.[nodeIdx];
+              if (nodeObj && nodeObj.name) {
+                nodeNameToBoneName.set(nodeObj.name, boneName);
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('[MotionController] Failed to parse VRMC_vrm_animation:', e);
+        }
+
+        // 從動畫軌跡中讀取 Hips 初始位置與 Z 軸移動速度
+        let initialX = 0;
+        let initialY = 1.0;
+        let initialZ = 0;
+        let speed = 0.9711;
+
+        const hipsTrack = clip.tracks.find(t => {
+          const parts = t.name.split('.');
+          const nodeName = parts[0];
+          const prop = parts[1];
+          const isHips = nodeNameToBoneName.get(nodeName) === 'hips' || nodeName.toLowerCase().includes('hips');
+          const isTranslation = prop === 'position' || prop === 'translation';
+          return isHips && isTranslation;
+        });
+
+        if (hipsTrack && hipsTrack.values && hipsTrack.values.length >= 3) {
+          const values = hipsTrack.values;
+          const times = hipsTrack.times;
+          initialX = values[0];
+          initialY = values[1];
+          initialZ = values[2];
+
+          if (times && times.length > 1) {
+            const duration = times[times.length - 1] - times[0];
+            if (duration > 0.05) {
+              const startZ = values[2];
+              const endZ = values[values.length - 1];
+              const distZ = Math.abs(endZ - startZ);
+              const calculatedSpeed = distZ / duration;
+              if (!isNaN(calculatedSpeed) && calculatedSpeed > 0.01) {
+                speed = calculatedSpeed;
+              }
+            }
+          }
+        }
+
+        // 快取至 clip.userData
+        clip.userData = clip.userData || {};
+        clip.userData.nodeNameToBoneName = nodeNameToBoneName;
+        clip.userData.vrmaHipsInitialX = initialX;
+        clip.userData.vrmaHipsInitialY = initialY;
+        clip.userData.vrmaHipsInitialZ = initialZ;
+        clip.userData.vrmaSpeed = speed;
+
+        this.#vrmaCache.set(url, clip);
+        if (!options.preloadOnly) {
+          this.playVrma(clip, options);
+        }
+        return true;
+      } else {
+        throw new Error('No animations in VRMA file');
+      }
+    } catch (err) {
+      this.#vrmaLoadPromises.delete(url);
+      console.warn(`[MotionController] Failed to load VRMA from ${url}:`, err);
+      if (!options.preloadOnly) {
+        this.#fallbackToProcedural(options.originalName || 'idle', options);
+      }
+      return false;
+    }
+  }
+
+  /**
+   * 播放已經載入的 VRMA AnimationClip，使用 Cross-fade 平滑過渡
+   * @param {THREE.AnimationClip} clip
+   * @param {object} [options]
+   * @param {boolean} [options.loop=false]
+   * @param {function} [options.onComplete]
+   * @param {number} [options.fadeDuration=0.25] Cross-fade 過渡秒數
+   */
+  playVrma(clip, options = {}) {
+    const fadeDuration = options.fadeDuration ?? 0.25;
+    this.resetToNaturalPose(0);
+    this.#activeClip = null;
+    this.#currentAction = options.originalName || 'vrma';
+    this.#isVrmaActive = true;
+    this.#elapsed = 0;
+    this.#clearMotionOverlay();
+
+    if (!this.#mixer) {
+      this.#mixer = new THREE.AnimationMixer(this.#vrm.scene);
+    }
+
+    let retargeted = this.#retargetedClips.get(clip);
+    if (!retargeted) {
+      retargeted = this.retargetVrmaClip(clip, options.originalName || clip.name);
+      this.#retargetedClips.set(clip, retargeted);
+    }
+
+    const previousAction = this.#previousAction;
+
+    if (this.#activeVrmaFinishedListener) {
+      this.#mixer.removeEventListener('finished', this.#activeVrmaFinishedListener);
+      this.#activeVrmaFinishedListener = null;
+    }
+
+    const action = this.#mixer.clipAction(retargeted);
+    const loop = options.loop ?? false;
+    action.setLoop(loop ? THREE.LoopRepeat : THREE.LoopOnce);
+    action.clampWhenFinished = !loop;
+
+    if (previousAction && previousAction !== action && previousAction.isRunning()) {
+      action.reset();
+      action.play();
+      previousAction.crossFadeTo(action, fadeDuration, true);
+    } else {
+      if (this.#mixer) {
+        this.#mixer.stopAllAction();
+      }
+      action.reset();
+      action.fadeIn(fadeDuration);
+      action.play();
+    }
+
+    this.#previousAction = action;
+
+    if (!loop) {
+      this.#activeVrmaFinishedListener = (e) => {
+        if (e.action === action) {
+          if (this.#activeVrmaFinishedListener) {
+            this.#mixer.removeEventListener('finished', this.#activeVrmaFinishedListener);
+            this.#activeVrmaFinishedListener = null;
+          }
+          this.#previousAction = null;
+          this.#finishTimedAction();
+          options.onComplete?.();
+        }
+      };
+      this.#mixer.addEventListener('finished', this.#activeVrmaFinishedListener);
+    }
+  }
+
+  /**
+   * 當 VRMA 載入失敗時的後備程序動作播放
+   */
+  #fallbackToProcedural(name, options = {}) {
+    this.#stopActiveVrma();
+    this.#previousAction = null;
+    this.#currentAction = 'idle';
+    this.#activeClip = null;
+
+    if (getMotionClip(name)) {
+      const clip = getMotionClip(name);
+      if (clip) {
+        this.resetToNaturalPose(0);
+        this.#activeClip = clip;
+        this.#currentAction = name;
+        this.#elapsed = 0;
+        this.#clearMotionOverlay();
+      }
+    } else {
+      if (this.#currentAction !== name) {
+        this.resetToNaturalPose(0);
+      }
+      this.#currentAction = name;
+      this.#elapsed = 0;
+      this.#clearMotionOverlay();
+    }
+    options.onComplete?.();
+  }
+
+  /**
+   * 解析 VRMA 相對路徑
+   */
+  #resolveVrmaUrl(path) {
+    if (!this.#modelUrl) return path;
+    try {
+      const idx1 = this.#modelUrl.lastIndexOf('/models/');
+      if (idx1 !== -1) {
+        return this.#modelUrl.substring(0, idx1) + '/' + path;
+      }
+      const idx2 = this.#modelUrl.lastIndexOf('models/');
+      if (idx2 !== -1) {
+        return this.#modelUrl.substring(0, idx2) + path;
+      }
+    } catch (e) {
+      // fallback
+    }
+    return path;
+  }
+
+  /**
    * 播放動作
    * @param {string} name - 動作名 (idle|think|happy|presenting|warning 或 MotionClips clip name)
    */
   play(name) {
+    this.#stopActiveVrma();
+
+    const vrmaUrl = this.getVrmaUrlForName(name);
+    if (vrmaUrl) {
+      this.playVrmaFile(this.#resolveVrmaUrl(vrmaUrl), {
+        loop: name === 'idle' || name === 'walk_cycle' || name === 'walk',
+        originalName: name
+      });
+      return true;
+    }
+
     if (getMotionClip(name)) {
       return this.playClip(name);
     }
@@ -231,6 +666,17 @@ export class MotionController {
    * @returns {boolean} 是否成功播放
    */
   playClip(name) {
+    this.#stopActiveVrma();
+
+    const vrmaUrl = this.getVrmaUrlForName(name);
+    if (vrmaUrl) {
+      this.playVrmaFile(this.#resolveVrmaUrl(vrmaUrl), {
+        loop: false,
+        originalName: name
+      });
+      return true;
+    }
+
     const clip = getMotionClip(name);
     if (!clip) return false;
 
@@ -250,6 +696,7 @@ export class MotionController {
    * @param {function} [options.onComplete]
    */
   playCustom(animData, options = {}) {
+    this.#stopActiveVrma();
     this.resetToNaturalPose(0);
     this.#activeClip = null;
     this.#currentAction = 'custom';
@@ -353,6 +800,12 @@ export class MotionController {
     return this.#currentAction;
   }
 
+  get vrmaCache() { return this.#vrmaCache; }
+  get retargetedClips() { return this.#retargetedClips; }
+  get mixer() { return this.#mixer; }
+  get vrm() { return this.#vrm; }
+  get isVrmaActive() { return this.#isVrmaActive; }
+
   /**
    * 每幀更新
    * @param {number} dt - deltaTime (s)
@@ -360,6 +813,13 @@ export class MotionController {
   update(dt) {
     if (!this.#vrm) return;
     this.#elapsed += dt;
+
+    if (this.#isVrmaActive) {
+      if (this.#mixer) {
+        this.#mixer.update(dt);
+      }
+      return;
+    }
 
     if (this.#activeClip) {
       this.#updateClip(this.#activeClip);
@@ -795,6 +1255,13 @@ export class MotionController {
 
   /** 清理 */
   dispose() {
+    this.#stopActiveVrma();
+    if (this.#mixer) {
+      this.#mixer = null;
+    }
+    this.#vrmaCache.clear();
+    this.#retargetedClips.clear();
+    this.#previousAction = null;
     this.#vrm = null;
     this.#bones = {};
     this.#customAnimData = null;

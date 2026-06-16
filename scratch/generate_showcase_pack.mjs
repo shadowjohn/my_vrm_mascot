@@ -10,7 +10,7 @@ const PACK_PATH = join(REVIEW_DIR, 'showcase_motion_pack.json');
 const EVENTS_PATH = join(REVIEW_DIR, 'showcase_events.json');
 const REPORT_PATH = join(REVIEW_DIR, 'showcase_motion_pack_report.md');
 
-const SHOWCASE_LIMIT = 28;
+const SHOWCASE_LIMIT = 29;
 const MAX_PER_SEMANTIC = 4;
 
 const APPROVED_DEMO_VRMA = new Set([
@@ -25,6 +25,7 @@ const APPROVED_DEMO_VRMA = new Set([
   'Sleepy.vrma',
   'Surprised.vrma',
   'Thinking.vrma',
+  'davinci2_walking.vrma',
 ]);
 
 const SEMANTIC_ORDER = [

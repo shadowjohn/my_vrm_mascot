@@ -977,6 +977,9 @@ $serverChecks = [
         <div class="actions">
           <button type="button" data-director-toggle disabled>Auto ON</button>
           <button type="button" data-director-trigger class="primary" disabled>Trigger Event</button>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.85em;color:#c4b5fd;">
+            <input type="checkbox" data-tts-toggle style="accent-color:#a78bfa;width:16px;height:16px;cursor:pointer;"> 語音發聲 (TTS)
+          </label>
         </div>
       </div>
     </section>
@@ -1053,6 +1056,7 @@ $serverChecks = [
     const motionPills = Array.from(document.querySelectorAll('[data-motion-id]'));
     const directorToggle = document.querySelector('[data-director-toggle]');
     const directorTrigger = document.querySelector('[data-director-trigger]');
+    const ttsToggle = document.querySelector('[data-tts-toggle]');
     const directorFocus = document.querySelector('[data-director-focus]');
     const sceneDirective = document.querySelector('[data-scene-directive]');
     const storyBeatEl = document.querySelector('[data-story-beat]');
@@ -1077,6 +1081,8 @@ $serverChecks = [
         $motionAssets
     )), JSON_UNESCAPED_SLASHES) ?>;
     const baseUrl = new URL('./', window.location.href);
+    const query = new URLSearchParams(window.location.search);
+    const noAutoDirector = query.has('noAuto') || query.has('manual');
     const urls = {
       model: new URL('models/mascot.vrm', baseUrl).href,
       semanticMotionLibrary: new URL('manifests/semantic_motion_library.json', baseUrl).href,
@@ -1594,7 +1600,7 @@ $serverChecks = [
         motion: 'victory',
         animation: 'crouch_touch',
         sceneAction: 'touch',
-        walkTo: { x: 40, y: 0, scale: 1.05 },
+        walkTo: { x: 120, y: 45, scale: 1.05 },
         label: '勝利完成 asset check',
         directive: 'Alicia celebrates and taps the asset crate.',
         text: `Asset check pass。${releaseStats.assetCount} 個檔案、${releaseStats.motionAssetCount} 個 motion asset，摸一下箱子確認收工。`,
@@ -2112,8 +2118,8 @@ $serverChecks = [
       }
 
       sceneTargetFor(next, compact, scale) {
-        const x = this.clamp(next.x * (compact ? 0.0032 : 0.0072), -0.72, 0.72);
-        const z = this.clamp(next.y * (compact ? 0.006 : 0.011), -0.24, 0.24);
+        const x = this.clamp(next.x * (compact ? 0.0032 : 0.0072), -1.2, 1.2);
+        const z = this.clamp(next.y * (compact ? 0.006 : 0.011), -1.0, 1.0);
         return {
           x,
           z,
@@ -2122,11 +2128,10 @@ $serverChecks = [
         };
       }
 
-      animateSceneRoot(root, sceneTarget) {
+      animateSceneRoot(root, sceneTarget, duration = 1150, isWalking = false) {
         if (!root || !this.rootBasePosition || !this.rootBaseScale) return;
         const token = ++this.sceneMoveToken;
         const start = performance.now();
-        const duration = 1150;
         const from = {
           x: root.position.x,
           z: root.position.z,
@@ -2139,7 +2144,8 @@ $serverChecks = [
           scale: this.rootBaseScale.x * sceneTarget.scale,
           rotationY: sceneTarget.rotationY,
         };
-        const ease = (p) => 1 - Math.pow(1 - p, 3);
+        // 走路時使用線性插值 (Linear) 以貼合等速步行動畫；一般位移使用 ease-out cubic
+        const ease = isWalking ? ((p) => p) : ((p) => 1 - Math.pow(1 - p, 3));
         const step = (now) => {
           if (token !== this.sceneMoveToken) return;
           const p = this.clamp((now - start) / duration, 0, 1);
@@ -2209,9 +2215,9 @@ $serverChecks = [
         return true;
       }
 
-      moveTo(target = {}) {
+      async moveTo(target = {}) {
         const canvas = this.getCanvas();
-        if (!canvas) return;
+        if (!canvas) return 80;
         const rect = this.container.getBoundingClientRect();
         const compact = rect.width < 640;
         const next = {
@@ -2220,21 +2226,63 @@ $serverChecks = [
           scale: Number.isFinite(target.scale) ? target.scale : 1,
           roomPath: target.roomPath || 'center',
         };
+
         const x = next.x * (compact ? 0.42 : 1);
         const y = next.y * (compact ? 0.5 : 1);
         const scale = compact ? Math.min(next.scale, 1.035) : next.scale;
+
+        const dx = next.x - (this.position?.x ?? 0);
+        const dy = next.y - (this.position?.y ?? 0);
+        const distance = Math.hypot(dx, dy);
+
+        let duration = 1150;
+        let isWalking = false;
+
+        if (distance > 5 && this.mascot) {
+          isWalking = true;
+          await this.mascot.motion?.preloadVrmaForName?.('walk_cycle');
+          const root = this.getSceneRoot();
+          if (root && this.rootBasePosition) {
+            const sceneTarget = this.sceneTargetFor(next, compact, scale);
+            const targetX = this.rootBasePosition.x + sceneTarget.x;
+            const targetZ = this.rootBasePosition.z + sceneTarget.z;
+            const distance3d = Math.hypot(targetX - root.position.x, targetZ - root.position.z);
+
+            const walkSpeed = this.mascot.motion?.getWalkSpeed?.() || 0.85;
+            duration = (distance3d / walkSpeed) * 1000;
+            // 限制移動時間在合理範圍 [400, 2200] ms 內
+            duration = Math.max(400, Math.min(2200, duration));
+          } else {
+            // 非 3D 模式的後備計算
+            duration = Math.max(400, Math.min(1800, (distance / 110) * 1000));
+          }
+
+          await this.mascot.motion?.play?.('walk_cycle');
+          if (this.walkTimeout) {
+            window.clearTimeout(this.walkTimeout);
+          }
+          this.walkTimeout = window.setTimeout(() => {
+            if (this.mascot.motion?.currentAction === 'walk_cycle') {
+              this.mascot.motion?.play?.('idle');
+            }
+          }, duration);
+        }
+
         const root = this.getSceneRoot();
         if (root) {
           canvas.style.transition = 'none';
           canvas.style.transform = 'none';
-          this.animateSceneRoot(root, this.sceneTargetFor(next, compact, scale));
+          this.animateSceneRoot(root, this.sceneTargetFor(next, compact, scale), duration, isWalking);
         } else {
-          canvas.style.transition = 'transform 1150ms cubic-bezier(.2,.82,.22,1)';
+          const easing = isWalking ? 'linear' : 'cubic-bezier(.2,.82,.22,1)';
+          canvas.style.transition = `transform ${duration}ms ${easing}`;
           canvas.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
         }
         this.updateShadow(x, y, scale, next.roomPath);
         this.dropFootprints(x, y, scale);
         this.position = next;
+
+        return duration;
       }
 
       updateShadow(x, y, scale, roomPath) {
@@ -2325,7 +2373,7 @@ $serverChecks = [
             motion: 'wave',
             animation: 'crouch_touch',
             sceneAction: 'touch',
-            walkTo: { x: -78, y: 12, scale: 1.07, roomPath: 'front-left' },
+            walkTo: { x: -125, y: 54, scale: 1.07, roomPath: 'front-left' },
             text: `這裡是我的玩具房。第一顆藍色 core 歸我，我先摸一下，版本 ${this.stats.version} 也順便確認。`,
             gaze: { x: -0.5, y: 0.14 },
             marker: { left: '27%', bottom: '31%' },
@@ -2340,7 +2388,7 @@ $serverChecks = [
             motion: 'dance_short',
             animation: 'walk_cycle',
             sceneAction: 'orbit',
-            walkTo: { x: -42, y: -18, scale: 0.98, roomPath: 'back-left-loop' },
+            walkTo: { x: -104, y: -54, scale: 0.98, roomPath: 'back-left-loop' },
             text: `你這顆紫色球球有 ${this.stats.semanticFamilyCount} 組語意動作，這版還多吃了 ${this.stats.showcaseEventCount} 筆採礦展示事件。乖一點，把有料的動作都吐出來。`,
             gaze: { x: -0.32, y: -0.16 },
             marker: { left: '38%', bottom: '23%' },
@@ -2356,7 +2404,7 @@ $serverChecks = [
             animation: 'punch_forward',
             sceneAction: 'punch',
             kickDirection: 1,
-            walkTo: { x: 70, y: -14, scale: 1.04, roomPath: 'back-right-cut' },
+            walkTo: { x: 104, y: -54, scale: 1.04, roomPath: 'back-right-cut' },
             text: '紅色 target 看起來最欠揍。我先繞到它旁邊，對它講話，然後直接一拳。',
             gaze: { x: 0.48, y: -0.1 },
             marker: { left: '70%', bottom: '25%' },
@@ -2374,7 +2422,7 @@ $serverChecks = [
             sceneAction: 'kick-away',
             kickDirection: 1,
             followUpMotionId: 'hands_up_surrender',
-            walkTo: { x: 86, y: -10, scale: 1.06, roomPath: 'right-front-strike' },
+            walkTo: { x: 108, y: -54, scale: 1.06, roomPath: 'right-front-strike' },
             text: '一拳不夠。我要把它踢到旁邊，讓它知道玩具房是誰在管。',
             gaze: { x: 0.5, y: -0.12 },
             marker: { left: '74%', bottom: '25%' },
@@ -2390,7 +2438,7 @@ $serverChecks = [
             motion: 'victory',
             animation: 'crouch_touch',
             sceneAction: 'touch',
-            walkTo: { x: 62, y: 13, scale: 1.06, roomPath: 'front-right' },
+            walkTo: { x: 120, y: 45, scale: 1.06, roomPath: 'front-right' },
             text: `好啦，我也會乖。這箱 asset 有 ${this.stats.assetCount} 個檔案，我摸一下，沒壞。`,
             gaze: { x: 0.5, y: 0.1 },
             marker: { left: '66%', bottom: '36%' },
@@ -2427,7 +2475,7 @@ $serverChecks = [
             motion: 'presenting',
             animation: 'crouch_touch',
             sceneAction: 'touch',
-            walkTo: { x: -64, y: 4, scale: 1.05 },
+            walkTo: { x: -125, y: 54, scale: 1.05 },
             text: `我先走到 release core 旁邊摸一下。版本 ${releaseStats.version}，build date ${releaseStats.builtAt}，這個 release 有站穩。`,
             gaze: { x: -0.5, y: 0.16 },
             marker: { left: '31%', bottom: '42%' },
@@ -2441,7 +2489,7 @@ $serverChecks = [
             motion: 'victory',
             animation: 'crouch_touch',
             sceneAction: 'touch',
-            walkTo: { x: 52, y: 2, scale: 1.05 },
+            walkTo: { x: 120, y: 45, scale: 1.05 },
             text: `我走到 asset crate 旁邊清點。這包有 ${releaseStats.assetCount} 個 asset，其中 ${releaseStats.motionAssetCount} 個是 motion asset。`,
             gaze: { x: 0.5, y: 0.1 },
             marker: { left: '66%', bottom: '41%' },
@@ -2455,7 +2503,7 @@ $serverChecks = [
             motion: 'idle',
             actState: 'thinking',
             animation: 'curious_peek',
-            walkTo: { x: -30, y: 5, scale: 1.04 },
+            walkTo: { x: -97, y: -45, scale: 1.04 },
             text: `目前 semantic library 有 ${releaseStats.semanticFamilyCount} 組動作語意，showcase pack 有 ${releaseStats.showcaseEventCount} 筆人工描述事件。下一階段可以把這些事件變成真正的 VRMA playback。`,
             gaze: { x: -0.35, y: -0.18 },
             marker: { left: '36%', bottom: '24%' },
@@ -2469,7 +2517,7 @@ $serverChecks = [
             motion: 'warning_nod',
             animation: 'hands_waist',
             sceneAction: 'touch',
-            walkTo: { x: 66, y: -4, scale: 1.06 },
+            walkTo: { x: 104, y: -54, scale: 1.06 },
             text: '這個紅色 test target 很可疑。我先走近、插腰、碰一下它，下一拍就可以踢開。',
             gaze: { x: 0.45, y: -0.12 },
             marker: { left: '68%', bottom: '23%' },
@@ -2486,7 +2534,7 @@ $serverChecks = [
             sceneAction: 'kick-away',
             kickDirection: 1,
             followUpMotionId: 'hands_up_surrender',
-            walkTo: { x: 66, y: -4, scale: 1.06 },
+            walkTo: { x: 108, y: -54, scale: 1.06 },
             text: '鎖定、靠近、出腳。這次我真的把 target dummy 踢到旁邊，等一下再去踢回來。',
             gaze: { x: 0.48, y: -0.08 },
             marker: { left: '70%', bottom: '24%' },
@@ -2501,7 +2549,7 @@ $serverChecks = [
             motion: 'dance_short',
             animation: 'walk_cycle',
             sceneAction: 'touch',
-            walkTo: { x: -28, y: 8, scale: 1.03 },
+            walkTo: { x: -50, y: 20, scale: 1.03 },
             text: '我沿著模型圈巡場，走一圈、摸一下道具、再換下一個目標。這才比較像活在 Three.js 場景裡。',
             gaze: { x: 0.18, y: 0 },
             marker: { left: '52%', bottom: '31%' },
@@ -2596,6 +2644,27 @@ $serverChecks = [
       }
 
       playCustomAnimation(name) {
+        const vrmaMap = {
+          walk_cycle: 'motions/showcase/davinci2_walking.vrma',
+          point_right: 'motions/showcase/davinci_strongGesture.vrma',
+          point_left: 'motions/showcase/davinci_strongGesture.vrma',
+          hands_waist: 'motions/showcase/davinci_annoyedHeadShake.vrma',
+          shy_wave: 'motions/showcase/davinci_happyHandGesture.vrma',
+          twirl: 'motions/showcase/davinci_happyIdle.vrma',
+          curious_peek: 'motions/showcase/davinci_thinking.vrma',
+          touch_model: 'motions/showcase/davinci2_push.vrma',
+          crouch_touch: 'motions/showcase/davinci2_crouchToStand.vrma',
+          kick_forward: 'motions/showcase/davinci_angryGesture.vrma',
+          punch_forward: 'motions/showcase/davinci_strongGesture.vrma',
+        };
+
+        const vrmaUrl = vrmaMap[name];
+        if (vrmaUrl && this.mascot.motion?.playVrmaFile) {
+          const resolvedUrl = new URL(vrmaUrl, baseUrl).href;
+          this.mascot.motion.playVrmaFile(resolvedUrl, { loop: false, originalName: name });
+          return true;
+        }
+
         const animationData = buildCustomAnimation(name, this.mascot);
         if (!animationData) return false;
         this.mascot.motion?.playCustom?.(animationData, { loop: false });
@@ -2617,7 +2686,9 @@ $serverChecks = [
         setSceneFocus(event);
         setMotionFocus(event);
         this.propLayer?.focus(event.prop);
-        this.walker?.moveTo(event.walkTo || { x: 0, y: 0, scale: 1 });
+        const travelDuration = this.walker
+          ? await this.walker.moveTo(event.walkTo || { x: 0, y: 0, scale: 1 })
+          : 80;
         if (this.gazeDirector) {
           this.gazeDirector.focusEvent(event);
         } else {
@@ -2625,7 +2696,7 @@ $serverChecks = [
         }
         this.mascot.clearQueue?.();
         appendLog(`${source}: ${event.label} @ ${event.walkTo?.roomPath || 'center'}`);
-        await sleep(event.walkTo ? 620 : 80);
+        await sleep(event.walkTo ? travelDuration : 80);
         this.mascot.act?.(this.policyStateFor(event), {
           trigger: event.semanticMotionId || event.label,
           selectedFeature: event.topic !== 'release',
@@ -2664,6 +2735,12 @@ $serverChecks = [
 
       const mascot = new runtime.VrmMascot(stage, {
         semanticMotionLibraryUrl: urls.semanticMotionLibrary,
+        enableTts: ttsToggle?.checked ?? false,
+      });
+
+      // TTS 即時切換
+      ttsToggle?.addEventListener('change', () => {
+        mascot._enableTts = ttsToggle.checked;
       });
       window.alicia = mascot;
 
@@ -2706,7 +2783,12 @@ $serverChecks = [
 
       const director = new AutoDirector(mascot, propLayer, walker, gazeDirector);
       window.aliciaDirector = director;
-      director.start();
+      if (noAutoDirector) {
+        director.setAuto(false);
+        appendLog('auto director disabled by query flag');
+      } else {
+        director.start();
+      }
 
       directorToggle?.addEventListener('click', () => {
         director.setAuto(!director.auto);

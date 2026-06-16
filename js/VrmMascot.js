@@ -304,6 +304,9 @@ export class VrmMascot {
   #actingBridge = null;
   #semanticMotionLibraryStatus = 'pending';
 
+  // 外部選項
+  #options = {};
+
   // 狀態監控
   #isUserInteracting = false;
 
@@ -367,6 +370,7 @@ export class VrmMascot {
       this.#emitIntentUpdate();
     };
 
+    this.#options = options;
     this.#init3D(options);
     this.#startLoop();
     this.#bindResize();
@@ -419,6 +423,13 @@ export class VrmMascot {
 
   /** @returns {ToolRegistry} */
   get toolRegistry() { return this.tools; }
+
+  /** @returns {object} 建構選項（含 enableTts 等） */
+  get options() { return this.#options; }
+
+  /** @type {boolean} enableTts 捷徑 */
+  get _enableTts() { return !!this.#options.enableTts; }
+  set _enableTts(val) { this.#options.enableTts = !!val; }
 
   /** @returns {boolean} */
   get isUserInteracting() { return this.#isUserInteracting; }
@@ -1120,7 +1131,7 @@ export class VrmMascot {
             });
 
             // 綁定子系統
-            this.#motion.setVrm(vrm);
+            this.#motion.setVrm(vrm, url);
             await this.#loadPosePresetForModel(url);
             this.#expression.setVrm(vrm);
             this.#lookAtCtrl.setVrm(vrm);

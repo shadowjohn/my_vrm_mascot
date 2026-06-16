@@ -4,9 +4,9 @@ Generated: 2026-06-16T01:01:22+08:00
 
 ## Summary
 
-- Selected motions: 28
-- Showcase events: 28
-- Approved motions: 8
+- Selected motions: 29
+- Showcase events: 29
+- Approved motions: 9
 - Research preview motions: 20
 
 ## Semantic Coverage
@@ -16,7 +16,7 @@ Generated: 2026-06-16T01:01:22+08:00
 - thinking_chin: 4
 - point_target: 4
 - come_here: 4
-- wave_goodbye: 3
+- wave_goodbye: 4
 - victory_pose: 1
 - look_around: 2
 - hands_up_surrender: 1
@@ -209,7 +209,16 @@ Generated: 2026-06-16T01:01:22+08:00
 - Description: 右手在眼前約20cm處平舉，左手在下巴前10cm左右，這姿勢維持了4秒，像在翻找抽屜裡的文件
 - Usage: 右手在眼前約20cm處平舉，左手在下巴前10cm左右，這姿勢維持了4秒，像在翻找抽屜裡的文件
 
-### showcase_021 davinci2_pacingAndTalkingOnAPhone.vrma
+### showcase_021 davinci2_walking.vrma
+
+- Semantic: point_target
+- Category: point
+- Score: 3
+- License: approved
+- Description: 向流氓一樣的往前走路的姿勢
+- Usage: 向流氓一樣的往前走路的姿勢
+
+### showcase_022 davinci2_pacingAndTalkingOnAPhone.vrma
 
 - Semantic: point_target
 - Category: point
@@ -220,7 +229,7 @@ Generated: 2026-06-16T01:01:22+08:00
 - Usage: 一個長達37秒的演示，右手在嘴邊像是對著麥克風唱歌，或是對著人的耳朵講敲敲話
 一邊退著走一邊又往前，繞來繞去
 
-### showcase_022 davinci4_VRMA_04.vrma
+### showcase_023 davinci4_VRMA_04.vrma
 
 - Semantic: point_target
 - Category: point
@@ -228,15 +237,6 @@ Generated: 2026-06-16T01:01:22+08:00
 - License: research_preview
 - Description: 朝鏡頭伸出右手平舉，開了一槍，手因後座力舉起到面前，然後手臂90度轉到側身，舉槍的姿勢在耳邊，然後右手放下
 - Usage: 朝鏡頭伸出右手平舉，開了一槍，手因後座力舉起到面前，然後手臂90度轉到側身，舉槍的姿勢在耳邊，然後右手放下
-
-### showcase_023 davinci_dismissingGesture.vrma
-
-- Semantic: point_target
-- Category: point
-- Score: 3
-- License: research_preview
-- Description: 原本是立正舒服的姿勢，上半身往往左傾，右手往前揮了一下，手又回到立正的姿勢
-- Usage: 右手往前揮了一下
 
 ### showcase_024 davinci_lookAround.vrma
 
@@ -289,3 +289,12 @@ Generated: 2026-06-16T01:01:22+08:00
 - Description: 左手往外滑一下，右手往外滑一下，是一個往外滑的自由式
 - Usage: 左手往外滑一下，右手往外滑一下，是一個往外滑的自由式，用途不明但很可愛
 跟左、右的觀眾打招呼
+
+### showcase_029 davinci4_VRMA_02.vrma
+
+- Semantic: wave_goodbye
+- Category: warning
+- Score: 3
+- License: research_preview
+- Description: 蹲著然後站起，站起後雙手在二耳邊，左手放下，人側一邊，右手在耳邊與大家朝手，很可愛的打招呼
+- Usage: 蹲著然後站起，站起後雙手在二耳邊，左手放下，人側一邊，右手在耳邊與大家朝手，很可愛的打招呼

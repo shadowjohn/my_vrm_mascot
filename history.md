@@ -25,3 +25,5 @@
 - 新增 v0.1.5 Alicia Showcase 蹲姿辨識度修正：加深 `crouch_touch` hips 下沉、腿部彎曲與上身前傾，並拉長蹲姿停留，避免看起來只是微微彎腰。
 - 新增 v0.1.6 Alicia Showcase 對白/動作解耦修正：Director 對白改走 `dispatch('talking')` 且不帶 motion，避免 `performIntent()` preset motion 覆蓋 `crouch_touch` / kick / point 等 demo 專用互動動作。
 - 新增 v0.1.7 Alicia Showcase 蹲姿安全修正：`crouch_touch` 改成半蹲伸手，降低 hips 下沉與腿部 rotation，避免沒有 IK / foot locking 時出現骨架折疊；測試加入腿部角度上限。
+- 接續 antigravity 的 v0.1.8 Alicia Showcase VRMA playback 研究：`MotionController` 增加 VRMA 載入、retarget、AnimationMixer 播放與 walk speed 推估；`AliciaStageWalker` 會先 preload `walk_cycle` 再開始位移，修正第一次走路時動畫未 ready 導致的滑步。
+- 新增 v0.1.9 Alicia Showcase smoke mode：`demo.php?noAuto=1` / `?manual=1` 可停用自動 Director，方便單獨驗證走路、VRMA preload 與場景 root 位移同步；預設展示行為不變。

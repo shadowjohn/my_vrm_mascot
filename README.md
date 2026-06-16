@@ -234,6 +234,18 @@ v0.1.7 修正 `crouch_touch` 骨架折疊：
 - 移除高風險的大角度腿部折疊；在沒有 IK / foot locking 前，腿部 rotation 只允許小幅輔助。
 - 測試新增 `crouch_touch` 腿部角度上限，避免展示頁再次出現骨折感。
 
+v0.1.8 修正走路滑步與 VRMA 播放時序：
+
+- Antigravity 方向已接上 VRMA playback：`MotionController` 可載入 VRMA、retarget humanoid tracks，並用 `AnimationMixer` 播放。
+- `AliciaStageWalker.moveTo()` 改成先 preload `walk_cycle`，等 `davinci2_walking.vrma` ready 後才開始位移。
+- `runEvent()` 會 await walker travel duration，避免場景位移、對白、後續互動動作彼此蓋掉。
+- demo 加入 TTS 開關；預設仍關閉，不影響既有展示。
+
+v0.1.9 補強 Showcase smoke 驗證入口：
+
+- `demo.php?noAuto=1` 或 `demo.php?manual=1` 會停用自動 Director，方便單獨測試 `AliciaStageWalker.moveTo()`、VRMA preload 與走路同步。
+- 預設 `demo.php` 行為不變，仍會自動播放 showcase events。
+
 目前資料集狀態：
 
 | 項目 | 數量 |

@@ -4,8 +4,8 @@
   "source": "showcase_motion_pack.json",
   "generatedAt": "2026-06-16T01:01:22+08:00",
   "summary": {
-    "totalEvents": 28,
-    "sourceMotionCount": 28,
+    "totalEvents": 29,
+    "sourceMotionCount": 29,
     "semanticMotionCount": 10
   },
   "events": [
@@ -834,19 +834,18 @@
       "tone": "hot",
       "semanticMotionId": "point_target",
       "semanticLabel": "指向目標 / 看這裡",
-      "sourceMotion": "davinci2_pacingAndTalkingOnAPhone.vrma",
-      "sourceMotionPath": "motions/showcase/davinci2_pacingAndTalkingOnAPhone.vrma",
+      "sourceMotion": "davinci2_walking.vrma",
+      "sourceMotionPath": "motions/showcase/davinci2_walking.vrma",
       "motionCategory": "point",
       "motionScore": 3,
-      "label": "指向目標 / 看這裡 · davinci2_pacingAndTalkingOnAPhone.vrma",
+      "label": "指向目標 / 看這裡 · davinci2_walking.vrma",
       "storyBeat": "Showcase 21 / point",
-      "directive": "Alicia replays a mined human description from davinci2_pacingAndTalkingOnAPhone.vrma.",
-      "text": "我從 davinci2_pacingAndTalkingOnAPhone.vrma 挖到這個：一個長達37秒的演示，右手在嘴邊像是對著麥克風唱歌，或是對著人的耳朵講敲敲話 一邊退著走一邊又往前，繞來繞去。用途像是「一個長達37秒的演示，右手在嘴邊像是對著麥克風唱歌，或是對著人的耳朵講敲敲話 一邊退著走一邊又往前，繞來繞去」，可以拿來一個長達37秒的演示，右手在嘴邊像是對著麥克風唱歌，或是對著人的耳朵講敲敲話。",
-      "minedDescription": "一個長達37秒的演示，右手在嘴邊像是對著麥克風唱歌，或是對著人的耳朵講敲敲話\n一邊退著走一邊又往前，繞來繞去",
-      "usageDescription": "一個長達37秒的演示，右手在嘴邊像是對著麥克風唱歌，或是對著人的耳朵講敲敲話\n一邊退著走一邊又往前，繞來繞去",
+      "directive": "Alicia replays a mined human description from davinci2_walking.vrma.",
+      "text": "我從 davinci2_walking.vrma 挖到這個：向流氓一樣的往前走路的姿勢。用途像是「向流氓一樣的往前走路的姿勢」，可以拿來向流氓一樣的往前走路的姿勢。",
+      "minedDescription": "向流氓一樣的往前走路的姿勢",
+      "usageDescription": "向流氓一樣的往前走路的姿勢",
       "agentUsage": [
-        "一個長達37秒的演示，右手在嘴邊像是對著麥克風唱歌，或是對著人的耳朵講敲敲話",
-        "一邊退著走一邊又往前，繞來繞去"
+        "向流氓一樣的往前走路的姿勢"
       ],
       "selectionReason": "high-scoring human-described motion sample",
       "runtimeMotionStatus": "metadata_ready"
@@ -875,18 +874,19 @@
       "tone": "hot",
       "semanticMotionId": "point_target",
       "semanticLabel": "指向目標 / 看這裡",
-      "sourceMotion": "davinci4_VRMA_04.vrma",
-      "sourceMotionPath": "motions/showcase/davinci4_VRMA_04.vrma",
+      "sourceMotion": "davinci2_pacingAndTalkingOnAPhone.vrma",
+      "sourceMotionPath": "motions/showcase/davinci2_pacingAndTalkingOnAPhone.vrma",
       "motionCategory": "point",
       "motionScore": 3,
-      "label": "指向目標 / 看這裡 · davinci4_VRMA_04.vrma",
+      "label": "指向目標 / 看這裡 · davinci2_pacingAndTalkingOnAPhone.vrma",
       "storyBeat": "Showcase 22 / point",
-      "directive": "Alicia replays a mined human description from davinci4_VRMA_04.vrma.",
-      "text": "我從 davinci4_VRMA_04.vrma 挖到這個：朝鏡頭伸出右手平舉，開了一槍，手因後座力舉起到面前，然後手臂90度轉到側身，舉槍的姿勢在耳邊，然後右手放下。用途像是「朝鏡頭伸出右手平舉，開了一槍，手因後座力舉起到面前，然後手臂90度轉到側身，舉槍的姿勢在耳邊，然後右手放下」，可以拿來朝鏡頭伸出右手平舉，開了一槍，手因後座力舉起到面前，然後手臂90度轉到側身，舉槍的姿勢在耳邊，然後右手放下。",
-      "minedDescription": "朝鏡頭伸出右手平舉，開了一槍，手因後座力舉起到面前，然後手臂90度轉到側身，舉槍的姿勢在耳邊，然後右手放下",
-      "usageDescription": "朝鏡頭伸出右手平舉，開了一槍，手因後座力舉起到面前，然後手臂90度轉到側身，舉槍的姿勢在耳邊，然後右手放下",
+      "directive": "Alicia replays a mined human description from davinci2_pacingAndTalkingOnAPhone.vrma.",
+      "text": "我從 davinci2_pacingAndTalkingOnAPhone.vrma 挖到這個：一個長達37秒的演示，右手在嘴邊像是對著麥克風唱歌，或是對著人的耳朵講敲敲話 一邊退著走一邊又往前，繞來繞去。用途像是「一個長達37秒的演示，右手在嘴邊像是對著麥克風唱歌，或是對著人的耳朵講敲敲話 一邊退著走一邊又往前，繞來繞去」，可以拿來一個長達37秒的演示，右手在嘴邊像是對著麥克風唱歌，或是對著人的耳朵講敲敲話。",
+      "minedDescription": "一個長達37秒的演示，右手在嘴邊像是對著麥克風唱歌，或是對著人的耳朵講敲敲話\n一邊退著走一邊又往前，繞來繞去",
+      "usageDescription": "一個長達37秒的演示，右手在嘴邊像是對著麥克風唱歌，或是對著人的耳朵講敲敲話\n一邊退著走一邊又往前，繞來繞去",
       "agentUsage": [
-        "朝鏡頭伸出右手平舉，開了一槍，手因後座力舉起到面前，然後手臂90度轉到側身，舉槍的姿勢在耳邊，然後右手放下"
+        "一個長達37秒的演示，右手在嘴邊像是對著麥克風唱歌，或是對著人的耳朵講敲敲話",
+        "一邊退著走一邊又往前，繞來繞去"
       ],
       "selectionReason": "high-scoring human-described motion sample",
       "runtimeMotionStatus": "metadata_ready"
@@ -915,18 +915,18 @@
       "tone": "hot",
       "semanticMotionId": "point_target",
       "semanticLabel": "指向目標 / 看這裡",
-      "sourceMotion": "davinci_dismissingGesture.vrma",
-      "sourceMotionPath": "motions/showcase/davinci_dismissingGesture.vrma",
+      "sourceMotion": "davinci4_VRMA_04.vrma",
+      "sourceMotionPath": "motions/showcase/davinci4_VRMA_04.vrma",
       "motionCategory": "point",
       "motionScore": 3,
-      "label": "指向目標 / 看這裡 · davinci_dismissingGesture.vrma",
+      "label": "指向目標 / 看這裡 · davinci4_VRMA_04.vrma",
       "storyBeat": "Showcase 23 / point",
-      "directive": "Alicia replays a mined human description from davinci_dismissingGesture.vrma.",
-      "text": "我從 davinci_dismissingGesture.vrma 挖到這個：原本是立正舒服的姿勢，上半身往往左傾，右手往前揮了一下，手又回到立正的姿勢。用途像是「右手往前揮了一下」，可以拿來原本是立正舒服的姿勢，上半身往往左傾，右手往前揮了一下，手又回到立正的姿勢。",
-      "minedDescription": "原本是立正舒服的姿勢，上半身往往左傾，右手往前揮了一下，手又回到立正的姿勢",
-      "usageDescription": "右手往前揮了一下",
+      "directive": "Alicia replays a mined human description from davinci4_VRMA_04.vrma.",
+      "text": "我從 davinci4_VRMA_04.vrma 挖到這個：朝鏡頭伸出右手平舉，開了一槍，手因後座力舉起到面前，然後手臂90度轉到側身，舉槍的姿勢在耳邊，然後右手放下。用途像是「朝鏡頭伸出右手平舉，開了一槍，手因後座力舉起到面前，然後手臂90度轉到側身，舉槍的姿勢在耳邊，然後右手放下」，可以拿來朝鏡頭伸出右手平舉，開了一槍，手因後座力舉起到面前，然後手臂90度轉到側身，舉槍的姿勢在耳邊，然後右手放下。",
+      "minedDescription": "朝鏡頭伸出右手平舉，開了一槍，手因後座力舉起到面前，然後手臂90度轉到側身，舉槍的姿勢在耳邊，然後右手放下",
+      "usageDescription": "朝鏡頭伸出右手平舉，開了一槍，手因後座力舉起到面前，然後手臂90度轉到側身，舉槍的姿勢在耳邊，然後右手放下",
       "agentUsage": [
-        "原本是立正舒服的姿勢，上半身往往左傾，右手往前揮了一下，手又回到立正的姿勢"
+        "朝鏡頭伸出右手平舉，開了一槍，手因後座力舉起到面前，然後手臂90度轉到側身，舉槍的姿勢在耳邊，然後右手放下"
       ],
       "selectionReason": "high-scoring human-described motion sample",
       "runtimeMotionStatus": "metadata_ready"
@@ -1127,6 +1127,44 @@
       "agentUsage": [
         "左手往外滑一下，右手往外滑一下，是一個往外滑的自由式，用途不明但很可愛",
         "跟左、右的觀眾打招呼"
+      ],
+      "selectionReason": "high-scoring human-described motion sample",
+      "runtimeMotionStatus": "metadata_ready"
+    },
+    {
+      "id": "showcase_event_029",
+      "topic": "release",
+      "prop": "releaseCore",
+      "intent": "greeting",
+      "motion": "wave",
+      "animation": "shy_wave",
+      "walkTo": {
+        "x": -50,
+        "y": 2,
+        "scale": 1.04
+      },
+      "gaze": {
+        "x": -0.44,
+        "y": 0.12
+      },
+      "marker": {
+        "left": "30%",
+        "bottom": "42%"
+      },
+      "semanticMotionId": "wave_goodbye",
+      "semanticLabel": "揮手告別 / 打招呼",
+      "sourceMotion": "davinci4_VRMA_02.vrma",
+      "sourceMotionPath": "motions/showcase/davinci4_VRMA_02.vrma",
+      "motionCategory": "warning",
+      "motionScore": 3,
+      "label": "揮手告別 / 打招呼 · davinci4_VRMA_02.vrma",
+      "storyBeat": "Showcase 29 / warning",
+      "directive": "Alicia replays a mined human description from davinci4_VRMA_02.vrma.",
+      "text": "我從 davinci4_VRMA_02.vrma 挖到這個：蹲著然後站起，站起後雙手在二耳邊，左手放下，人側一邊，右手在耳邊與大家朝手，很可愛的打招呼。用途像是「蹲著然後站起，站起後雙手在二耳邊，左手放下，人側一邊，右手在耳邊與大家朝手，很可愛的打招呼」，可以拿來蹲著然後站起，站起後雙手在二耳邊，左手放下，人側一邊，右手在耳邊與大家朝手，很可愛的打招呼。",
+      "minedDescription": "蹲著然後站起，站起後雙手在二耳邊，左手放下，人側一邊，右手在耳邊與大家朝手，很可愛的打招呼",
+      "usageDescription": "蹲著然後站起，站起後雙手在二耳邊，左手放下，人側一邊，右手在耳邊與大家朝手，很可愛的打招呼",
+      "agentUsage": [
+        "蹲著然後站起，站起後雙手在二耳邊，左手放下，人側一邊，右手在耳邊與大家朝手，很可愛的打招呼"
       ],
       "selectionReason": "high-scoring human-described motion sample",
       "runtimeMotionStatus": "metadata_ready"

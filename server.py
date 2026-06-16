@@ -1,8 +1,12 @@
 import os
 import json
+import mimetypes
+import subprocess
 from datetime import datetime
 from pathlib import Path
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
+
+mimetypes.add_type('text/html', '.php')
 
 app = Flask(__name__, static_folder='.', static_url_path='')
 
@@ -255,6 +259,70 @@ def _upsert_motion_mining_entry(entries, entry):
 @app.route('/')
 def index():
     return app.send_static_file('index.html')
+
+
+@app.route('/demo.php')
+def serve_php():
+    try:
+        # Check if release demo.php exists, otherwise use the root one
+        php_file = BASE_DIR / "dist" / "releases" / "v0.1.0" / "demo.php"
+        if not php_file.is_file():
+            php_file = BASE_DIR / "demo.php"
+            cwd = BASE_DIR
+        else:
+            cwd = php_file.parent
+        res = subprocess.run(
+            ['php', str(php_file)],
+            cwd=str(cwd),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding='utf-8'
+        )
+        if res.returncode == 0:
+            return res.stdout
+        else:
+            return f"PHP Execution Error:<pre>{res.stderr}</pre>", 500
+    except Exception as e:
+        return f"Failed to run PHP: {str(e)}", 500
+
+
+@app.route('/js/vendor/<path:filepath>')
+def serve_vendor(filepath):
+    filename = os.path.basename(filepath)
+    vendor_path = BASE_DIR / "vendor" / filename
+    if vendor_path.is_file():
+        return send_from_directory(vendor_path.parent, vendor_path.name)
+    return "File not found", 404
+
+
+@app.route('/motions/<path:filepath>')
+def serve_motions(filepath):
+    filename = os.path.basename(filepath)
+
+    local_direct = LOCAL_VRMA_SAMPLE_DIR / filename
+    if local_direct.is_file():
+        return send_from_directory(LOCAL_VRMA_SAMPLE_DIR, filename)
+
+    examples_direct = VRMA_SAMPLE_DIR / filename
+    if examples_direct.is_file():
+        return send_from_directory(VRMA_SAMPLE_DIR, filename)
+
+    if LOCAL_VRMA_SAMPLE_DIR.exists():
+        for path in LOCAL_VRMA_SAMPLE_DIR.rglob(filename):
+            if path.is_file():
+                return send_from_directory(path.parent, path.name)
+
+    if VRMA_SAMPLE_DIR.exists():
+        for path in VRMA_SAMPLE_DIR.rglob(filename):
+            if path.is_file():
+                return send_from_directory(path.parent, path.name)
+
+    full_static_path = Path(app.static_folder) / "motions" / filepath
+    if full_static_path.is_file():
+        return send_from_directory(full_static_path.parent, full_static_path.name)
+
+    return "File not found", 404
 
 
 @app.route('/api/vrma-samples', methods=['GET'])
@@ -598,6 +666,23 @@ def llm_proxy():
         "motion": "wave"
     }
     return jsonify(response_data)
+
+
+@app.route('/alicia-runtime.js')
+def serve_runtime():
+    release_path = BASE_DIR / "dist" / "releases" / "v0.1.0" / "alicia-runtime.js"
+    if release_path.is_file():
+        return send_from_directory(release_path.parent, release_path.name)
+    return "File not found", 404
+
+
+@app.route('/manifests/<path:filepath>')
+def serve_manifests(filepath):
+    release_path = BASE_DIR / "dist" / "releases" / "v0.1.0" / "manifests" / filepath
+    if release_path.is_file():
+        return send_from_directory(release_path.parent, release_path.name)
+    return "File not found", 404
+
 
 if __name__ == '__main__':
     # 保護點 1：限制本機 127.0.0.1，關閉對外綁定
