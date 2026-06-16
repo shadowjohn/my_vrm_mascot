@@ -35,10 +35,10 @@ Planned command:
 build_release.bat v0.1.0
 ```
 
-The script should create a local release output directory such as:
+The script must create a local release output directory at:
 
 ```text
-dist/alicia/releases/v0.1.0/
+dist/releases/v0.1.0/
 ```
 
 The deploy step copies that directory to the approved public asset root on the host.
@@ -141,8 +141,36 @@ Rules:
 
 - Manifests may reference source motion names even when physical VRMA files are not included.
 - `asset_manifest.json` lists every file physically included in the release package.
+- Every VRMA entry in `asset_manifest.json` must include `licenseStatus`, `source`, and `distributable`.
 - `source_manifest.json` records upstream sources and license notes for included third-party assets.
 - Release builds must not infer asset inclusion from local mining folders.
+
+Minimum `asset_manifest.json` shape:
+
+```json
+{
+  "assets": [
+    {
+      "path": "motions/Thinking.vrma",
+      "type": "vrma",
+      "licenseStatus": "approved",
+      "distributable": true,
+      "source": "local-approved"
+    }
+  ]
+}
+```
+
+`licenseStatus` values should be one of:
+
+```text
+approved
+local_only
+unknown
+blocked
+```
+
+Only assets with `licenseStatus: "approved"` and `distributable: true` may be copied into release packages.
 
 ## Runtime Entry
 
@@ -220,7 +248,7 @@ Example:
 
 Rules:
 
-- `version` must match the release directory name without the leading `v`.
+- `version` must match the release directory name without the leading `v`; `releases/v0.1.0/` must contain `"version": "0.1.0"`.
 - `entry` must point to `alicia-runtime.js`.
 - `containsThirdPartyAssets` must be accurate for the package.
 - `examples` must list files that exist in the package.
@@ -236,10 +264,10 @@ build_release.bat v0.1.0
 
 Responsibilities:
 
-1. Validate the version string.
+1. Validate the version string as `vX.Y.Z`.
 2. Refuse to overwrite an existing release directory unless an explicit force flag is later added.
 3. Run required verification commands.
-4. Create the release directory.
+4. Create the fixed release directory `dist/releases/vX.Y.Z/`.
 5. Copy only allowlisted runtime files.
 6. Copy only approved assets.
 7. Generate or copy manifests.
@@ -257,6 +285,7 @@ foreach ($test in $tests) {
 python .\scratch\test_motion_profile_api.py
 python -m py_compile .\server.py
 git diff --check
+git diff --cached --check
 ```
 
 The build script should fail fast if any verification command fails.

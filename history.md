@@ -14,3 +14,4 @@
 - 新增 M18 設計範圍：`/api/alicia/actions`、`/api/alicia/actions/next`、`/api/alicia/actions/:id/result`、in-memory queue、runtime polling、`performIntent` / `act` mapping 與測試；排除 WebSocket、SSE、Motion Mine、線上部署與 local VRMA binary 管理。
 - 新增 Alicia release/deploy 設計方向：本機 repo 是唯一開發來源，3wa 或其他部署主機只吃版本化 release build，`current` 指向穩定版，專案只引用 `current/alicia-runtime.js`，客製化以 adapter 完成。
 - v0.1.0 release package 定義為 runtime、approved assets、manifests、usage docs、skill interface 與 adapter examples；排除 `scratch/`、測試、Motion Mine、local assets、cache、logs 與大量內部 superpowers specs。
+- 補強 release 鎖點：`build_release.bat vX.Y.Z` 固定輸出到 `dist/releases/vX.Y.Z/`，`release.json.version` 不含 `v`，且 `asset_manifest.json` 的每個 VRMA 必須列出 `licenseStatus`、`source`、`distributable`。
