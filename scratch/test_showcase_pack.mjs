@@ -30,15 +30,15 @@ function readJson(path) {
 
 function testGeneratorExistsAndIsDeterministic() {
   assert.equal(existsSync(GENERATOR_PATH), true, 'generator should exist');
-  const beforePack = readFileSync(PACK_PATH, 'utf8');
-  const beforeEvents = readFileSync(EVENTS_PATH, 'utf8');
+  const beforePack = readFileSync(PACK_PATH, 'utf8').replace(/\r\n/g, '\n');
+  const beforeEvents = readFileSync(EVENTS_PATH, 'utf8').replace(/\r\n/g, '\n');
   const result = spawnSync('node', [GENERATOR_PATH], {
     cwd: process.cwd(),
     encoding: 'utf8',
   });
   assert.equal(result.status, 0, `generator should pass\n${result.stdout}\n${result.stderr}`);
-  assert.equal(readFileSync(PACK_PATH, 'utf8'), beforePack, 'pack export should be deterministic');
-  assert.equal(readFileSync(EVENTS_PATH, 'utf8'), beforeEvents, 'event export should be deterministic');
+  assert.equal(readFileSync(PACK_PATH, 'utf8').replace(/\r\n/g, '\n'), beforePack, 'pack export should be deterministic');
+  assert.equal(readFileSync(EVENTS_PATH, 'utf8').replace(/\r\n/g, '\n'), beforeEvents, 'event export should be deterministic');
 }
 
 function testShowcasePackUsesMinedDescriptions() {
@@ -126,7 +126,7 @@ function testDemoPropsUseSharedThreeScene() {
 }
 
 function testDemoStagesPhysicalContactAndGaze() {
-  const demo = readFileSync(DEMO_PATH, 'utf8');
+  const demo = readFileSync(DEMO_PATH, 'utf8').replace(/\r\n/g, '\n');
   const motionController = readFileSync(MOTION_CONTROLLER_PATH, 'utf8');
   const crouchBlock = demo.match(/crouch_touch:\s*{([\s\S]*?)\n\s*},\n\s*kick_forward:/)?.[1] || '';
   const hipsY = [...crouchBlock.matchAll(/pos:\s*\[[^,\]]+,\s*([^,\]]+)/g)]
@@ -192,6 +192,38 @@ function testDemoStagesPhysicalContactAndGaze() {
   assert.match(demo, /buildCustomAnimation\(name, this\.mascot\)/);
 }
 
+function testDemoAliciaScenePlaygroundIntegration() {
+  const demo = readFileSync(DEMO_PATH, 'utf8');
+  const mascot = readFileSync(join('js', 'VrmMascot.js'), 'utf8');
+  const motionController = readFileSync(join('js', 'MotionController.js'), 'utf8');
+
+  // Verify imports and humanization level 4 setup
+  assert.match(demo, /import\s*{\s*AutoDirectorLite\s*}\s*from\s*['"]\.\/js\/AutoDirectorLite\.js['"]/);
+  assert.match(demo, /enableHumanization\?\.\({\s*profile:\s*['"]alicia['"],\s*level:\s*4\s*}\)/);
+  assert.match(demo, /new\s+AutoDirectorLite\(/);
+
+  // Verify birthday cake prop and placement
+  assert.match(demo, /birthdayCake:\s*{\s*position:\s*\[0,\s*-0\.92,\s*0\.8\],\s*scale:\s*0\.3/);
+  assert.match(demo, /birthdayCake:\s*{\s*position:\s*\[0,\s*-1\.38,\s*0\.7\],\s*scale:\s*0\.6/);
+  assert.match(demo, /#createBirthdayCake\(\)/);
+
+  // Verify candle flame wobble animation
+  assert.match(demo, /name\s*===\s*['"]birthdayCake['"]/);
+  assert.match(demo, /getObjectByName\(['"]Flame['"]\)/);
+  assert.match(demo, /flame\.scale\.set/);
+
+  // Verify cake event and custom sequence handling
+  assert.match(demo, /topic:\s*['"]cake['"]/);
+  assert.match(demo, /event\.topic\s*===\s*['"]cake['"]/);
+  assert.match(demo, /triggerGesture\?\.\(['"]touch_face['"]\)/);
+  assert.match(demo, /triggerGesture\?\.\(['"]stretch['"]\)/);
+
+  // Ensure no production defaults changed
+  assert.doesNotMatch(mascot, /enableHumanization\s*\([^)]*level:\s*4/);
+  assert.doesNotMatch(motionController, /enableHumanization\s*\([^)]*level:\s*4/);
+}
+
+
 async function run() {
   const tests = [
     testGeneratorExistsAndIsDeterministic,
@@ -201,6 +233,7 @@ async function run() {
     testDemoPrefersShowcaseEvents,
     testDemoPropsUseSharedThreeScene,
     testDemoStagesPhysicalContactAndGaze,
+    testDemoAliciaScenePlaygroundIntegration,
   ];
 
   for (const test of tests) {

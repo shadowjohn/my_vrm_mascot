@@ -449,6 +449,12 @@ $serverChecks = [
       right: 126px;
     }
 
+    .toy-card.cake {
+      bottom: 310px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
     .patrol-marker {
       position: absolute;
       z-index: 3;
@@ -888,6 +894,11 @@ $serverChecks = [
       <small>inspect / warn / bonk<br>interaction dummy</small>
       <span class="chip">LIVE</span>
     </button>
+    <button type="button" class="toy-card cake" data-topic="cake" data-prop="birthdayCake">
+      <strong>birthday cake</strong>
+      <small>thinking / gesture / success<br>celebration prop</small>
+      <span class="chip">LIVE</span>
+    </button>
     <div class="patrol-marker" data-patrol-marker></div>
     <div id="speech-bubble"></div>
   </main>
@@ -1050,6 +1061,7 @@ $serverChecks = [
   <script src="./js/vendor/OrbitControls.js"></script>
   <script src="./js/vendor/three-vrm.min.js"></script>
   <script type="module">
+    import { AutoDirectorLite } from './js/AutoDirectorLite.js';
     const stage = document.getElementById('alicia-stage');
     const bubble = document.getElementById('speech-bubble');
     const toyCards = Array.from(document.querySelectorAll('[data-topic]'));
@@ -1717,6 +1729,7 @@ $serverChecks = [
         this.props.assetCrate = this.#createAssetCrate();
         this.props.motionOrb = this.#createMotionOrb();
         this.props.warningTarget = this.#createWarningTarget();
+        this.props.birthdayCake = this.#createBirthdayCake();
 
         // model ring: demo props are grounded around Alicia instead of floating as badges.
         const placements = this.usesMascotScene
@@ -1725,12 +1738,14 @@ $serverChecks = [
               assetCrate: { position: [1.08, -0.92, 0.72], scale: 0.32, color: 0x8fd17c },
               motionOrb: { position: [-0.92, -0.86, -0.76], scale: 0.24, color: 0xb6a1ff },
               warningTarget: { position: [0.92, -0.86, -0.82], scale: 0.26, color: 0xff7a7a },
+              birthdayCake: { position: [0, -0.92, 0.8], scale: 0.3, color: 0xffd700 },
             }
           : {
               releaseCore: { position: [-1.44, -1.38, 0.66], scale: 0.58, color: 0x63b3ff },
               assetCrate: { position: [1.34, -1.38, 0.58], scale: 0.64, color: 0x8fd17c },
               motionOrb: { position: [-1.0, -1.12, -0.54], scale: 0.44, color: 0xb6a1ff },
               warningTarget: { position: [0.98, -1.14, -0.58], scale: 0.48, color: 0xff7a7a },
+              birthdayCake: { position: [0, -1.38, 0.7], scale: 0.6, color: 0xffd700 },
             };
 
         for (const [name, prop] of Object.entries(this.props)) {
@@ -1915,6 +1930,54 @@ $serverChecks = [
         return group;
       }
 
+      #createBirthdayCake() {
+        const group = new THREE.Group();
+        group.name = 'BirthdayCake';
+
+        // Cake base layer
+        const cakeGeo = new THREE.CylinderGeometry(0.5, 0.5, 0.4, 32);
+        const cakeMat = new THREE.MeshStandardMaterial({
+          color: 0xffa3b1, // pink cake
+          roughness: 0.6,
+          metalness: 0.1
+        });
+        const cake = new THREE.Mesh(cakeGeo, cakeMat);
+        cake.position.y = 0.2;
+        group.add(cake);
+
+        // Cream layer
+        const creamGeo = new THREE.CylinderGeometry(0.52, 0.52, 0.08, 32);
+        const creamMat = new THREE.MeshStandardMaterial({
+          color: 0xffffff, // white cream
+          roughness: 0.5
+        });
+        const cream = new THREE.Mesh(creamGeo, creamMat);
+        cream.position.y = 0.36;
+        group.add(cream);
+
+        // Candle
+        const candleGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.24, 16);
+        const candleMat = new THREE.MeshStandardMaterial({
+          color: 0xffd700, // yellow candle
+          roughness: 0.4
+        });
+        const candle = new THREE.Mesh(candleGeo, candleMat);
+        candle.position.y = 0.52;
+        group.add(candle);
+
+        // Flame
+        const flameGeo = new THREE.ConeGeometry(0.04, 0.12, 16);
+        const flameMat = new THREE.MeshBasicMaterial({
+          color: 0xff7a00 // orange
+        });
+        const flame = new THREE.Mesh(flameGeo, flameMat);
+        flame.position.y = 0.66;
+        flame.name = 'Flame';
+        group.add(flame);
+
+        return group;
+      }
+
       focus(name) {
         this.activeProp = this.props[name] || null;
       }
@@ -2067,6 +2130,15 @@ $serverChecks = [
           const scale = baseScale * (active ? 1.12 + Math.sin(t * 5) * 0.04 : 1) * (1 + contactScale);
           prop.scale.setScalar(scale);
           prop.visible = true;
+          if (name === 'birthdayCake') {
+            const flame = prop.getObjectByName('Flame');
+            if (flame) {
+              const scaleWobble = 1.0 + Math.sin(t * 15) * 0.15 + Math.cos(t * 22) * 0.08;
+              flame.scale.set(scaleWobble, scaleWobble * 1.2, scaleWobble);
+              flame.position.x = Math.sin(t * 18) * 0.01;
+              flame.position.z = Math.cos(t * 14) * 0.01;
+            }
+          }
         }
         if (this.renderer && this.camera) {
           this.renderer.render(this.scene, this.camera);
@@ -2513,6 +2585,20 @@ $serverChecks = [
             gaze: { x: 0.5, y: 0.1 },
             marker: { left: '66%', bottom: '36%' },
           },
+          {
+            topic: 'cake',
+            prop: 'birthdayCake',
+            storyBeat: 'Chapter 6 / Birthday Celebration',
+            label: '許願吃蛋糕',
+            directive: 'Alicia celebrates her birthday with a lovely cake.',
+            intent: 'success',
+            motion: 'idle',
+            animation: 'thinking',
+            walkTo: { x: 0, y: -25, scale: 1.05, roomPath: 'center' },
+            text: '哇！是生日蛋糕耶！上面還有蠟燭，太精緻了吧。讓我許個願，嗯...讓我想想...',
+            gaze: { x: 0, y: -0.22 },
+            marker: { left: '50%', bottom: '38%' },
+          },
         ];
       }
     }
@@ -2527,6 +2613,7 @@ $serverChecks = [
         this.timer = null;
         this.lastIndex = -1;
         this.storyQueue = [];
+        this.isExecuting = false;
         this.story = new ToyRoomStory(releaseStats);
         this.storyEvents = this.story.build();
         this.storyIndex = 0;
@@ -2730,54 +2817,103 @@ $serverChecks = [
 
       async runEvent(event, source) {
         if (!event || !this.mascot) return;
-        window.clearTimeout(this.timer);
-        setCheck('intent', 'wait', 'RUN');
-        setSceneFocus(event);
-        setMotionFocus(event);
-        this.propLayer?.focus(event.prop);
-        const faceWorld = this.propLayer?.getPropWorldPosition?.(event.prop) || null;
-        const travelDuration = this.walker
-          ? await this.walker.moveTo(event.walkTo || { x: 0, y: 0, scale: 1 }, {
-              faceWorld,
-              forceWalk: Boolean(event.walkTo),
-            })
-          : 80;
-        if (this.gazeDirector) {
-          this.gazeDirector.focusEvent(event);
-        } else {
-          this.mascot.lookAt?.setTarget?.('point', event.gaze || { x: 0, y: 0 });
+        this.isExecuting = true;
+        try {
+          window.clearTimeout(this.timer);
+          setCheck('intent', 'wait', 'RUN');
+          setSceneFocus(event);
+          setMotionFocus(event);
+          this.propLayer?.focus(event.prop);
+          const faceWorld = this.propLayer?.getPropWorldPosition?.(event.prop) || null;
+          const travelDuration = this.walker
+            ? await this.walker.moveTo(event.walkTo || { x: 0, y: 0, scale: 1 }, {
+                faceWorld,
+                forceWalk: Boolean(event.walkTo),
+              })
+            : 80;
+          if (this.gazeDirector) {
+            this.gazeDirector.focusEvent(event);
+          } else {
+            this.mascot.lookAt?.setTarget?.('point', event.gaze || { x: 0, y: 0 });
+          }
+          this.mascot.clearQueue?.();
+          appendLog(`${source}: ${event.label} @ ${event.walkTo?.roomPath || 'center'}`);
+          await sleep(event.walkTo ? travelDuration : 80);
+
+          if (event.topic === 'cake') {
+            // Custom cake event sequence!
+            this.mascot.act?.('thinking', {
+              trigger: 'birthday_cake_thinking',
+              selectedFeature: false,
+              source: 'scene_playground',
+            });
+            this.mascot.dispatch?.('talking', {
+              text: '哇！是生日蛋糕耶！上面還有蠟燭，太精緻了吧。讓我許個願，嗯...讓我想想...',
+              emotion: 'joy',
+            });
+            await sleep(2500);
+
+            this.mascot.triggerGesture?.('touch_face');
+            if (window.autoDirectorLite) {
+              window.autoDirectorLite.notifyManualGesture('touch_face');
+            }
+            this.mascot.dispatch?.('talking', {
+              text: '許什麼願好呢？對了！希望大家天天開心，寫 code 都沒有 bug！',
+              emotion: 'joy',
+            });
+            await sleep(3500);
+
+            this.mascot.triggerGesture?.('stretch');
+            if (window.autoDirectorLite) {
+              window.autoDirectorLite.notifyManualGesture('stretch');
+            }
+            this.mascot.dispatch?.('talking', {
+              text: '呼～祝我生日快樂！願望一定會實現的！',
+              emotion: 'joy',
+            });
+            await sleep(4500);
+
+            this.mascot.act?.('success', {
+              trigger: 'birthday_cake_success',
+              selectedFeature: false,
+              source: 'scene_playground',
+            });
+            this.mascot.dispatch?.('talking', {
+              text: '好耶！吹熄蠟燭，呼～！',
+              emotion: 'joy',
+            });
+            await sleep(2500);
+          } else {
+            this.mascot.act?.(this.policyStateFor(event), {
+              trigger: event.semanticMotionId || event.label,
+              selectedFeature: event.topic !== 'release',
+              source: 'scene_playground',
+            });
+            await sleep(80);
+            this.mascot.dispatch?.('talking', {
+              text: event.text,
+              emotion: this.emotionFor(event),
+            });
+            if (event.animation) {
+              await sleep(160);
+              const played = this.playCustomAnimation(event.animation);
+              appendLog(`${played ? 'pose' : 'pose-missing'}: ${event.animation}`);
+            }
+            if (event.sceneAction) {
+              await sleep(220);
+              const contact = this.walker?.nudgeContact?.(event, this.propLayer);
+              const acted = this.propLayer?.runSceneAction?.(event);
+              appendLog(`${acted ? 'scene' : 'scene-missing'}: ${event.sceneAction} ${event.prop}${contact ? ' + contact' : ''}`);
+            }
+          }
+          this.queueFollowUp(event);
+          await sleep(320);
+          setCheck('intent', 'ok', 'OK');
+          refreshConsoleStatus();
+          this.scheduleNext();
+        } finally {
+          this.isExecuting = false;
         }
-        this.mascot.clearQueue?.();
-        appendLog(`${source}: ${event.label} @ ${event.walkTo?.roomPath || 'center'}`);
-        await sleep(event.walkTo ? travelDuration : 80);
-        this.mascot.act?.(this.policyStateFor(event), {
-          trigger: event.semanticMotionId || event.label,
-          selectedFeature: event.topic !== 'release',
-          source: 'scene_playground',
-        });
-        await sleep(80);
-        // Showcase demo 的身體動作交給 event.animation，對白只負責文字/表情/嘴型，
-        // 避免 performIntent 的 preset motion 蓋掉 crouch_touch / kick / point。
-        this.mascot.dispatch?.('talking', {
-          text: event.text,
-          emotion: this.emotionFor(event),
-        });
-        if (event.animation) {
-          await sleep(160);
-          const played = this.playCustomAnimation(event.animation);
-          appendLog(`${played ? 'pose' : 'pose-missing'}: ${event.animation}`);
-        }
-        if (event.sceneAction) {
-          await sleep(220);
-          const contact = this.walker?.nudgeContact?.(event, this.propLayer);
-          const acted = this.propLayer?.runSceneAction?.(event);
-          appendLog(`${acted ? 'scene' : 'scene-missing'}: ${event.sceneAction} ${event.prop}${contact ? ' + contact' : ''}`);
-        }
-        this.queueFollowUp(event);
-        await sleep(320);
-        setCheck('intent', 'ok', 'OK');
-        refreshConsoleStatus();
-        this.scheduleNext();
       }
     }
 
@@ -2817,6 +2953,7 @@ $serverChecks = [
       window.aliciaPropLayer = propLayer;
 
       await mascot.load(urls.model);
+      mascot.enableHumanization?.({ profile: 'alicia', level: 4 });
       configureDemoCamera(mascot);
       // 模型檔載入完成後，仍保留幾個 render frame 給材質與第一張畫面完成。
       await sleep(600);
@@ -2844,6 +2981,41 @@ $serverChecks = [
       } else {
         director.start();
       }
+
+      const autoDirectorLite = new AutoDirectorLite({
+        touchFaceIntervalSec: 90,
+        stretchIntervalSec: 180,
+        gestureCooldownSec: 8
+      });
+      window.autoDirectorLite = autoDirectorLite;
+
+      let lastTime = performance.now();
+      function tickAutoDirectorLite() {
+        const now = performance.now();
+        const dt = (now - lastTime) / 1000;
+        lastTime = now;
+
+        if (window.alicia && window.aliciaDirector) {
+          const m = window.alicia;
+          const d = window.aliciaDirector;
+          autoDirectorLite.configure({
+            enabled: d.auto && !d.isExecuting,
+            level: 4
+          });
+          autoDirectorLite.update(dt, {
+            playgroundActive: true,
+            currentAction: m.motion?.currentAction || 'idle',
+            isVrmaActive: m.motion?.isVrmaActive || false,
+            activeGesture: m.humanMotion?.debugState?.activeGesture || null,
+            onGesture: (name) => {
+              m.triggerGesture?.(name);
+              autoDirectorLite.notifyManualGesture(name);
+            }
+          });
+        }
+        requestAnimationFrame(tickAutoDirectorLite);
+      }
+      requestAnimationFrame(tickAutoDirectorLite);
 
       directorToggle?.addEventListener('click', () => {
         director.setAuto(!director.auto);

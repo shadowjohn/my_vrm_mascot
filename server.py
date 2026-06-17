@@ -393,6 +393,133 @@ def motion_mining_log():
         "path": "examples/m6_7_vrma_samples/review/mining_log.json",
     })
 
+
+def _scan_pose_library():
+    manifest_path = BASE_DIR / "motions" / "poses" / "pose_library_manifest.json"
+    poses_dir = BASE_DIR / "motions" / "poses"
+
+    poses = {}
+    if poses_dir.exists():
+        for path in sorted(poses_dir.rglob("*.json")):
+            if path == manifest_path:
+                continue
+            # Only include files inside a sub-category folder
+            try:
+                rel = path.relative_to(poses_dir)
+            except ValueError:
+                continue
+            if len(rel.parts) < 2:
+                continue
+
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    entry = json.load(f)
+            except Exception:
+                continue
+
+            if isinstance(entry, dict) and "id" in entry and "category" in entry and "label" in entry:
+                rel_path = path.relative_to(BASE_DIR).as_posix()
+                poses[entry["id"]] = {
+                    "id": entry["id"],
+                    "category": entry["category"],
+                    "label": entry["label"],
+                    "model": entry.get("model", "AliciaSolid"),
+                    "path": rel_path,
+                    "humanization": entry.get("humanization", {"profile": "alicia", "level": 2}),
+                    "qa": entry.get("qa", {"balance": 5, "silhouette": 5, "noTpose": True, "noArmCrossBody": True})
+                }
+
+    manifest = {
+        "schemaVersion": 1,
+        "poses": poses
+    }
+
+    poses_dir.mkdir(parents=True, exist_ok=True)
+    with open(manifest_path, 'w', encoding='utf-8') as f:
+        json.dump(manifest, f, ensure_ascii=False, indent=2)
+
+    return manifest
+
+
+@app.route('/api/pose-library', methods=['GET'])
+def get_pose_library():
+    manifest_path = BASE_DIR / "motions" / "poses" / "pose_library_manifest.json"
+    if not manifest_path.exists():
+        manifest = _scan_pose_library()
+    else:
+        try:
+            with open(manifest_path, 'r', encoding='utf-8') as f:
+                manifest = json.load(f)
+        except Exception:
+            manifest = _scan_pose_library()
+
+    return jsonify({
+        "ok": True,
+        "manifest": manifest,
+        "path": "motions/poses/pose_library_manifest.json"
+    })
+
+
+@app.route('/api/pose-library', methods=['POST'])
+def post_pose_library():
+    import re
+    data = request.get_json() or {}
+    pose = data.get("pose")
+    if not isinstance(pose, dict):
+        return jsonify({"ok": False, "error": "pose 必須是物件"}), 400
+
+    pose_id = pose.get("id")
+    category = pose.get("category")
+    label = pose.get("label")
+
+    if not pose_id or not category or not label:
+        return jsonify({"ok": False, "error": "id, category 與 label 為必填欄位"}), 400
+
+    allowed_categories = {"standing", "walking", "crouching", "stretch", "touch_face", "breathing"}
+    if category not in allowed_categories:
+        return jsonify({"ok": False, "error": f"不支援的分類: {category}"}), 400
+
+    if not re.match(r"^[a-zA-Z0-9_-]+$", pose_id):
+        return jsonify({"ok": False, "error": "id 必須是英數字、底線或連字號"}), 400
+
+    poses_dir = BASE_DIR / "motions" / "poses"
+    target_dir = poses_dir / category
+    target_path = target_dir / f"{pose_id}.json"
+
+    try:
+        # resolve target_path against poses_dir to reject traversal
+        resolved_poses_dir = poses_dir.resolve()
+        resolved_target_path = target_path.resolve()
+        if not resolved_target_path.as_posix().startswith(resolved_poses_dir.as_posix()):
+            raise ValueError()
+    except Exception:
+        return jsonify({"ok": False, "error": "不合法的路徑"}), 400
+
+    pose.setdefault("schemaVersion", 1)
+    pose.setdefault("model", "AliciaSolid")
+    pose.setdefault("humanization", {"profile": "alicia", "level": 2})
+    pose.setdefault("qa", {"balance": 5, "silhouette": 5, "noTpose": True, "noArmCrossBody": True})
+    pose.setdefault("runtimeQa", {
+        "transitionScore": 0,
+        "idleCompatibility": True,
+        "clipCompatibility": True,
+        "vrmaCompatibility": True
+    })
+    pose.setdefault("source", {"type": "manual", "tool": "pose_training_lab"})
+
+    target_dir.mkdir(parents=True, exist_ok=True)
+    with open(target_path, 'w', encoding='utf-8') as f:
+        json.dump(pose, f, ensure_ascii=False, indent=2)
+
+    manifest = _scan_pose_library()
+
+    return jsonify({
+        "ok": True,
+        "pose": pose,
+        "manifest": manifest
+    })
+
+
 @app.route('/api/llm', methods=['POST'])
 def llm_proxy():
     # 接收並清理前端輸入，限制 1000 字元

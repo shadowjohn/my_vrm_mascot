@@ -2,6 +2,32 @@
 
 ## 2026-06-17
 
+- 新增 M20.1.7 Scene Playground Integration 官方展示頁整合：
+  - 升級 `demo.php`，在 Alicia 載入後自動啟用進階 Level 4 擬人化行為（眨眼、呼吸微動、重心位移與自動手勢）。
+  - 在 `ScenePropLayer` 中加入程序化 `birthdayCake` 互助道具，包括粉紅蛋糕體、白色奶油層、黃色蠟燭及具備隨機抖動/縮放動畫效果的 `Flame` 火焰網格（MeshBasicMaterial）。
+  - 於 `ToyRoomStory` 中新增 `birthday_cake` 生日慶祝事件（Chapter 6），並在 `AutoDirector.runEvent()` 中實作專屬腳本演出序列（gaze look-at -> thinking 表情 -> 觸發 touch_face 手勢 -> 觸發 stretch 手勢 -> 成功喜悅表情與吹蠟燭對白）。
+  - 於 HUD 面板中央上方新增精美的 `toy-card cake` 按鈕，點擊可直接觸發慶祝劇情。
+  - 將前端自動導演 `AutoDirectorLite` 整合進 `demo.php` 背景動畫循環，於劇本序列執行期間（`isExecuting`）自動暫停排程器，並在手勢觸發時重設冷卻時間（`notifyManualGesture`），確保自然無衝突的活人感演出。
+  - 擴充 `scratch/test_showcase_pack.mjs` 自動化整合測試，驗證 `AutoDirectorLite` 引入、Level 4 擬人化調用、蛋糕道具構造與火焰動畫查詢、生日劇本與手勢序列、以及確保未修改任何 core production defaults。
+
+- 新增 M20.1.6 Auto Director Lite 模擬自動導演：
+  - 新增 `js/AutoDirectorLite.js` 模組，作為純前端的自動導演排程器，負責管理手勢觸發間隔（Touch Face 90秒、Stretch 180秒）、冷卻時間（8秒）、觸發資格校驗與 Tie-breaker（兩者皆到期時 Stretch 優先且重設 Touch Face）等邏輯。
+  - 升級 `pose_training_lab.html`，在擬人化行為遊樂場中加入「啟動自動導演」勾選框，並提供即時 HUD 狀態監測面板，顯示運行狀態、觸發資格、上次動作、倒數計時及冷卻時間。
+  - 串接遊樂場控制邏輯，停止遊樂場預覽時自動停用自動導演並清空所有計時器；手動測試手勢時通知排程器以重設計時與冷卻時間。
+  - 新增 `scratch/test_auto_director_lite.mjs` 自動化測試，驗證不同擬人化層級、各項觸發資格條件、冷卻時間限制、Tie-breaker 優先權重與重設行為；同步擴展 `scratch/test_pose_training_lab.mjs` 確保 HTML 頁面包含自動導演 DOM 元素及相關腳本契約。
+
+- 新增 M20.1.5 Human Motion Playground 擬人化行為遊樂場：
+  - 新增 `js/HumanMotionLayer.js` 模組，掌管呼吸微動（Level 1）、重心位移（Level 2）及可手動觸發的摸臉（Level 3）與伸展（Level 4）手勢。
+  - 調整 `MotionController.js`，使內建程式化呼吸微動可受 `#idleMicroMotionEnabled` 控制，避免與擬人化行為層疊加。
+  - 調整 `VrmMascot.js`，引入 `HumanMotionLayer` 並提供 `enableHumanization()`、`disableHumanization()` 與 `triggerGesture()` 頂層 API。
+  - 升級 `pose_training_lab.html`，於右側控制面板加入「擬人化行為遊樂場 (Playground)」區塊，包含 L0-L4 模擬層級切換、眨眼/呼吸/重心/摸臉/伸展狀態指示燈，以及手動測試手勢與停止預覽功能。
+  - 新增全套自動化測試 `scratch/test_human_motion_layer.mjs`，驗證各擬人層級下的骨骼位移行為與動作/VRMA 限制；同步升級 `scratch/test_pose_training_lab.mjs` 確保 DOM 與 API 連接契約完整。
+
+- 新增 M20.1 Pose Training Lab 姿勢微調與評分系統：
+  - 新增 Pose Library，並將首個自然站姿種子檔案存入 `motions/poses/standing/stand_relaxed_001.json`。
+  - 實作本機 Pose Library API (`GET /api/pose-library` 與 `POST /api/pose-library`)，具備自動遞迴掃描目錄、自動生成/重寫 `pose_library_manifest.json`、安全 Slug ID、合法分類與路徑防穿越校驗功能。
+  - 新增 `pose_training_lab.html` 工具，整合 VrmMascot (Three.js/GLTFLoader/OrbitControls/three-vrm) 提供即時 3D 模型預覽、關節角度與 Hips 位移調整滑桿、鏡像模式、Static QA 姿勢檢核、擬人化層級設定及 Runtime QA 欄位預覽。
+  - 建立全套自動化驗證測試：包含 `scratch/test_pose_library.mjs` (校驗 Preset 格式與 MotionController 相容性)、`scratch/test_pose_training_lab.mjs` (校驗網頁 DOM 與 API 連接契約) 以及 `scratch/test_pose_library_api.py` (校驗 GET/POST、不合法分類與路徑穿越防護)。
 - 新增 v0.1.11 Alicia Showcase 程序步態修正：`walk` / `walk_cycle` 改走 MotionController 內建 procedural gait，公開展示不再依賴 raw Mixamo walking VRMA 直接播放。
 - 保留 v0.1.10 的 Mixamo VRMA retarget alias 修正作為研究與 Motion Mine 能力，但 `AliciaStageWalker.moveTo()` 不再預載 `walk_cycle` VRMA，避免 raw retarget 座標差異造成骨架扭曲。
 - 新增 regression test：確認 `walk_cycle` 不啟動 VRMA mixer，且 upper/lower legs 與 feet 會隨時間變化，避免回到只有 scene root 位移的滑步狀態。

@@ -27,6 +27,7 @@ import {
 } from './MotionController.js';
 import { ExpressionController } from './ExpressionController.js';
 import { LookAtController }     from './LookAtController.js';
+import { HumanMotionLayer }     from './HumanMotionLayer.js';
 import { MascotStateMachine }   from './MascotStateMachine.js';
 import { ActionQueue }          from './ActionQueue.js';
 import { ToolRegistry }         from './ToolRegistry.js';
@@ -293,6 +294,7 @@ export class VrmMascot {
   #motion     = new MotionController();
   #expression = new ExpressionController();
   #lookAtCtrl = new LookAtController();
+  #humanMotion = new HumanMotionLayer();
   #stateMachine = null;
   #actionQueue = null;
   #tools = new ToolRegistry(); // 註冊能力系統
@@ -390,6 +392,9 @@ export class VrmMascot {
 
   /** @returns {LookAtController} */
   get lookAt() { return this.#lookAtCtrl; }
+
+  /** @returns {HumanMotionLayer} */
+  get humanMotion() { return this.#humanMotion; }
 
   /** @returns {MascotStateMachine} */
   get state() { return this.#stateMachine; }
@@ -518,6 +523,34 @@ export class VrmMascot {
    */
   enqueue(action) {
     this.#actionQueue.enqueue(action);
+  }
+
+  /**
+   * 啟用擬人化層 (Human Motion Layer)
+   * @param {object} params
+   * @param {string} [params.profile="alicia"]
+   * @param {number} [params.level=2]
+   */
+  enableHumanization({ profile = "alicia", level = 2 } = {}) {
+    this.#motion.setIdleMicroMotionEnabled(false);
+    this.#humanMotion.configure({ profile, level });
+    this.#humanMotion.setEnabled(true);
+  }
+
+  /**
+   * 關閉擬人化層，還原內建呼吸微動
+   */
+  disableHumanization() {
+    this.#motion.setIdleMicroMotionEnabled(true);
+    this.#humanMotion.setEnabled(false);
+  }
+
+  /**
+   * 觸發擬人化特定手勢
+   * @param {string} name - "touch_face" | "stretch"
+   */
+  triggerGesture(name) {
+    this.#humanMotion.triggerGesture(name);
   }
 
   /**
@@ -1135,6 +1168,7 @@ export class VrmMascot {
             await this.#loadPosePresetForModel(url);
             this.#expression.setVrm(vrm);
             this.#lookAtCtrl.setVrm(vrm);
+            this.#humanMotion.setVrm(vrm);
 
             // 關閉 VRM 內建 lookAt（我們手動控制頭部）
             if (vrm.lookAt) {
@@ -1279,6 +1313,7 @@ export class VrmMascot {
    * @internal
    */
   _vrmDispose() {
+    this.#humanMotion.setVrm(null);
     if (!this.#currentVRM) return;
     this.#scene.remove(this.#currentVRM.scene);
     const utils = THREE.VRMUtils || (typeof THREE_VRM !== 'undefined' && THREE_VRM.VRMUtils);
@@ -1393,6 +1428,10 @@ export class VrmMascot {
       // 更新子系統（順序重要）
       this.#stateMachine.update(dt);   // 1. 狀態機：自動轉場
       this.#motion.update(dt);         // 2. 動作：身體骨骼
+      this.#humanMotion.update(dt, {
+        currentAction: this.#motion.currentAction,
+        isVrmaActive: this.#motion.isVrmaActive
+      });                              // 2.5 擬人化行為層
       this.#expression.update(dt);     // 3. 表情：眨眼 / BlendShape
       this._vrmUpdate(dt);             // 4. VRM 內部：springBone（lookAt 已關）
       this.#lookAtCtrl.update(dt);     // 5. 注視：頭/頸旋轉（在 vrm.update 之後，不會被覆蓋）

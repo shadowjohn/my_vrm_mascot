@@ -228,6 +228,7 @@ export class MotionController {
   #activeVrmaFinishedListener = null;
   #previousAction = null;
   #isVrmaActive = false;
+  #idleMicroMotionEnabled = true;
 
   /**
    * 綁定 VRM 模型
@@ -858,6 +859,9 @@ export class MotionController {
   get mixer() { return this.#mixer; }
   get vrm() { return this.#vrm; }
   get isVrmaActive() { return this.#isVrmaActive; }
+  get idleMicroMotionEnabled() { return this.#idleMicroMotionEnabled; }
+  set idleMicroMotionEnabled(flag) { this.#idleMicroMotionEnabled = !!flag; }
+  setIdleMicroMotionEnabled(flag) { this.#idleMicroMotionEnabled = !!flag; }
 
   /**
    * 每幀更新
@@ -897,7 +901,9 @@ export class MotionController {
   #doIdle() {
     const t = this.#elapsed;
     this.#applyNaturalPose(t);
-    this.#applyIdleMicroMotion(t);
+    if (this.#idleMicroMotionEnabled) {
+      this.#applyIdleMicroMotion(t);
+    }
   }
 
   // ── Think：歪頭沉思 ────────────────────
