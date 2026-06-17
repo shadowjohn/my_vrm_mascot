@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Alicia Motion Capture Lab</title>
+  <link rel="icon" href="data:,">
   <style>
     :root {
       color-scheme: dark;
@@ -76,7 +77,7 @@
       min-width: 0;
       min-height: 0;
       display: grid;
-      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.15fr) minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1fr) minmax(0, 0.78fr) minmax(0, 1.12fr);
       gap: 1px;
       background: var(--line);
     }
@@ -179,7 +180,119 @@
 
     #skeletonPreviewCanvas {
       aspect-ratio: 4 / 5;
-      min-height: 360px;
+      min-height: 280px;
+      max-height: 58vh;
+      touch-action: none;
+    }
+
+    .skeleton-mode-panel {
+      display: grid;
+      gap: 10px;
+    }
+
+    .skeleton-mode-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 42px;
+      padding: 8px 10px;
+      border: 1px solid rgba(70, 88, 80, 0.72);
+      border-radius: 8px;
+      background: rgba(15, 22, 20, 0.82);
+    }
+
+    .skeleton-mode-title {
+      display: grid;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .skeleton-mode-title strong {
+      color: #eef6ef;
+      font-size: 13px;
+    }
+
+    .skeleton-mode-title output {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .segmented-control {
+      display: grid;
+      grid-template-columns: repeat(2, 54px);
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #101715;
+    }
+
+    .mode-tab {
+      min-height: 30px;
+      padding: 5px 8px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .mode-tab.active {
+      background: #315236;
+      color: #efffed;
+    }
+
+    .skeleton-3d-controls {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      padding: 9px 10px;
+      border: 1px solid rgba(70, 88, 80, 0.72);
+      border-radius: 8px;
+      background: rgba(18, 25, 23, 0.72);
+    }
+
+    .skeleton-3d-controls[hidden] {
+      display: none;
+    }
+
+    .skeleton-3d-controls label {
+      margin: 0;
+      text-transform: none;
+    }
+
+    .skeleton-3d-controls input[type="range"] {
+      height: 24px;
+      padding: 0;
+      accent-color: var(--accent-2);
+    }
+
+    .motionbert-mini-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      padding: 9px 10px;
+      border: 1px solid rgba(70, 88, 80, 0.72);
+      border-radius: 8px;
+      background: rgba(18, 25, 23, 0.72);
+    }
+
+    .motionbert-mini-summary span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .motionbert-mini-summary output {
+      display: block;
+      margin-top: 3px;
+      color: #eef6ef;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     #aliciaPreview {
@@ -207,6 +320,56 @@
     .stack {
       display: grid;
       gap: 11px;
+    }
+
+    .range-panel {
+      display: grid;
+      gap: 9px;
+      margin-top: 12px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #18201d;
+    }
+
+    .range-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .range-header output {
+      color: var(--accent-2);
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      text-align: right;
+    }
+
+    .range-sliders {
+      display: grid;
+      gap: 4px;
+    }
+
+    .range-sliders input[type="range"] {
+      height: 24px;
+      padding: 0;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .range-row label {
+      margin: 0;
+    }
+
+    .range-actions button {
+      min-height: 32px;
+      padding: 7px 9px;
+      font-size: 12px;
     }
 
     .hint {
@@ -262,6 +425,19 @@
         gap: 7px;
       }
 
+      .range-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .range-header output {
+        text-align: left;
+      }
+
+      .range-actions {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
       #captureStatus {
         max-width: none;
         text-align: left;
@@ -272,83 +448,816 @@
         flex-direction: column;
       }
     }
+
+    body {
+      grid-template-rows: auto 1fr auto;
+      background:
+        linear-gradient(135deg, #050808 0%, #0a100f 45%, #050808 100%);
+    }
+
+    .app-header {
+      align-items: center;
+      padding: 17px 22px 15px;
+      background: rgba(6, 10, 10, 0.94);
+    }
+
+    .subtitle {
+      color: #b8c3bd;
+      font-size: 14px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    #captureStatus {
+      max-width: 42vw;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .advanced-menu {
+      position: relative;
+      flex: 0 0 auto;
+    }
+
+    .advanced-menu summary,
+    .json-panel summary,
+    .debug-block summary {
+      list-style: none;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .advanced-menu summary::-webkit-details-marker,
+    .json-panel summary::-webkit-details-marker,
+    .debug-block summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .advanced-menu summary {
+      min-width: 146px;
+      padding: 10px 14px;
+      border: 1px solid #37423f;
+      border-radius: 8px;
+      background: #080d0d;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .advanced-menu summary::after {
+      content: "⌄";
+      margin-left: 9px;
+      color: var(--muted);
+    }
+
+    .advanced-menu[open] summary::after {
+      content: "⌃";
+    }
+
+    .advanced-menu-body {
+      position: absolute;
+      z-index: 10;
+      top: calc(100% + 8px);
+      right: 0;
+      width: 310px;
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid #38453f;
+      border-radius: 8px;
+      background: #121917;
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.42);
+    }
+
+    main {
+      grid-template-columns: minmax(320px, 0.9fr) minmax(380px, 1.1fr) minmax(420px, 1.2fr);
+      gap: 12px;
+      padding: 14px 20px 12px;
+      background: transparent;
+    }
+
+    .workflow-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 0;
+      padding: 18px;
+      border: 1px solid #34423c;
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, rgba(25, 34, 31, 0.96), rgba(13, 19, 18, 0.96));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 36px;
+    }
+
+    .panel-title h2,
+    .section-label,
+    .summary-title {
+      margin: 0;
+      color: var(--accent);
+      font-size: 18px;
+      font-weight: 800;
+      text-transform: none;
+    }
+
+    .step-badge {
+      display: inline-grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #0a110d;
+      font-weight: 850;
+    }
+
+    .source-group,
+    .summary-panel,
+    .debug-block,
+    .video-info,
+    .confidence-footer,
+    .json-panel {
+      border: 1px solid rgba(70, 88, 80, 0.72);
+      border-radius: 8px;
+      background: rgba(27, 36, 33, 0.72);
+    }
+
+    .source-group {
+      display: grid;
+      gap: 11px;
+      padding-bottom: 4px;
+      border-width: 0;
+      background: transparent;
+    }
+
+    .field-label,
+    .debug-label,
+    .compact-label {
+      margin: 0;
+      color: #f0f5ef;
+      font-size: 13px;
+      font-weight: 750;
+      text-transform: none;
+    }
+
+    .debug-label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .input-with-action {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 40px;
+      gap: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: rgba(28, 37, 34, 0.9);
+    }
+
+    .input-with-action input {
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+
+    .input-with-action .icon-button {
+      border: 0;
+      border-left: 1px solid var(--line);
+      border-radius: 0;
+      background: transparent;
+    }
+
+    .icon-button {
+      min-height: 38px;
+      width: 100%;
+      padding: 0;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 7px;
+      font-size: 18px;
+    }
+
+    .primary,
+    button.primary {
+      border-color: rgba(142, 224, 122, 0.72);
+      background: linear-gradient(180deg, #5a9a4f, #417c3e);
+      color: #f5fff4;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
+
+    .secondary,
+    button.secondary {
+      border-color: rgba(232, 205, 105, 0.44);
+      background: #453b1d;
+      color: #fff1bd;
+    }
+
+    .ghost-button {
+      border-color: #44534d;
+      background: #15201d;
+      color: var(--text);
+    }
+
+    .media-block {
+      display: grid;
+      gap: 10px;
+    }
+
+    .media-block h3,
+    .range-header span {
+      margin: 0;
+      color: #f1f6f0;
+      font-size: 14px;
+      font-weight: 780;
+      text-transform: none;
+    }
+
+    #videoPreview {
+      min-height: 270px;
+      max-height: 45vh;
+      border-radius: 7px;
+      background: #050807;
+    }
+
+    .video-info {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      padding: 13px 15px;
+    }
+
+    .info-item,
+    .summary-item {
+      display: grid;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .info-item span,
+    .summary-item span,
+    .metric-card span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .info-item strong,
+    .summary-item strong,
+    .metric-card strong {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 780;
+      white-space: nowrap;
+    }
+
+    .range-panel {
+      margin: 0;
+      padding: 12px;
+      border-radius: 8px;
+      background: rgba(20, 29, 26, 0.82);
+    }
+
+    .range-row {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    #skeletonPreviewCanvas {
+      aspect-ratio: 4 / 3;
+      min-height: 280px;
+      max-height: 46vh;
+      border-radius: 7px;
+    }
+
+    .detect-button {
+      min-height: 46px;
+      font-size: 15px;
+    }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      padding: 14px 18px;
+      border: 1px solid rgba(70, 88, 80, 0.72);
+      border-radius: 8px;
+      background: rgba(27, 36, 33, 0.72);
+    }
+
+    .section-label {
+      font-size: 16px;
+    }
+
+    .param-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .param-card {
+      display: grid;
+      gap: 12px;
+      min-width: 0;
+      padding: 14px;
+      border: 1px solid rgba(65, 82, 74, 0.72);
+      border-radius: 8px;
+      background: rgba(30, 40, 36, 0.82);
+    }
+
+    .param-meta {
+      display: grid;
+      grid-template-columns: 24px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .param-icon {
+      display: inline-grid;
+      place-items: center;
+      width: 22px;
+      height: 22px;
+      color: #f2f7f2;
+      font-size: 15px;
+    }
+
+    .param-name {
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 720;
+    }
+
+    .param-value {
+      color: var(--text);
+      font-size: 17px;
+      font-weight: 820;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .meter-track {
+      height: 7px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(171, 181, 174, 0.2);
+    }
+
+    .meter-track span {
+      display: block;
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--accent);
+    }
+
+    .confidence-footer {
+      display: flex;
+      justify-content: center;
+      padding: 12px;
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .debug-block {
+      padding: 12px;
+    }
+
+    .debug-block summary {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 760;
+    }
+
+    .debug-block[open] summary {
+      margin-bottom: 12px;
+    }
+
+    .preview-panel {
+      gap: 17px;
+    }
+
+    #aliciaPreview {
+      min-height: 420px;
+      max-height: 54vh;
+      border-radius: 7px;
+      background: #071020;
+    }
+
+    .preview-controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 64px 112px 46px;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .preview-controls .compact-label {
+      text-align: right;
+    }
+
+    .preview-controls select {
+      height: 42px;
+    }
+
+    .summary-panel {
+      display: grid;
+      gap: 12px;
+      padding: 16px 16px 14px;
+    }
+
+    .summary-panel hr {
+      width: 100%;
+      margin: 0;
+      border: 0;
+      border-top: 1px solid rgba(70, 88, 80, 0.5);
+    }
+
+    .summary-list {
+      display: grid;
+      gap: 11px;
+    }
+
+    .summary-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: baseline;
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .summary-row output {
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+
+    .export-button {
+      min-height: 50px;
+      font-size: 16px;
+    }
+
+    .json-panel {
+      padding: 0;
+    }
+
+    .json-panel summary {
+      padding: 14px;
+      color: var(--text);
+      font-weight: 780;
+      text-align: center;
+    }
+
+    #motionClipOutput {
+      min-height: 220px;
+      margin-top: 0;
+      border-width: 1px 0 0;
+      border-radius: 0 0 8px 8px;
+      background: rgba(27, 36, 33, 0.92);
+    }
+
+    .lab-tip {
+      padding: 0 28px 18px;
+      color: #b8c3bd;
+      font-size: 13px;
+    }
+
+    .lab-tip span {
+      color: var(--accent-2);
+      font-weight: 800;
+    }
+
+    @media (max-width: 1180px) {
+      .app-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .header-actions {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      #captureStatus {
+        max-width: none;
+        text-align: left;
+      }
+
+      main {
+        grid-template-columns: minmax(0, 1fr);
+        overflow-y: auto;
+      }
+
+      .workflow-panel {
+        min-height: auto;
+      }
+    }
+
+    @media (max-width: 720px) {
+      main {
+        padding: 10px;
+      }
+
+      .header-actions,
+      .preview-controls,
+      .video-info,
+      .metric-row,
+      .param-grid,
+      .range-row {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .header-actions {
+        display: grid;
+      }
+
+      .advanced-menu-body {
+        left: 0;
+        right: auto;
+        width: min(310px, calc(100vw - 40px));
+      }
+
+      .preview-controls .compact-label {
+        text-align: left;
+      }
+    }
   </style>
 </head>
 <body>
-  <header>
+  <header class="app-header">
     <div>
       <h1>Alicia Motion Capture Lab</h1>
-      <p class="subtitle">M20.3 Capture → Cycle → Motion Clip</p>
+      <p class="subtitle">M20.3 - Walk Style Extractor</p>
     </div>
-    <p id="captureStatus" role="status">Ready. Load a sample skeleton or import capture data.</p>
+    <div class="header-actions">
+      <p id="captureStatus" role="status">Ready. Load a YouTube video or skeleton sequence.</p>
+      <details id="advancedDebugToggle" class="advanced-menu">
+        <summary>Advanced Debug</summary>
+        <div class="advanced-menu-body">
+          <label for="captureSourceType" class="debug-label">
+            Capture source
+            <select id="captureSourceType">
+              <option value="video">Video</option>
+              <option value="youtube">YouTube URL</option>
+              <option value="webcam">Webcam</option>
+              <option value="skeleton_json" selected>Skeleton JSON</option>
+              <option value="vrma">VRMA</option>
+            </select>
+          </label>
+          <label for="captureVideoInput" class="debug-label">
+            Video file
+            <input id="captureVideoInput" type="file" accept="video/*">
+          </label>
+          <label for="captureVrmaInput" class="debug-label">
+            VRMA
+            <input id="captureVrmaInput" type="file" accept=".vrma,model/gltf-binary">
+          </label>
+          <button id="captureWebcamButton" class="ghost-button" type="button">Start Webcam</button>
+        </div>
+      </details>
+    </div>
   </header>
 
   <main>
-    <section aria-label="Capture source">
-      <h2>Source</h2>
-      <label for="captureSourceType">
-        Capture source
-        <select id="captureSourceType">
-          <option value="video">Video</option>
-          <option value="webcam">Webcam</option>
-          <option value="skeleton_json" selected>Skeleton JSON</option>
-          <option value="vrma">VRMA</option>
-        </select>
-      </label>
-      <label for="captureVideoInput">
-        Video file
-        <input id="captureVideoInput" type="file" accept="video/*">
-      </label>
-      <button id="captureWebcamButton" type="button">Start Webcam</button>
-      <label for="captureSkeletonJsonInput">
-        Skeleton JSON
-        <input id="captureSkeletonJsonInput" type="file" accept="application/json,.json">
-      </label>
-      <label for="captureVrmaInput">
-        VRMA
-        <input id="captureVrmaInput" type="file" accept=".vrma,model/gltf-binary">
-      </label>
-      <button id="btnLoadSampleSkeleton" class="primary" type="button">Load Sample Skeleton</button>
-      <p class="hint">Video and webcam inputs prepare capture sources. Skeleton JSON drives the cycle detector and motion clip export.</p>
-      <video id="videoPreview" controls muted playsinline></video>
+    <section class="workflow-panel" aria-label="Input Source">
+      <div class="panel-title">
+        <span class="step-badge">1</span>
+        <h2>Input Source</h2>
+      </div>
+
+      <div class="source-group">
+        <label for="captureYoutubeUrlInput" class="field-label">YouTube Video</label>
+        <div class="input-with-action">
+          <input id="captureYoutubeUrlInput" type="url" inputmode="url" placeholder="https://www.youtube.com/watch?v=...">
+          <button class="icon-button ghost-button" type="button" title="Open video source">↗</button>
+        </div>
+        <button id="btnCaptureYoutube" class="primary" type="button">Load YouTube Video</button>
+      </div>
+
+      <div class="source-group">
+        <label for="captureSkeletonJsonInput" class="field-label">Skeleton JSON (optional)</label>
+        <div class="input-with-action">
+          <input id="captureSkeletonJsonInput" type="file" accept="application/json,.json">
+          <button class="icon-button ghost-button" type="button" title="Clear selected skeleton">×</button>
+        </div>
+        <button id="btnLoadSampleSkeleton" class="primary" type="button">Load Skeleton JSON</button>
+      </div>
+
+      <div class="media-block">
+        <h3>Video Preview</h3>
+        <video id="videoPreview" controls muted playsinline></video>
+      </div>
+
+      <div class="video-info" aria-label="Video info">
+        <div class="info-item">
+          <span>Duration</span>
+          <strong id="videoInfoDuration">--</strong>
+        </div>
+        <div class="info-item">
+          <span>Resolution</span>
+          <strong id="videoInfoResolution">--</strong>
+        </div>
+        <div class="info-item">
+          <span>FPS</span>
+          <strong id="videoInfoFps">--</strong>
+        </div>
+      </div>
+
+      <div class="range-panel" aria-label="Video capture range">
+        <div class="range-header">
+          <span>Capture Range</span>
+          <output id="captureRangeLabel">0.00s - 0.00s</output>
+        </div>
+        <div class="range-sliders">
+          <input id="captureRangeStartSlider" type="range" min="0" max="0" step="100" value="0" aria-label="Capture range start">
+          <input id="captureRangeEndSlider" type="range" min="0" max="0" step="100" value="0" aria-label="Capture range end">
+        </div>
+        <div class="row range-row">
+          <label for="captureRangeStartMs" class="debug-label">
+            Start ms
+            <input id="captureRangeStartMs" type="number" value="0" min="0" step="100">
+          </label>
+          <label for="captureRangeEndMs" class="debug-label">
+            End ms
+            <input id="captureRangeEndMs" type="number" value="0" min="0" step="100">
+          </label>
+        </div>
+        <div class="row range-actions">
+          <button id="btnUseCurrentAsRangeStart" class="ghost-button" type="button">Set Start</button>
+          <button id="btnUseCurrentAsRangeEnd" class="ghost-button" type="button">Set End</button>
+        </div>
+        <button id="btnExtractVideoSkeleton" class="primary" type="button">Extract Skeleton From Video</button>
+      </div>
     </section>
 
-    <section aria-label="Skeleton and cycle markers">
-      <h2>Skeleton Cycle</h2>
-      <canvas id="skeletonPreviewCanvas" width="560" height="700"></canvas>
-      <div class="row">
-        <label for="cycleStartMs">
-          Start ms
-          <input id="cycleStartMs" type="number" value="0" step="10">
-        </label>
-        <label for="cycleEndMs">
-          End ms
-          <input id="cycleEndMs" type="number" value="960" step="10">
-        </label>
+    <section class="workflow-panel" aria-label="Walk Cycle Analysis">
+      <div class="panel-title">
+        <span class="step-badge">2</span>
+        <h2>Walk Cycle Analysis</h2>
       </div>
-      <button id="btnSeedCyclePhases" class="secondary" type="button">Seed Cycle Phases</button>
-      <div class="phase-grid">
-        <label for="phase_contact_left">Contact left<input id="phase_contact_left" type="number" step="10"></label>
-        <label for="phase_down_left">Down left<input id="phase_down_left" type="number" step="10"></label>
-        <label for="phase_passing_left">Passing left<input id="phase_passing_left" type="number" step="10"></label>
-        <label for="phase_up_left">Up left<input id="phase_up_left" type="number" step="10"></label>
-        <label for="phase_contact_right">Contact right<input id="phase_contact_right" type="number" step="10"></label>
-        <label for="phase_down_right">Down right<input id="phase_down_right" type="number" step="10"></label>
-        <label for="phase_passing_right">Passing right<input id="phase_passing_right" type="number" step="10"></label>
-        <label for="phase_up_right">Up right<input id="phase_up_right" type="number" step="10"></label>
+
+      <div class="skeleton-mode-panel" aria-label="Skeleton Analysis">
+        <div class="skeleton-mode-bar">
+          <div class="skeleton-mode-title">
+            <strong>Skeleton Analysis</strong>
+            <output id="skeletonModeStatus">2D Analysis</output>
+          </div>
+          <div class="segmented-control" role="tablist" aria-label="Skeleton analysis mode">
+            <button id="btnSkeletonMode2d" class="mode-tab active" type="button" aria-pressed="true">2D</button>
+            <button id="btnSkeletonMode3d" class="mode-tab" type="button" aria-pressed="false">3D</button>
+          </div>
+        </div>
+        <canvas id="skeletonPreviewCanvas" width="760" height="560"></canvas>
+        <div id="skeleton3dControls" class="skeleton-3d-controls" hidden>
+          <label for="skeleton3dYaw" class="debug-label">
+            Rotate Y
+            <input id="skeleton3dYaw" type="range" min="-180" max="180" value="-24" step="1">
+          </label>
+          <label for="skeleton3dPitch" class="debug-label">
+            Pitch
+            <input id="skeleton3dPitch" type="range" min="-65" max="65" value="-10" step="1">
+          </label>
+        </div>
+        <div class="motionbert-mini-summary" aria-label="MotionBERT depth summary">
+          <div><span>Lead Foot :</span><output id="motionBertLeadFoot">--</output></div>
+          <div><span>Depth Conf :</span><output id="motionBertDepthConfidence">--</output></div>
+          <div><span>Viewpoint :</span><output id="motionBertViewpoint">--</output></div>
+        </div>
       </div>
+      <button id="btnSeedCyclePhases" class="primary detect-button" type="button">Detect Walk Cycle</button>
+
+      <div class="metric-row" aria-label="Detected loop summary">
+        <div class="metric-card">
+          <span>Loop</span>
+          <strong id="loopSummaryRange">--</strong>
+        </div>
+        <div class="metric-card">
+          <span>Duration</span>
+          <strong id="loopSummaryDuration">--</strong>
+        </div>
+        <div class="metric-card">
+          <span>Confidence</span>
+          <strong id="loopSummaryConfidence">--</strong>
+        </div>
+      </div>
+
+      <h3 class="section-label">Walk Parameters (Extracted)</h3>
+      <div class="param-grid" aria-label="Extracted walk parameters">
+        <article id="walkParamStride" class="param-card">
+          <div class="param-meta"><span class="param-icon">↔</span><span class="param-name">Stride</span><strong class="param-value" data-param-value>--</strong></div>
+          <div class="meter-track"><span data-param-meter></span></div>
+        </article>
+        <article id="walkParamCadence" class="param-card">
+          <div class="param-meta"><span class="param-icon">⏱</span><span class="param-name">Cadence (steps/s)</span><strong class="param-value" data-param-value>--</strong></div>
+          <div class="meter-track"><span data-param-meter></span></div>
+        </article>
+        <article id="walkParamArmSwing" class="param-card">
+          <div class="param-meta"><span class="param-icon">⌁</span><span class="param-name">Arm Swing</span><strong class="param-value" data-param-value>--</strong></div>
+          <div class="meter-track"><span data-param-meter></span></div>
+        </article>
+        <article id="walkParamHipBob" class="param-card">
+          <div class="param-meta"><span class="param-icon">↕</span><span class="param-name">Hip Bob</span><strong class="param-value" data-param-value>--</strong></div>
+          <div class="meter-track"><span data-param-meter></span></div>
+        </article>
+        <article id="walkParamBounce" class="param-card">
+          <div class="param-meta"><span class="param-icon">♬</span><span class="param-name">Bounce</span><strong class="param-value" data-param-value>--</strong></div>
+          <div class="meter-track"><span data-param-meter></span></div>
+        </article>
+        <article id="walkParamBodyLean" class="param-card">
+          <div class="param-meta"><span class="param-icon">⌇</span><span class="param-name">Body Lean</span><strong class="param-value" data-param-value>--</strong></div>
+          <div class="meter-track"><span data-param-meter></span></div>
+        </article>
+      </div>
+
+      <div id="walkConfidenceSummary" class="confidence-footer">Confidence: --</div>
+
+      <details class="debug-block">
+        <summary>Phase Debug</summary>
+        <div class="row">
+          <label for="cycleStartMs" class="debug-label">
+            Start ms
+            <input id="cycleStartMs" type="number" value="0" step="10">
+          </label>
+          <label for="cycleEndMs" class="debug-label">
+            End ms
+            <input id="cycleEndMs" type="number" value="960" step="10">
+          </label>
+        </div>
+        <div class="phase-grid">
+          <label for="phase_contact_left" class="debug-label">Contact left<input id="phase_contact_left" type="number" step="10"></label>
+          <label for="phase_down_left" class="debug-label">Down left<input id="phase_down_left" type="number" step="10"></label>
+          <label for="phase_passing_left" class="debug-label">Passing left<input id="phase_passing_left" type="number" step="10"></label>
+          <label for="phase_up_left" class="debug-label">Up left<input id="phase_up_left" type="number" step="10"></label>
+          <label for="phase_contact_right" class="debug-label">Contact right<input id="phase_contact_right" type="number" step="10"></label>
+          <label for="phase_down_right" class="debug-label">Down right<input id="phase_down_right" type="number" step="10"></label>
+          <label for="phase_passing_right" class="debug-label">Passing right<input id="phase_passing_right" type="number" step="10"></label>
+          <label for="phase_up_right" class="debug-label">Up right<input id="phase_up_right" type="number" step="10"></label>
+        </div>
+      </details>
+      <details id="motionBertDebugPanel" class="debug-block">
+        <summary>Show MotionBERT 3D Skeleton</summary>
+        <textarea id="motionBertDebugOutput" spellcheck="false" readonly placeholder="MotionBERT lifted joint JSON appears here."></textarea>
+      </details>
     </section>
 
-    <section aria-label="Alicia preview and export">
-      <h2>Alicia Export</h2>
+    <section class="workflow-panel preview-panel" aria-label="Alicia Walk Preview">
+      <div class="panel-title">
+        <span class="step-badge">3</span>
+        <h2>Alicia Walk Preview</h2>
+      </div>
+
       <div id="aliciaPreview"></div>
-      <div class="stack" style="margin-top: 12px;">
-        <button id="btnPreviewWalkCycle" class="secondary" type="button">Preview Walk Cycle</button>
-        <button id="btnExportMotionClip" class="primary" type="button">Export Motion Clip</button>
+
+      <div class="preview-controls">
+        <button id="btnPreviewWalkCycle" class="primary" type="button">▶ Preview</button>
+        <label for="previewSpeedSelect" class="compact-label">Speed</label>
+        <select id="previewSpeedSelect">
+          <option value="0.75">0.75x</option>
+          <option value="1" selected>1.0x</option>
+          <option value="1.25">1.25x</option>
+          <option value="1.5">1.5x</option>
+        </select>
+        <button id="btnRefreshWalkPreview" class="icon-button ghost-button" type="button" title="Refresh walk preview">↻</button>
       </div>
-      <textarea id="motionClipOutput" spellcheck="false" placeholder="Exported motion clip JSON appears here."></textarea>
+
+      <div class="summary-panel" aria-label="Walk style summary">
+        <h3 class="summary-title">Walk Style Summary</h3>
+        <hr>
+        <div class="summary-list">
+          <div class="summary-row"><span>Type</span><output id="walkSummaryType">--</output></div>
+          <div class="summary-row"><span>Preview Source</span><output id="walkSummaryPreviewSource">--</output></div>
+          <div class="summary-row"><span>Pose Mode</span><output id="walkSummaryPoseMode">--</output></div>
+          <div class="summary-row"><span>Depth Source</span><output id="walkSummaryDepthSource">--</output></div>
+          <div class="summary-row"><span>MotionBERT</span><output id="walkSummaryMotionBert">--</output></div>
+          <div class="summary-row"><span>Lead Foot</span><output id="walkSummaryLeadFoot">--</output></div>
+          <div class="summary-row"><span>Loop</span><output id="walkSummaryLoop">--</output></div>
+          <div class="summary-row"><span>Cadence</span><output id="walkSummaryCadence">--</output></div>
+          <div class="summary-row"><span>Stride</span><output id="walkSummaryStride">--</output></div>
+          <div class="summary-row"><span>Overall Confidence</span><output id="walkSummaryConfidence">--</output></div>
+        </div>
+      </div>
+
+      <button id="btnExportMotionClip" class="primary export-button" type="button">⬇ Export Walk Style (walk_style_v1)</button>
+      <details id="walkJsonDetails" class="json-panel">
+        <summary>&lt;/&gt; Show JSON</summary>
+        <textarea id="motionClipOutput" spellcheck="false" placeholder="Exported walk_style_v1 JSON appears here."></textarea>
+      </details>
     </section>
   </main>
+
+  <p class="lab-tip"><span>Tips:</span> Walk style is designed to be resolution, viewpoint, and clothing robust. Use the preview to fine-tune parameters if needed.</p>
 
   <script src="vendor/three.min.js"></script>
   <script src="vendor/GLTFLoader.js"></script>
@@ -364,12 +1273,47 @@
       createYoloPoseAdapter
     } from './js/PoseEstimatorAdapters.js';
     import { MotionCycleDetector } from './js/MotionCycleDetector.js';
-    import { exportMotionClip } from './js/MotionClipExporter.js';
+    import { exportWalkStyle } from './js/WalkStyleExtractor.js';
     import { AliciaMotionPreviewAdapter } from './js/AliciaMotionPreviewAdapter.js';
 
     const $ = (id) => document.getElementById(id);
     const phaseInputId = (phase) => `phase_${phase}`;
     const DEFAULT_VRM_MODEL_URL = 'models/mascot.vrm';
+    const SKELETON_BONES = Object.freeze([
+      ['head', 'chest'],
+      ['leftShoulder', 'chest'],
+      ['rightShoulder', 'chest'],
+      ['chest', 'hips'],
+      ['leftShoulder', 'leftElbow'],
+      ['leftElbow', 'leftWrist'],
+      ['rightShoulder', 'rightElbow'],
+      ['rightElbow', 'rightWrist'],
+      ['leftShoulder', 'leftWrist'],
+      ['rightShoulder', 'rightWrist'],
+      ['hips', 'leftKnee'],
+      ['leftKnee', 'leftAnkle'],
+      ['hips', 'rightKnee'],
+      ['rightKnee', 'rightAnkle'],
+      ['hips', 'leftAnkle'],
+      ['hips', 'rightAnkle']
+    ]);
+    const DEPTH_MARKERS = Object.freeze([
+      { point: 'leftWrist', anchor: 'leftShoulder', label: 'L hand' },
+      { point: 'rightWrist', anchor: 'rightShoulder', label: 'R hand' },
+      { point: 'leftAnkle', anchor: 'hips', label: 'L foot' },
+      { point: 'rightAnkle', anchor: 'hips', label: 'R foot' }
+    ]);
+    const MOTIONBERT_DEBUG_JOINTS = Object.freeze([
+      'head',
+      'chest',
+      'hips',
+      'leftWrist',
+      'rightWrist',
+      'leftKnee',
+      'rightKnee',
+      'leftAnkle',
+      'rightAnkle'
+    ]);
 
     const state = {
       adapter: new SkeletonSequenceAdapter({ sourceId: 'motion_capture_lab' }),
@@ -379,7 +1323,18 @@
       clip: null,
       mascot: null,
       previewAdapter: new AliciaMotionPreviewAdapter(),
-      videoObjectUrl: null
+      videoObjectUrl: null,
+      currentVideoUrl: null,
+      currentVideoLabel: '',
+      captureRange: { startMs: 0, endMs: 0, durationMs: 0 },
+      skeletonAnalysisMode: '2d',
+      skeleton3d: {
+        yaw: -24,
+        pitch: -10,
+        isDragging: false,
+        lastX: 0,
+        lastY: 0
+      }
     };
 
     state.registry.register('mediapipe_pose', createMediaPipePoseAdapter());
@@ -397,6 +1352,345 @@
       } else {
         $('btnPreviewWalkCycle').disabled = true;
       }
+    }
+
+    function clearVideoObjectUrl() {
+      if (state.videoObjectUrl) {
+        URL.revokeObjectURL(state.videoObjectUrl);
+        state.videoObjectUrl = null;
+      }
+    }
+
+    function attachVideoPreview(url, { sourceType, label, objectUrl = false, serverVideoUrl = null }) {
+      const video = $('videoPreview');
+      stopWebcamStream();
+      clearVideoObjectUrl();
+      state.videoObjectUrl = objectUrl ? url : null;
+      state.currentVideoUrl = serverVideoUrl;
+      state.currentVideoLabel = label;
+      resetCaptureRange();
+      video.src = url;
+      video.load();
+      $('captureSourceType').value = sourceType;
+      setStatus(label);
+    }
+
+    function formatRangeTime(ms) {
+      const seconds = Math.max(0, Number(ms) || 0) / 1000;
+      return `${seconds.toFixed(2)}s`;
+    }
+
+    function clampCaptureRange(startMs, endMs, durationMs = state.captureRange.durationMs) {
+      const safeDuration = Math.max(0, Math.round(Number(durationMs) || 0));
+      let start = Math.round(Number(startMs));
+      let end = Math.round(Number(endMs));
+      if (!Number.isFinite(start)) {
+        start = 0;
+      }
+      if (!Number.isFinite(end)) {
+        end = safeDuration;
+      }
+
+      start = Math.max(0, start);
+      end = Math.max(0, end);
+      if (safeDuration <= 0) {
+        return { startMs: start, endMs: end, durationMs: 0 };
+      }
+
+      start = Math.min(start, safeDuration);
+      end = Math.min(end || safeDuration, safeDuration);
+      if (end <= start) {
+        if (start < safeDuration) {
+          end = Math.min(safeDuration, start + 100);
+        } else {
+          start = Math.max(0, end - 100);
+        }
+      }
+
+      return { startMs: start, endMs: end, durationMs: safeDuration };
+    }
+
+    function syncCaptureRangeControls() {
+      const { startMs, endMs, durationMs } = state.captureRange;
+      const maxMs = Math.max(0, durationMs);
+      const startSlider = $('captureRangeStartSlider');
+      const endSlider = $('captureRangeEndSlider');
+      const startInput = $('captureRangeStartMs');
+      const endInput = $('captureRangeEndMs');
+
+      startSlider.max = String(maxMs);
+      endSlider.max = String(maxMs);
+      startSlider.value = String(Math.min(startMs, maxMs || startMs));
+      endSlider.value = String(Math.min(endMs, maxMs || endMs));
+      startInput.max = String(maxMs || '');
+      endInput.max = String(maxMs || '');
+      startInput.value = String(startMs);
+      endInput.value = String(endMs);
+      $('captureRangeLabel').textContent = maxMs
+        ? `${formatRangeTime(startMs)} - ${formatRangeTime(endMs)} / ${formatRangeTime(maxMs)}`
+        : `${formatRangeTime(startMs)} - ${formatRangeTime(endMs)}`;
+    }
+
+    function setText(id, value) {
+      const element = $(id);
+      if (element) {
+        element.textContent = value;
+      }
+    }
+
+    function formatMetric(value, digits = 2) {
+      const number = Number(value);
+      return Number.isFinite(number) ? number.toFixed(digits) : '--';
+    }
+
+    function formatLoopRange(loop) {
+      if (!loop || !Number.isFinite(Number(loop.startMs)) || !Number.isFinite(Number(loop.endMs))) {
+        return '--';
+      }
+      return `${formatRangeTime(loop.startMs)} ~ ${formatRangeTime(loop.endMs)}`;
+    }
+
+    function updateVideoInfo() {
+      const video = $('videoPreview');
+      const durationMs = Number.isFinite(video.duration)
+        ? Math.max(0, Math.round(video.duration * 1000))
+        : (state.sequence?.frames?.length
+          ? Math.max(0, state.sequence.frames.at(-1).timeMs - state.sequence.frames[0].timeMs)
+          : 0);
+      const resolution = video.videoWidth && video.videoHeight
+        ? `${video.videoWidth}x${video.videoHeight}`
+        : '--';
+      const fps = Number(state.sequence?.fps);
+      setText('videoInfoDuration', durationMs > 0 ? formatRangeTime(durationMs) : '--');
+      setText('videoInfoResolution', resolution);
+      setText('videoInfoFps', Number.isFinite(fps) ? fps.toFixed(0) : '--');
+    }
+
+    function setParamMeter(id, value, display) {
+      const card = $(id);
+      if (!card) {
+        return;
+      }
+      const safeValue = Math.max(0, Math.min(1, Number(value) || 0));
+      const valueNode = card.querySelector('[data-param-value]');
+      const meter = card.querySelector('[data-param-meter]');
+      if (valueNode) {
+        valueNode.textContent = display ?? formatMetric(safeValue);
+      }
+      if (meter) {
+        meter.style.width = `${Math.round(safeValue * 100)}%`;
+      }
+    }
+
+    function updateWalkStylePanels(style) {
+      if (!style) {
+        setText('loopSummaryRange', '--');
+        setText('loopSummaryDuration', '--');
+        setText('loopSummaryConfidence', '--');
+        setText('walkConfidenceSummary', 'Confidence: --');
+        setText('walkSummaryType', '--');
+        setText('walkSummaryPreviewSource', '--');
+        setText('walkSummaryPoseMode', '--');
+        setText('walkSummaryDepthSource', '--');
+        setText('walkSummaryMotionBert', '--');
+        setText('walkSummaryLeadFoot', '--');
+        setText('walkSummaryLoop', '--');
+        setText('walkSummaryCadence', '--');
+        setText('walkSummaryStride', '--');
+        setText('walkSummaryConfidence', '--');
+        updateMotionBertDebugPanel(null);
+        for (const id of ['walkParamStride', 'walkParamCadence', 'walkParamArmSwing', 'walkParamHipBob', 'walkParamBounce', 'walkParamBodyLean']) {
+          setParamMeter(id, 0, '--');
+        }
+        return;
+      }
+
+      const params = style.parameters || {};
+      const loop = style.loop || {};
+      const confidence = style.confidence || {};
+      const durationMs = Number(loop.durationMs) || Math.max(0, (Number(loop.endMs) || 0) - (Number(loop.startMs) || 0));
+      const confidenceText = formatMetric(confidence.overall);
+      setText('loopSummaryRange', formatLoopRange(loop));
+      setText('loopSummaryDuration', durationMs > 0 ? formatRangeTime(durationMs) : '--');
+      setText('loopSummaryConfidence', confidenceText);
+      setParamMeter('walkParamStride', params.stride, formatMetric(params.stride));
+      setParamMeter('walkParamCadence', Number(params.cadence) / 3.2, formatMetric(params.cadence));
+      setParamMeter('walkParamArmSwing', params.armSwing, formatMetric(params.armSwing));
+      setParamMeter('walkParamHipBob', params.hipBob, formatMetric(params.hipBob));
+      setParamMeter('walkParamBounce', params.bounce, formatMetric(params.bounce));
+      setParamMeter('walkParamBodyLean', (Number(params.bodyLean) + 1) / 2, formatMetric(params.bodyLean));
+      setText('walkConfidenceSummary', `Confidence: Overall ${confidenceText}`);
+      setText('walkSummaryType', style.kind || '--');
+      setText('walkSummaryPreviewSource', 'Waiting for preview');
+      setText('walkSummaryPoseMode', style.poseMode || style.metadata?.poseMode || '--');
+      setText('walkSummaryDepthSource', style.metadata?.depthSource || '--');
+      setText('walkSummaryMotionBert', motionBertSummaryLabel(style));
+      setText('walkSummaryLeadFoot', style.leadFoot ? `${style.leadFoot} (${formatMetric(style.frontBackConfidence)})` : '--');
+      setText('walkSummaryLoop', durationMs > 0 ? `${formatLoopRange(loop)} (${formatRangeTime(durationMs)})` : '--');
+      setText('walkSummaryCadence', Number.isFinite(Number(params.cadence)) ? `${formatMetric(params.cadence)} steps/s` : '--');
+      setText('walkSummaryStride', formatMetric(params.stride));
+      setText('walkSummaryConfidence', confidenceText);
+      updateMotionBertDebugPanel(style);
+    }
+
+    function previewSourceLabel(result) {
+      if (result.adapter === 'walk_style_skeleton_trace') {
+        return `Extracted skeleton trace (${result.sampleCount || 0} frames)`;
+      }
+      if (result.adapter === 'walk_style_generator') {
+        return 'Alicia walk generator';
+      }
+      if (result.adapter === 'motion_clip_custom') {
+        return `Custom skeleton motion (${result.sampleCount || 0} frames)`;
+      }
+      return 'Fallback walk cycle';
+    }
+
+    function motionBertSummaryLabel(style) {
+      const status = style?.metadata?.motionBert;
+      const depthSource = style?.metadata?.depthSource || style?.depthSource;
+      if (status?.ok === true) {
+        const runtime = Number.isFinite(Number(status.runtimeMs)) ? `, ${formatRangeTime(status.runtimeMs)}` : '';
+        return `real CUDA lift${runtime}`;
+      }
+      if (status?.fallback) {
+        return `fallback ${status.fallback}`;
+      }
+      if (depthSource === 'motionbert') {
+        return 'real MotionBERT';
+      }
+      if (depthSource === 'motionbert_poc') {
+        return 'PoC heuristic';
+      }
+      return '--';
+    }
+
+    function skeletonMotionBertDebugPayload(style) {
+      const previewTimeMs = getCurrentSkeletonPreviewTimeMs();
+      const frame = state.sequence?.frames?.length
+        ? state.adapter.getFrameAtMs(state.sequence, previewTimeMs)
+        : null;
+      const landmarks = frame?.landmarks || {};
+      const joints = {};
+      for (const name of MOTIONBERT_DEBUG_JOINTS) {
+        const point = landmarks[name];
+        if (!point) {
+          continue;
+        }
+        joints[name] = {
+          x: Number(Number(point.x || 0).toFixed(4)),
+          y: Number(Number(point.y || 0).toFixed(4)),
+          z: Number(Number(point.z || 0).toFixed(4))
+        };
+      }
+      return {
+        poseMode: style?.poseMode || state.sequence?.poseMode || '2d_estimated',
+        depthSource: style?.metadata?.depthSource || state.sequence?.depthSource || '--',
+        frameTimeMs: frame?.timeMs ?? null,
+        leadFoot: style?.leadFoot || state.sequence?.leadFoot || 'unknown',
+        depthConfidence: style?.confidence?.depthConfidence ?? state.sequence?.depthConfidence ?? 0,
+        viewpoint: style?.viewpoint || state.sequence?.viewpoint || 'front',
+        joints
+      };
+    }
+
+    function updateMotionBertDebugPanel(style) {
+      const payload = style || state.sequence ? skeletonMotionBertDebugPayload(style) : null;
+      if (!payload) {
+        setText('motionBertLeadFoot', '--');
+        setText('motionBertDepthConfidence', '--');
+        setText('motionBertViewpoint', '--');
+        $('motionBertDebugOutput').value = '';
+        return;
+      }
+      setText('motionBertLeadFoot', payload.leadFoot || '--');
+      setText('motionBertDepthConfidence', formatMetric(payload.depthConfidence));
+      setText('motionBertViewpoint', payload.viewpoint || '--');
+      $('motionBertDebugOutput').value = JSON.stringify(payload.joints, null, 2);
+    }
+
+    function setCaptureRange(startMs, endMs, { durationMs = state.captureRange.durationMs } = {}) {
+      state.captureRange = clampCaptureRange(startMs, endMs, durationMs);
+      syncCaptureRangeControls();
+      return state.captureRange;
+    }
+
+    function resetCaptureRange() {
+      state.captureRange = { startMs: 0, endMs: 0, durationMs: 0 };
+      syncCaptureRangeControls();
+      updateVideoInfo();
+    }
+
+    function updateCaptureRangeFromVideoMetadata() {
+      updateVideoInfo();
+      const video = $('videoPreview');
+      const durationMs = Number.isFinite(video.duration)
+        ? Math.max(0, Math.round(video.duration * 1000))
+        : 0;
+      if (durationMs <= 0) {
+        resetCaptureRange();
+        return;
+      }
+
+      const current = state.captureRange;
+      const startMs = Math.min(current.startMs, durationMs);
+      const endMs = current.endMs > current.startMs && current.endMs <= durationMs
+        ? current.endMs
+        : durationMs;
+      setCaptureRange(startMs, endMs, { durationMs });
+    }
+
+    function getVideoCurrentTimeMs() {
+      const video = $('videoPreview');
+      const currentMs = Math.round(Number(video.currentTime || 0) * 1000);
+      return Number.isFinite(currentMs) ? Math.max(0, currentMs) : 0;
+    }
+
+    function seekVideoToMs(timeMs) {
+      const video = $('videoPreview');
+      if (!Number.isFinite(video.duration) || video.duration <= 0) {
+        return;
+      }
+      video.currentTime = Math.max(0, Math.min(timeMs / 1000, video.duration));
+    }
+
+    function setCurrentTimeAsCaptureRangeStart() {
+      const startMs = getVideoCurrentTimeMs();
+      const endMs = state.captureRange.endMs || state.captureRange.durationMs;
+      setCaptureRange(startMs, Math.max(endMs, startMs + 100));
+      drawSkeletonCanvas();
+    }
+
+    function setCurrentTimeAsCaptureRangeEnd() {
+      const endMs = getVideoCurrentTimeMs();
+      setCaptureRange(state.captureRange.startMs, endMs);
+      drawSkeletonCanvas();
+    }
+
+    function getCaptureRangeForRequest() {
+      const captureRange = setCaptureRange(
+        $('captureRangeStartMs').value,
+        $('captureRangeEndMs').value
+      );
+      if (captureRange.endMs <= captureRange.startMs) {
+        throw new Error('Select a valid video range first.');
+      }
+      return {
+        startMs: captureRange.startMs,
+        endMs: captureRange.endMs
+      };
+    }
+
+    function updateCaptureRangeStartFromInput(event) {
+      const range = setCaptureRange(event.target.value, state.captureRange.endMs);
+      seekVideoToMs(range.startMs);
+      drawSkeletonCanvas();
+    }
+
+    function updateCaptureRangeEndFromInput(event) {
+      const range = setCaptureRange(state.captureRange.startMs, event.target.value);
+      seekVideoToMs(range.endMs);
+      drawSkeletonCanvas();
     }
 
     async function checkModelAvailable(url) {
@@ -439,13 +1733,156 @@
       }
     }
 
-    function drawSkeletonCanvas() {
-      const canvas = $('skeletonPreviewCanvas');
-      const ctx = canvas.getContext('2d');
+    function getCurrentSkeletonPreviewTimeMs() {
+      if (state.sequence?.sourceType === 'video' && state.currentVideoUrl) {
+        const video = $('videoPreview');
+        const timeMs = Number(video.currentTime) * 1000;
+        if (Number.isFinite(timeMs)) {
+          return timeMs;
+        }
+      }
+      return state.sequence?.frames?.[0]?.timeMs ?? 0;
+    }
+
+    function setSkeletonAnalysisMode(mode) {
+      state.skeletonAnalysisMode = mode === '3d' ? '3d' : '2d';
+      const is3d = state.skeletonAnalysisMode === '3d';
+      $('btnSkeletonMode2d').classList.toggle('active', !is3d);
+      $('btnSkeletonMode3d').classList.toggle('active', is3d);
+      $('btnSkeletonMode2d').setAttribute('aria-pressed', String(!is3d));
+      $('btnSkeletonMode3d').setAttribute('aria-pressed', String(is3d));
+      $('skeletonModeStatus').textContent = is3d ? '3D Lifted Pose' : '2D Analysis';
+      $('skeleton3dControls').hidden = !is3d;
+      drawSkeletonCanvas();
+    }
+
+    function setSkeleton3dRotation(yaw, pitch) {
+      state.skeleton3d.yaw = Math.max(-180, Math.min(180, Number(yaw) || 0));
+      state.skeleton3d.pitch = Math.max(-65, Math.min(65, Number(pitch) || 0));
+      $('skeleton3dYaw').value = String(Math.round(state.skeleton3d.yaw));
+      $('skeleton3dPitch').value = String(Math.round(state.skeleton3d.pitch));
+      drawSkeletonCanvas();
+    }
+
+    function getDepthValue(point) {
+      const value = Number(point?.z);
+      return Number.isFinite(value) ? value : 0;
+    }
+
+    function normalizedDepth(point, zMin, zMax) {
+      const span = Math.max(0.0001, zMax - zMin);
+      return Math.max(0, Math.min(1, (getDepthValue(point) - zMin) / span));
+    }
+
+    function depthRank(point, zMin, zMax) {
+      const span = Math.max(0.0001, zMax - zMin);
+      const normalized = (getDepthValue(point) - zMin) / span;
+      return Math.max(0, Math.min(1, 1 - normalized));
+    }
+
+    function mixColorChannel(from, to, rank) {
+      return Math.round(from + (to - from) * Math.max(0, Math.min(1, rank)));
+    }
+
+    function depthColor(rank) {
+      const safeRank = Math.max(0, Math.min(1, rank));
+      const red = mixColorChannel(90, 246, safeRank);
+      const green = mixColorChannel(152, 203, safeRank);
+      const blue = mixColorChannel(255, 94, safeRank);
+      return `rgb(${red}, ${green}, ${blue})`;
+    }
+
+    function depthAlpha(rank) {
+      return 0.38 + Math.max(0, Math.min(1, rank)) * 0.62;
+    }
+
+    function depthRadius(name, rank) {
+      const base = name === 'hips' ? 7 : 4;
+      return base + Math.max(0, Math.min(1, rank)) * 5;
+    }
+
+    function depthRelationLabel(point, anchor) {
+      const delta = getDepthValue(point) - getDepthValue(anchor);
+      const confidence = depthRelationConfidence(point, anchor);
+      if (confidence < 0.6) {
+        return 'uncertain';
+      }
+      if (delta < -0.025) {
+        return `near ${Math.round(confidence * 100)}%`;
+      }
+      if (delta > 0.025) {
+        return `far ${Math.round(confidence * 100)}%`;
+      }
+      return 'uncertain';
+    }
+
+    function depthRelationConfidence(point, anchor) {
+      const delta = Math.abs(getDepthValue(point) - getDepthValue(anchor));
+      return Math.max(0, Math.min(1, delta / 0.16));
+    }
+
+    function drawDepthBadge(ctx, label, x, y, rank) {
+      const paddingX = 6;
+      const height = 18;
+      ctx.save();
+      ctx.font = '11px Segoe UI, sans-serif';
+      const width = Math.ceil(ctx.measureText(label).width) + paddingX * 2;
+      const left = Math.max(8, Math.min(ctx.canvas.width - width - 8, x));
+      const top = Math.max(8, Math.min(ctx.canvas.height - height - 8, y));
+      ctx.globalAlpha = 0.88;
+      ctx.fillStyle = '#101715';
+      ctx.fillRect(left, top, width, height);
+      ctx.strokeStyle = depthColor(rank);
+      ctx.lineWidth = 1;
+      ctx.strokeRect(left + 0.5, top + 0.5, width - 1, height - 1);
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#eef6ef';
+      ctx.fillText(label, left + paddingX, top + 13);
+      ctx.restore();
+    }
+
+    function drawDepthLegend(ctx, canvas) {
+      ctx.save();
+      ctx.font = '11px Segoe UI, sans-serif';
+      ctx.fillStyle = '#f6cb5e';
+      ctx.fillText('near camera', canvas.width - 130, 24);
+      ctx.fillStyle = '#5a98ff';
+      ctx.fillText('far camera', canvas.width - 130, 42);
+      ctx.restore();
+    }
+
+    function skeletonBounds(frame) {
+      const landmarks = Object.entries(frame.landmarks);
+      const xs = landmarks.map(([, point]) => Number(point.x) || 0);
+      const ys = landmarks.map(([, point]) => Number(point.y) || 0);
+      const zs = landmarks.map(([, point]) => getDepthValue(point));
+      const minX = Math.min(...xs, -0.5);
+      const maxX = Math.max(...xs, 0.5);
+      const minY = Math.min(...ys, 0);
+      const maxY = Math.max(...ys, 1.8);
+      const minZ = Math.min(...zs, -0.1);
+      const maxZ = Math.max(...zs, 0.1);
+      return {
+        minX,
+        maxX,
+        minY,
+        maxY,
+        minZ,
+        maxZ,
+        centerX: (minX + maxX) / 2,
+        centerY: (minY + maxY) / 2,
+        centerZ: (minZ + maxZ) / 2,
+        width: Math.max(0.1, maxX - minX),
+        height: Math.max(0.1, maxY - minY),
+        depth: Math.max(0.1, maxZ - minZ)
+      };
+    }
+
+    function drawSkeletonGrid(ctx, canvas, mode = '2d') {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = '#0b0e0c';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.strokeStyle = '#26342e';
+      ctx.strokeStyle = mode === '3d' ? '#23334a' : '#26342e';
       ctx.lineWidth = 1;
       for (let x = 40; x < canvas.width; x += 80) {
         ctx.beginPath();
@@ -459,8 +1896,175 @@
         ctx.lineTo(canvas.width, y);
         ctx.stroke();
       }
+    }
 
-      const frame = state.sequence?.frames?.[0];
+    function projectSkeleton3dPoint(point, bounds, canvas) {
+      const yaw = (state.skeleton3d.yaw * Math.PI) / 180;
+      const pitch = (state.skeleton3d.pitch * Math.PI) / 180;
+      const x = (Number(point.x) || 0) - bounds.centerX;
+      const y = (Number(point.y) || 0) - bounds.centerY;
+      const z = getDepthValue(point) - bounds.centerZ;
+      const yawX = x * Math.cos(yaw) - z * Math.sin(yaw);
+      const yawZ = x * Math.sin(yaw) + z * Math.cos(yaw);
+      const pitchY = y * Math.cos(pitch) - yawZ * Math.sin(pitch);
+      const pitchZ = y * Math.sin(pitch) + yawZ * Math.cos(pitch);
+      const span = Math.max(bounds.width, bounds.height, bounds.depth * 1.5, 0.3);
+      const scale = Math.min(canvas.width, canvas.height) * 0.52 / span;
+      const perspective = 1 / Math.max(0.45, 1 + pitchZ * 0.28);
+      return {
+        x: canvas.width / 2 + yawX * scale * perspective,
+        y: canvas.height / 2 - pitchY * scale * perspective + 12,
+        z: pitchZ,
+        perspective
+      };
+    }
+
+    function drawSkeletonCanvas2d(ctx, canvas, frame) {
+      const landmarks = Object.entries(frame.landmarks);
+      const bounds = skeletonBounds(frame);
+      const toCanvasPoint = (point) => ({
+        x: 54 + (((Number(point.x) || 0) - bounds.minX) / bounds.width) * (canvas.width - 108),
+        y: canvas.height - 54 - (((Number(point.y) || 0) - bounds.minY) / bounds.height) * (canvas.height - 108)
+      });
+
+      ctx.lineCap = 'round';
+      for (const [from, to] of SKELETON_BONES) {
+        const fromPoint = frame.landmarks[from];
+        const toPoint = frame.landmarks[to];
+        if (!fromPoint || !toPoint) {
+          continue;
+        }
+        const start = toCanvasPoint(fromPoint);
+        const end = toCanvasPoint(toPoint);
+        const rank = (depthRank(fromPoint, bounds.minZ, bounds.maxZ) + depthRank(toPoint, bounds.minZ, bounds.maxZ)) / 2;
+        ctx.strokeStyle = depthColor(rank);
+        ctx.globalAlpha = depthAlpha(rank);
+        ctx.lineWidth = 2.2 + rank * 3.8;
+        ctx.beginPath();
+        ctx.moveTo(start.x, start.y);
+        ctx.lineTo(end.x, end.y);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      const landmarksByDepth = landmarks.slice().sort((a, b) => getDepthValue(b[1]) - getDepthValue(a[1]));
+      for (const [name, point] of landmarksByDepth) {
+        const mapped = toCanvasPoint(point);
+        const rank = depthRank(point, bounds.minZ, bounds.maxZ);
+        ctx.beginPath();
+        ctx.arc(mapped.x, mapped.y, depthRadius(name, rank), 0, Math.PI * 2);
+        ctx.globalAlpha = depthAlpha(rank);
+        ctx.fillStyle = name === 'hips' ? '#f0c86a' : depthColor(rank);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = '#dfeadf';
+        ctx.font = '12px Segoe UI, sans-serif';
+        ctx.fillText(name, mapped.x + 8, mapped.y - 8);
+      }
+
+      for (const marker of DEPTH_MARKERS) {
+        const point = frame.landmarks[marker.point];
+        const anchor = frame.landmarks[marker.anchor];
+        if (!point || !anchor) {
+          continue;
+        }
+        const mapped = toCanvasPoint(point);
+        const rank = depthRank(point, bounds.minZ, bounds.maxZ);
+        drawDepthBadge(ctx, `${marker.label} ${depthRelationLabel(point, anchor)}`, mapped.x + 10, mapped.y + 12, rank);
+      }
+
+      drawDepthLegend(ctx, canvas);
+      ctx.fillStyle = '#9daf9f';
+      ctx.font = '13px Segoe UI, sans-serif';
+      ctx.fillText(`skeleton frame: ${frame.timeMs.toFixed(0)} ms`, 24, canvas.height - 22);
+    }
+
+    function drawSkeletonCanvas3d(ctx, canvas, frame) {
+      const bounds = skeletonBounds(frame);
+      const projected = Object.fromEntries(
+        Object.entries(frame.landmarks).map(([name, point]) => [name, {
+          point,
+          screen: projectSkeleton3dPoint(point, bounds, canvas),
+          rank: depthRank(point, bounds.minZ, bounds.maxZ),
+          normalized: normalizedDepth(point, bounds.minZ, bounds.maxZ)
+        }])
+      );
+
+      ctx.save();
+      ctx.fillStyle = '#dce8df';
+      ctx.font = '14px Segoe UI, sans-serif';
+      ctx.fillText('3D Lifted Pose', 24, 30);
+      ctx.fillStyle = '#8fa79a';
+      ctx.font = '12px Segoe UI, sans-serif';
+      ctx.fillText('drag canvas to rotate', 24, 48);
+      ctx.restore();
+
+      ctx.lineCap = 'round';
+      const bonesByDepth = SKELETON_BONES
+        .map(([from, to]) => ({ from, to, depth: ((projected[from]?.screen.z || 0) + (projected[to]?.screen.z || 0)) / 2 }))
+        .sort((a, b) => b.depth - a.depth);
+      for (const { from, to } of bonesByDepth) {
+        const start = projected[from];
+        const end = projected[to];
+        if (!start || !end) {
+          continue;
+        }
+        const rank = (start.rank + end.rank) / 2;
+        ctx.strokeStyle = depthColor(rank);
+        ctx.globalAlpha = depthAlpha(rank);
+        ctx.lineWidth = 2 + rank * 4;
+        ctx.beginPath();
+        ctx.moveTo(start.screen.x, start.screen.y);
+        ctx.lineTo(end.screen.x, end.screen.y);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      const jointsByDepth = Object.entries(projected).sort((a, b) => b[1].screen.z - a[1].screen.z);
+      for (const [name, data] of jointsByDepth) {
+        const radius = (name === 'hips' ? 6 : 4) + data.rank * 5;
+        ctx.beginPath();
+        ctx.arc(data.screen.x, data.screen.y, radius * data.screen.perspective, 0, Math.PI * 2);
+        ctx.globalAlpha = depthAlpha(data.rank);
+        ctx.fillStyle = name === 'hips' ? '#f0c86a' : depthColor(data.rank);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        if (['head', 'leftWrist', 'rightWrist', 'leftAnkle', 'rightAnkle'].includes(name)) {
+          ctx.fillStyle = '#dfeadf';
+          ctx.font = '12px Segoe UI, sans-serif';
+          ctx.fillText(`${name} z=${getDepthValue(data.point).toFixed(2)}`, data.screen.x + 9, data.screen.y - 8);
+        }
+      }
+
+      for (const marker of DEPTH_MARKERS) {
+        const data = projected[marker.point];
+        const anchor = projected[marker.anchor];
+        if (!data || !anchor) {
+          continue;
+        }
+        drawDepthBadge(ctx, `${marker.label} ${depthRelationLabel(data.point, anchor.point)}`, data.screen.x + 10, data.screen.y + 12, data.rank);
+      }
+
+      drawDepthLegend(ctx, canvas);
+      ctx.fillStyle = '#9daf9f';
+      ctx.font = '13px Segoe UI, sans-serif';
+      const leadFoot = state.clip?.leadFoot || state.sequence?.leadFoot || 'unknown';
+      const depthConfidence = state.clip?.confidence?.depthConfidence ?? state.sequence?.depthConfidence ?? 0;
+      const viewpoint = state.clip?.viewpoint || state.sequence?.viewpoint || 'front';
+      ctx.fillText(`Lead Foot : ${leadFoot}`, 24, canvas.height - 56);
+      ctx.fillText(`Depth Conf : ${formatMetric(depthConfidence)}`, 24, canvas.height - 38);
+      ctx.fillText(`Viewpoint : ${viewpoint}`, 24, canvas.height - 20);
+    }
+
+    function drawSkeletonCanvas() {
+      const canvas = $('skeletonPreviewCanvas');
+      const ctx = canvas.getContext('2d');
+      drawSkeletonGrid(ctx, canvas, state.skeletonAnalysisMode);
+
+      const previewTimeMs = getCurrentSkeletonPreviewTimeMs();
+      const frame = state.sequence?.frames?.length
+        ? state.adapter.getFrameAtMs(state.sequence, previewTimeMs)
+        : null;
       if (!frame) {
         ctx.fillStyle = '#9daf9f';
         ctx.font = '15px Segoe UI, sans-serif';
@@ -468,27 +2072,12 @@
         return;
       }
 
-      const landmarks = Object.entries(frame.landmarks);
-      const xs = landmarks.map(([, point]) => point.x);
-      const ys = landmarks.map(([, point]) => point.y);
-      const minX = Math.min(...xs, -0.5);
-      const maxX = Math.max(...xs, 0.5);
-      const minY = Math.min(...ys, 0);
-      const maxY = Math.max(...ys, 1.8);
-      const width = Math.max(0.1, maxX - minX);
-      const height = Math.max(0.1, maxY - minY);
-
-      for (const [name, point] of landmarks) {
-        const x = 54 + ((point.x - minX) / width) * (canvas.width - 108);
-        const y = canvas.height - 54 - ((point.y - minY) / height) * (canvas.height - 108);
-        ctx.beginPath();
-        ctx.arc(x, y, name === 'hips' ? 8 : 5, 0, Math.PI * 2);
-        ctx.fillStyle = name === 'hips' ? '#f0c86a' : '#9ee493';
-        ctx.fill();
-        ctx.fillStyle = '#dfeadf';
-        ctx.font = '12px Segoe UI, sans-serif';
-        ctx.fillText(name, x + 8, y - 8);
+      if (state.skeletonAnalysisMode === '3d') {
+        drawSkeletonCanvas3d(ctx, canvas, frame);
+      } else {
+        drawSkeletonCanvas2d(ctx, canvas, frame);
       }
+      updateMotionBertDebugPanel(state.clip);
     }
 
     function applyLoadedSequence(result, sourceLabel) {
@@ -506,6 +2095,8 @@
       const seeded = state.detector.seedEvenWalkPhases(state.sequence);
       fillPhaseInputs();
       drawSkeletonCanvas();
+      exportCurrentClip({ silent: true });
+      updateVideoInfo();
       setStatus(`${sourceLabel}: ${result.frameCount} frames loaded; ${seeded.ok ? 'cycle phases seeded' : seeded.reason}.`);
       return true;
     }
@@ -542,6 +2133,7 @@
       fillPhaseInputs();
       drawSkeletonCanvas();
       state.clip = null;
+      exportCurrentClip({ silent: true });
       setStatus('Cycle phases seeded from the current loop range.');
       return true;
     }
@@ -564,9 +2156,9 @@
           state.detector.setPhaseMarker(phase, value, state.sequence);
         }
       }
-      state.clip = exportMotionClip({
-        id: 'walk_cycle_001',
-        label: 'Walk Cycle 001',
+      state.clip = exportWalkStyle({
+        id: 'walk_style_001',
+        label: 'Walk Style 001',
         sequence: state.sequence,
         detector: state.detector,
         source: {
@@ -576,10 +2168,35 @@
         }
       });
       $('motionClipOutput').value = JSON.stringify(state.clip, null, 2);
+      updateWalkStylePanels(state.clip);
       if (!silent) {
-        setStatus(`Exported ${state.clip.id} with ${state.clip.keyPoses.length} key poses.`);
+        $('walkJsonDetails').open = true;
+        setStatus(`Exported ${state.clip.id} (${state.clip.kind}) cadence ${state.clip.parameters.cadence.toFixed(2)}.`);
       }
       return state.clip;
+    }
+
+    function clonePreviewLandmarks(landmarks) {
+      return Object.fromEntries(
+        Object.entries(landmarks || {}).map(([name, point]) => [name, { ...point }])
+      );
+    }
+
+    function attachPreviewFramesToClip(clip) {
+      if (!clip || !state.sequence || typeof state.detector.extractCycleFrames !== 'function') {
+        return clip;
+      }
+      const previewFrames = state.detector.extractCycleFrames(state.sequence)
+        .filter((frame) => frame?.landmarks)
+        .map((frame) => ({
+          timeMs: frame.timeMs,
+          frameIndex: frame.frameIndex,
+          landmarks: clonePreviewLandmarks(frame.landmarks)
+        }));
+      if (previewFrames.length >= 2) {
+        clip.previewFrames = previewFrames;
+      }
+      return clip;
     }
 
     function previewWalkCycle() {
@@ -587,13 +2204,24 @@
         setStatus('Preview unavailable: Alicia local model is not loaded. Skeleton JSON export remains usable.', 'error');
         return;
       }
-      const clip = state.clip || exportCurrentClip({ silent: true });
+      const clip = exportCurrentClip({ silent: true });
       if (!clip) {
         return;
       }
+      clip.previewSpeed = Number($('previewSpeedSelect').value) || 1;
+      attachPreviewFramesToClip(clip);
       const previewAdapter = state.previewAdapter;
-      const result = previewAdapter.previewClip(state.clip);
-      setStatus(result.ok ? `Preview started for ${result.clipId}.` : `Preview unavailable: ${result.reason}`, result.ok ? 'ok' : 'error');
+      const result = previewAdapter.previewClip(clip);
+      const adapterLabel = result.adapter === 'walk_style_skeleton_trace'
+        ? 'extracted skeleton trace'
+        : result.adapter === 'walk_style_generator'
+        ? 'Alicia walk generator'
+        : (result.adapter === 'motion_clip_custom' ? 'custom motion clip' : 'fallback walk cycle');
+      const retargetLabel = result.retargetMode ? `, ${result.retargetMode}` : '';
+      if (result.ok) {
+        setText('walkSummaryPreviewSource', previewSourceLabel(result));
+      }
+      setStatus(result.ok ? `Preview started for ${result.clipId} (${adapterLabel}${retargetLabel}).` : `Preview unavailable: ${result.reason}`, result.ok ? 'ok' : 'error');
     }
 
     async function handleSkeletonJsonFile(file) {
@@ -624,16 +2252,100 @@
       try {
         stopWebcamStream();
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-        if (state.videoObjectUrl) {
-          URL.revokeObjectURL(state.videoObjectUrl);
-          state.videoObjectUrl = null;
-        }
+        clearVideoObjectUrl();
+        state.currentVideoUrl = null;
+        state.currentVideoLabel = '';
+        resetCaptureRange();
         $('videoPreview').srcObject = stream;
         await $('videoPreview').play();
         $('captureSourceType').value = 'webcam';
         setStatus('Webcam stream attached. Pose adapters are registered for capture when available.');
       } catch (error) {
         setStatus(`Webcam start failed: ${error.message}`, 'error');
+      }
+    }
+
+    async function loadYoutubeVideoSource() {
+      const url = $('captureYoutubeUrlInput').value.trim();
+      if (!url) {
+        setStatus('Enter a YouTube URL first.', 'error');
+        return;
+      }
+
+      const button = $('btnCaptureYoutube');
+      const previousLabel = button.textContent;
+      button.disabled = true;
+      button.textContent = 'Loading YouTube...';
+      setStatus('Downloading YouTube video into local capture cache...');
+
+      try {
+        const response = await fetch('api/capture/youtube', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+        const body = await response.json().catch(() => null);
+        if (!response.ok || !body?.ok) {
+          throw new Error(body?.error || `HTTP ${response.status}`);
+        }
+
+        const source = body.source;
+        attachVideoPreview(source.url, {
+          sourceType: 'youtube',
+          label: `YouTube loaded: ${source.title || source.filename}.`,
+          serverVideoUrl: source.url
+        });
+      } catch (error) {
+        setStatus(`YouTube load failed: ${error.message}`, 'error');
+      } finally {
+        button.disabled = false;
+        button.textContent = previousLabel;
+      }
+    }
+
+    async function extractSkeletonFromCurrentVideo() {
+      if (!state.currentVideoUrl) {
+        setStatus('Load a YouTube video first; browser-only local files cannot be extracted by the backend yet.', 'error');
+        return;
+      }
+
+      const button = $('btnExtractVideoSkeleton');
+      const previousLabel = button.textContent;
+
+      try {
+        const captureRange = getCaptureRangeForRequest();
+        button.disabled = true;
+        button.textContent = 'Extracting Skeleton...';
+        setStatus(`Extracting skeleton from ${formatRangeTime(captureRange.startMs)} to ${formatRangeTime(captureRange.endMs)}. This may take a while...`);
+
+        const response = await fetch('api/capture/video/skeleton', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            videoUrl: state.currentVideoUrl,
+            startMs: captureRange.startMs,
+            endMs: captureRange.endMs,
+            enable3dLift: true,
+            strict3dLift: false,
+            targetFps: 8,
+            maxFrames: 240
+          })
+        });
+        const body = await response.json().catch(() => null);
+        if (!response.ok || !body?.ok) {
+          throw new Error(body?.error || `HTTP ${response.status}`);
+        }
+
+        const sequence = body.sequence;
+        const adapter = new SkeletonSequenceAdapter({ sourceId: sequence.id || 'video_skeleton' });
+        const result = adapter.load(sequence);
+        state.adapter = adapter;
+        applyLoadedSequence(result, `Video skeleton: ${sequence.label || sequence.id}`);
+      } catch (error) {
+        setStatus(`Video skeleton extraction failed: ${error.message}`, 'error');
+      } finally {
+        button.disabled = false;
+        button.textContent = previousLabel;
       }
     }
 
@@ -674,14 +2386,13 @@
       if (!file) {
         return;
       }
-      stopWebcamStream();
-      if (state.videoObjectUrl) {
-        URL.revokeObjectURL(state.videoObjectUrl);
-      }
-      state.videoObjectUrl = URL.createObjectURL(file);
-      $('videoPreview').src = state.videoObjectUrl;
-      $('captureSourceType').value = 'video';
-      setStatus(`Video loaded: ${file.name}.`);
+      const objectUrl = URL.createObjectURL(file);
+      attachVideoPreview(objectUrl, {
+        sourceType: 'video',
+        label: `Video loaded: ${file.name}.`,
+        objectUrl: true,
+        serverVideoUrl: null
+      });
     });
 
     $('captureSkeletonJsonInput').addEventListener('change', (event) => {
@@ -697,11 +2408,78 @@
     });
 
     $('captureWebcamButton').addEventListener('click', startWebcam);
+    $('btnCaptureYoutube').addEventListener('click', loadYoutubeVideoSource);
+    $('btnExtractVideoSkeleton').addEventListener('click', extractSkeletonFromCurrentVideo);
+    $('btnSkeletonMode2d').addEventListener('click', () => setSkeletonAnalysisMode('2d'));
+    $('btnSkeletonMode3d').addEventListener('click', () => setSkeletonAnalysisMode('3d'));
+    $('skeleton3dYaw').addEventListener('input', (event) => setSkeleton3dRotation(event.target.value, state.skeleton3d.pitch));
+    $('skeleton3dPitch').addEventListener('input', (event) => setSkeleton3dRotation(state.skeleton3d.yaw, event.target.value));
+    $('skeletonPreviewCanvas').addEventListener('pointerdown', (event) => {
+      if (state.skeletonAnalysisMode !== '3d') {
+        return;
+      }
+      state.skeleton3d.isDragging = true;
+      state.skeleton3d.lastX = event.clientX;
+      state.skeleton3d.lastY = event.clientY;
+      $('skeletonPreviewCanvas').setPointerCapture(event.pointerId);
+    });
+    $('skeletonPreviewCanvas').addEventListener('pointermove', (event) => {
+      if (!state.skeleton3d.isDragging || state.skeletonAnalysisMode !== '3d') {
+        return;
+      }
+      const dx = event.clientX - state.skeleton3d.lastX;
+      const dy = event.clientY - state.skeleton3d.lastY;
+      state.skeleton3d.lastX = event.clientX;
+      state.skeleton3d.lastY = event.clientY;
+      setSkeleton3dRotation(state.skeleton3d.yaw + dx * 0.55, state.skeleton3d.pitch - dy * 0.45);
+    });
+    $('skeletonPreviewCanvas').addEventListener('pointerup', (event) => {
+      state.skeleton3d.isDragging = false;
+      try {
+        $('skeletonPreviewCanvas').releasePointerCapture(event.pointerId);
+      } catch (error) {
+        // Pointer capture may already be released by the browser.
+      }
+    });
+    $('skeletonPreviewCanvas').addEventListener('pointercancel', () => {
+      state.skeleton3d.isDragging = false;
+    });
+    $('captureRangeStartSlider').addEventListener('input', (event) => {
+      const range = setCaptureRange(event.target.value, state.captureRange.endMs);
+      seekVideoToMs(range.startMs);
+      drawSkeletonCanvas();
+    });
+    $('captureRangeEndSlider').addEventListener('input', (event) => {
+      const range = setCaptureRange(state.captureRange.startMs, event.target.value);
+      seekVideoToMs(range.endMs);
+      drawSkeletonCanvas();
+    });
+    $('captureRangeStartMs').addEventListener('input', updateCaptureRangeStartFromInput);
+    $('captureRangeStartMs').addEventListener('change', updateCaptureRangeStartFromInput);
+    $('captureRangeEndMs').addEventListener('input', updateCaptureRangeEndFromInput);
+    $('captureRangeEndMs').addEventListener('change', updateCaptureRangeEndFromInput);
+    $('btnUseCurrentAsRangeStart').addEventListener('click', setCurrentTimeAsCaptureRangeStart);
+    $('btnUseCurrentAsRangeEnd').addEventListener('click', setCurrentTimeAsCaptureRangeEnd);
+    $('videoPreview').addEventListener('timeupdate', () => drawSkeletonCanvas());
+    $('videoPreview').addEventListener('seeked', () => drawSkeletonCanvas());
+    $('videoPreview').addEventListener('loadedmetadata', () => {
+      updateCaptureRangeFromVideoMetadata();
+      drawSkeletonCanvas();
+    });
     $('btnLoadSampleSkeleton').addEventListener('click', loadSampleSkeleton);
     $('btnSeedCyclePhases').addEventListener('click', seedCyclePhases);
     $('btnExportMotionClip').addEventListener('click', () => exportCurrentClip());
     $('btnPreviewWalkCycle').addEventListener('click', previewWalkCycle);
+    $('previewSpeedSelect').addEventListener('change', () => {
+      if (state.clip && state.mascot && !$('btnPreviewWalkCycle').disabled) {
+        previewWalkCycle();
+      }
+    });
+    $('btnRefreshWalkPreview').addEventListener('click', previewWalkCycle);
 
+    syncCaptureRangeControls();
+    updateVideoInfo();
+    updateWalkStylePanels(null);
     drawSkeletonCanvas();
     bootAliciaPreview();
   </script>

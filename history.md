@@ -1,6 +1,90 @@
 # My VRM Mascot — 開發歷程
 
+## 2026-06-18
+
+- 修正 M21.0 3D lifted skeleton 對齊後 Alicia preview 手臂仍不跟的問題：
+  - 根因在 `AliciaMotionPreviewAdapter` 的 skeleton trace retarget，而不是 MotionBERT；原本手/肘越往上，upper arm `z` offset 反而把 Alicia 往自然下垂方向推，且沒有輸出 shoulder 軌。
+  - `joint_chain_preview` 現在會輸出 `leftShoulder/rightShoulder` keyframe，並把 arm elevation / lateral reach 轉成上舉方向的 upperArm offset，讓抬手到頭旁邊的 skeleton trace 能反映到右側 Alicia preview。
+  - 新增 regression case `raised_arm_trace`，鎖定手腕抬高時左右 upper arm quaternion 會跨離 down-pose 方向，避免右側再次退回 generic walk / 手臂不跟的狀態。
+- 針對 `https://www.youtube.com/shorts/fRcWSuVjjfc` 修正 Alicia skeleton trace 精準度：
+  - 實測該片 real MotionBERT 可產生 92-frame `3d_lifted` trace，但 `depthConfidence/frontBackConfidence` 只有約 0.07，因此前後腳/前後手不適合硬做高信心判斷。
+  - 新增 bent-hand-near-head regression：當 wrist 已高過 shoulder、elbow 仍低於 shoulder 時，forearm raise 也會中和 Alicia upperArm 的 down-pose 側向旋轉，改善手靠頭/彎手動作。
+  - `torsoOffsets` 改用 chest-to-hips screen angle 估 torso roll，並新增 `hips` rotation keyframe，讓斜身 skeleton trace 能驅動 Alicia hips/spine/chest，不再只有手腳動、身體仍直挺。
+
+- 新增 M21.0 real MotionBERT 3D Lift 整合：
+  - 在 `conda_vm/motionBERT/` 建立本機 MotionBERT PoC 環境，改用 CUDA 11.8 PyTorch，並下載官方 `FT_MB_lite_MB_ft_h36m_global_lite/best_epoch.bin` checkpoint。
+  - 新增 `scripts/motionbert_lift.py` sidecar，將 Alicia canonical 2D skeleton sequence 轉為 H36M 17-joint input，載入 MotionBERT checkpoint 後輸出 3D lifted z，不產生影片、不做 VRM bone retarget。
+  - `/api/capture/video/skeleton` 的 `enable3dLift` 改為先嘗試 real MotionBERT；成功時標示 `depthSource: "motionbert"` 與 `MotionBert3DLiftSubprocess`，非 strict 模式不可用時才明確 fallback 到 `motionbert_poc`，strict 模式則回 503。
+  - `walk_style_v1.metadata.motionBert` 保留 real/fallback 狀態，右側 Walk Style Summary 新增 MotionBERT 欄位，讓實際是否使用真 BERT 一眼可辨。
+  - 中間 Skeleton Analysis 新增 `2D / 3D` 雙模式：2D 保留原平面分析，3D 模式以 canvas 投影 MotionBERT lifted skeleton，可用滑桿或拖曳旋轉，並用黃色/藍色深度顏色顯示 near/far。
+  - 新增 MotionBERT mini summary 與 `Show MotionBERT 3D Skeleton` debug panel，顯示 Lead Foot、Depth Confidence、Viewpoint 與目前 frame 的 lifted joint `{x,y,z}` JSON，方便確認影片 -> 2D pose -> 3D lift -> WalkStyleExtractor 鏈路。
+
+- 新增 M21.0 MotionBERT 3D Lift PoC sidecar：
+  - 保留 M20.3 Walk Style Extractor 主線，不做 MotionBERT -> VRM bone retarget；MotionBERT PoC 只負責補 Z 軸語意，供 WalkStyleExtractor 判斷前後腳與 depth confidence。
+  - `/api/capture/video/skeleton` 新增 `enable3dLift: true` 路徑，會在 2D/MediaPipe pose sequence 後套用 `MotionBert3DLiftPoc` metadata，輸出 `poseMode: "3d_lifted"`、`depthSource: "motionbert_poc"`、`viewpoint`、`frontBackConfidence` 與 `leadFoot`。
+  - `WalkStyleExtractor` 若 sequence 有 z / 3D lift metadata，會用 ankle/knee z 推估 lead foot 與 `frontBackConfidence`；沒有可用深度時維持 2D heuristic fallback。`confidence` 保留既有 `overall/legs/arms`，並新增 `trackingConfidence/depthConfidence`。
+  - `walk_style_v1` export 以 additive 欄位保留相容性：新增 `poseMode`、`viewpoint`、`frontBackConfidence`、`leadFoot` 與 `metadata.poseMode/depthSource`，不輸出逐骨頭 mocap。
+  - Skeleton Canvas 的深度 badge 從 `front/back` 改成 `near/far + %`，低於 0.6 顯示 `uncertain`；右側 Summary 補 `Pose Mode`、`Depth Source` 與 `Lead Foot`。
+
+- 修正 M20.3.9 Walk Style Preview 來源不透明：
+  - 根因是 `motion_capture_lab.html` 雖然在 preview 前把 extract 出來的 `previewFrames` 掛到 `walk_style_v1`，但 `AliciaMotionPreviewAdapter.previewClip()` 對 `walk_style_v1` 會先走 `AliciaWalkGenerator`，導致右側看起來像 generic Alicia walk，而不是目前 extract skeleton 的 trace。
+  - `AliciaMotionPreviewAdapter` 改成 `walk_style_v1 + previewFrames` 時優先播放 extracted skeleton trace，沒有 frame 時才 fallback 到 Alicia Walk Generator；正式 export 仍保持 `walk_style_v1`，不把 skeleton frames 寫進 runtime style JSON。
+  - 右側 Walk Style Summary 新增 `Preview Source`，preview 後會明確顯示 `Extracted skeleton trace` 或 `Alicia walk generator`，避免把參數化生成誤認成影片逐格 retarget。
+  - 擴充 `scratch/test_walk_style_extractor.mjs` 與 `scratch/test_motion_capture_lab.mjs`，鎖定 skeleton trace 優先序與 UI source label。
+
+- 新增 M20.3.8 Motion Capture Lab 新版 Walk Style Extractor 介面：
+  - `motion_capture_lab.html` 改成新版三步驟工作流：`Input Source`、`Walk Cycle Analysis`、`Alicia Walk Preview`，主畫面正式呈現為 Walk Style Extractor，不再以 Full Mocap / Motion Clip 為主敘事。
+  - 左側保留 YouTube URL、Skeleton JSON、影片預覽、影片資訊與單段 Capture Range；進階的 Video file / Webcam / VRMA / source type 收進 `Advanced Debug`，讓主要流程更乾淨。
+  - 中間新增 `Walk Parameters (Extracted)` 面板，直接顯示 `stride`、`cadence`、`armSwing`、`hipBob`、`bounce`、`bodyLean`、loop range 與 confidence，並把 phase marker 表單降為 debug 區塊。
+  - 右側新增 Walk Style Summary、preview speed、refresh preview、`Export Walk Style (walk_style_v1)` 與 collapsible JSON viewer；`previewSpeed` 會作為 Alicia Walk Generator 的預覽倍率，不改寫正式 export 參數。
+  - 擴充 `scratch/test_motion_capture_lab.mjs` 鎖定新版 UI contract、面板資料同步函式與 preview controls，並保留既有 YouTube / range / skeleton / Alicia preview 流程測試。
+
 ## 2026-06-17
+
+- 新增 M20.3.7 Walk Style Extractor 轉向：
+  - 將 M20.3 主線從「Video Skeleton Motion Trainer / 逐骨頭 retarget」收斂成「Walk Style Extractor」：正式輸出改為 `walk_style_v1`，不再把 shoulder / wrist / ankle 等點硬轉成 VRM 骨頭角度。
+  - 新增 `js/WalkStyleExtractor.js`，從 Pose Sequence、Cycle Detector 與 Phase markers 估算 `stride`、`cadence`、`armSwing`、`hipBob`、`bounce`、`bodyLean` 與 confidence，保留對低品質影片、遮擋、腳看不清楚、鏡頭角度不同的容錯。
+  - 新增 `js/AliciaWalkGenerator.js`，由 `walk_style_v1.parameters` 生成 Alicia-style procedural custom animation；`AliciaMotionPreviewAdapter` 支援 `walk_style_v1` 並回報 `walk_style_generator`。
+  - `motion_capture_lab.html` 的正式 export/preview 改走 `walk_style_v1` / Alicia Walk Generator；既有 `motion_clip_v1` 與 joint-chain retarget 保留為 legacy/debug，不再作為 M20.3 的主產品承諾。
+  - 新增 `scratch/test_walk_style_extractor.mjs`，並調整 `scratch/test_motion_capture_lab.mjs`，鎖定 Walk Style contract、Alicia generator 行為與 lab page 主線。
+
+- 新增 M20.3.6 Motion Capture Lab joint-chain retarget：
+  - 釐清目前精度瓶頸已從 video-to-skeleton 轉到 skeleton-to-VRM retarget；原本 3D preview 只用 shoulder-wrist、hips-ankle endpoint 估 Euler 角度，側身、手腳前後交錯時會失真很大。
+  - `server.py` 的 MediaPipe canonical conversion 新增 optional `leftElbow`、`rightElbow`、`leftKnee`、`rightKnee`，不破壞既有 9-point skeleton schema，但新抽影片可保留二段肢體資訊。
+  - `motion_capture_lab.html` 的 Skeleton Canvas 會畫 elbow/knee 二段骨架；Alicia preview status 會顯示 `joint_chain_preview` 或 `endpoint_preview`，方便判斷目前是不是用到新資料。
+  - `AliciaMotionPreviewAdapter` 改成優先以 shoulder-elbow-wrist、hips-knee-ankle joint-chain 推 upper/lower arm/leg，並保留舊 endpoint fallback 給舊 skeleton JSON。
+  - 擴充 `scratch/test_video_skeleton_api.py`、`scratch/test_motion_capture_lab.mjs`、`scratch/test_motion_clip_exporter.mjs`，鎖定 elbow/knee 輸出、Canvas 二段骨架，以及 elbow/knee 變化會實際改變 3D custom animation quaternion。
+
+- 新增 M20.3.5 Motion Capture Lab skeleton depth cue：
+  - 中間 Skeleton Cycle Canvas 改成帶深度語意的 2.5D 檢視：越靠近 camera 的點/骨段越暖色、越大、越不透明；越遠的點/骨段越冷色、越淡。
+  - 新增手腕與腳踝的 `front` / `back` / `level` badge，分別以 wrist vs shoulder、ankle vs hips 的 z 差判斷，讓 range 調整時能快速看出手腳在人物前方或後方。
+  - 擴充 `scratch/test_motion_capture_lab.mjs` 鎖定 depth helper、depth marker、front/back badge 與 canvas renderer contract。
+
+- 修正 M20.3.4 Motion Capture Lab Alicia preview 固定不變：
+  - 根因是 `AliciaMotionPreviewAdapter.previewClip()` 只呼叫內建 `motion.play('walk_cycle')`，完全沒有使用 `motion_clip_v1.keyPoses`；因此 range、phase 與 export JSON 有變，但右側 3D preview 永遠播放同一套固定程序步態。
+  - `AliciaMotionPreviewAdapter` 改成優先將 `keyPoses` 轉成 `motion.playCustom(...)` 可播放的 custom animation，包含 hips position、torso、arms 與 legs 的粗略 retarget；沒有 custom runtime 時才 fallback 內建 walk cycle。
+  - `Preview Walk Cycle` 按鈕改成每次都從目前 UI 重新 `exportCurrentClip({ silent: true })`，避免沿用舊的 `state.clip` cache，造成調整 start/end/phase 後 preview 還是舊片段。
+  - 進一步修正手臂高舉漏失：preview now 會在暫時 clip 附上 loop 區間內的 dense skeleton frames，不只吃 8 個 phase key poses；手腕高於肩膀、離肩膀越遠時會更明顯推動 upper arm rotation，讓影片中手舉起來能反映到 Alicia 3D preview。
+  - 擴充 `scratch/test_motion_clip_exporter.mjs` 與 `scratch/test_motion_capture_lab.mjs`，鎖定 custom preview adapter 與 preview 重新 export 行為。
+
+- 新增 M20.3.3 Motion Capture Lab 單段影片範圍抽取：
+  - `motion_capture_lab.html` 新增 Capture Range 控制面板，支援 start/end range slider、毫秒輸入，以及用目前播放位置快速設定起點/終點。
+  - `Extract Skeleton From Video` 會把 `startMs/endMs` 一起送到 `/api/capture/video/skeleton`，只抽該單段走路片段；抽完後既有 cycle range 會落在該段 skeleton 的首尾時間。
+  - 中間 Skeleton Cycle 欄位縮小，`skeletonPreviewCanvas` 高度下修，讓左側影片選段與右側 export 成為主要操作區。
+  - `server.py` 新增影片範圍驗證與 OpenCV seek：`endMs <= startMs` 會在進 extractor 前回 400，MediaPipe 只處理指定時間區間。
+  - 擴充 `scratch/test_motion_capture_lab.mjs` 與 `scratch/test_video_skeleton_api.py`，鎖定 UI contract、range 參數送出與 invalid range 防護。
+
+- 新增 M20.3.2 Motion Capture Lab video-to-skeleton extractor：
+  - 修正 YouTube 來源 UX 斷點：使用者不需要自備 Skeleton JSON，`motion_capture_lab.html` 新增 `Extract Skeleton From Video`，會把目前 YouTube cache 影片送到 `/api/capture/video/skeleton`，回傳後直接灌入既有 Skeleton Cycle / Motion Clip export 流程。
+  - `server.py` 新增本機影片 URL resolver、MediaPipe/OpenCV skeleton extractor、canonical landmarks mapping 與 `/api/capture/video/skeleton`；目前先支援 `capture/youtube/*.mp4`，本機 browser blob 影片待後續 upload endpoint。
+  - `requirements.txt` 補齊並 pin `numpy`、OpenCV、MediaPipe、JAX/ML dtypes，避免姿態偵測依賴把既有 TensorFlow/Scipy 環境拉壞。
+  - 新增 `scratch/test_video_skeleton_api.py`，擴充 `scratch/test_motion_capture_lab.mjs`，並用 `local_assets/capture/youtube/LVqSKQtfU8M.mp4` smoke 驗證實際可抽出 65 個 skeleton frames。
+  - 修正 Skeleton Preview 判讀誤差：Canvas 原本永遠畫第一格，會與左側影片播放時間不同步；現在依 `videoPreview.currentTime` 選最近的 skeleton frame，並加上骨架連線與 frame time 標示，避免把不同時間點拿來比較。
+
+- 新增 M20.3.1 Motion Capture Lab YouTube 來源：
+  - `motion_capture_lab.html` 新增 YouTube URL source，輸入網址後呼叫本機 `/api/capture/youtube`，成功後把回傳的 local video URL 接回既有 `videoPreview` 流程。
+  - `server.py` 新增 YouTube URL validation、`yt-dlp` 本機下載 wrapper、`local_assets/capture/youtube/` cache 與 `/capture/youtube/<filename>` 安全檔案 route；下載素材維持 local-only，不進 git。
+  - 新增 `scratch/test_youtube_capture_api.py`，並擴充 `scratch/test_motion_capture_lab.mjs` 鎖定 UI/API contract 與 video source cleanup 行為。
 
 - 新增 M20.3 Motion Capture Lab：
   - 建立 `motion_capture_lab.html` lab-only 捕捉頁，串接 Video/Webcam/Skeleton JSON/VRMA 來源入口、Skeleton Preview、Cycle Detection、Alicia Preview 與 Motion Clip export；頁面保持 body no-scroll、三欄面板內部捲動，避免中間預覽高度誤判。

@@ -18,6 +18,27 @@ const frameAt240 = adapter.getFrameAtMs(result.sequence, 250);
 assert.equal(frameAt240.frameIndex, 2);
 assert.equal(frameAt240.timeMs, 240);
 
+const liftedResult = adapter.load({
+  ...JSON.parse(sampleText),
+  poseMode: '3d_lifted',
+  depthSource: 'motionbert_poc',
+  viewpoint: 'front',
+  frontBackConfidence: 0.82,
+  leadFoot: 'left',
+  source: {
+    type: 'video',
+    depthSource: 'motionbert_poc',
+    liftAdapter: 'MotionBert3DLiftPoc'
+  }
+});
+assert.equal(liftedResult.ok, true);
+assert.equal(liftedResult.sequence.poseMode, '3d_lifted');
+assert.equal(liftedResult.sequence.depthSource, 'motionbert_poc');
+assert.equal(liftedResult.sequence.viewpoint, 'front');
+assert.equal(liftedResult.sequence.frontBackConfidence, 0.82);
+assert.equal(liftedResult.sequence.leadFoot, 'left');
+assert.equal(liftedResult.sequence.source.liftAdapter, 'MotionBert3DLiftPoc');
+
 const badJson = adapter.loadFromText('{');
 assert.equal(badJson.ok, false);
 assert.equal(badJson.reason, 'invalid_json');

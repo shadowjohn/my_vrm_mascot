@@ -2,8 +2,12 @@ import os
 import json
 import mimetypes
 import subprocess
+import sys
+import tempfile
+import time
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import urlparse, urlunparse
 from flask import Flask, request, jsonify, send_from_directory
 
 mimetypes.add_type('text/html', '.php')
@@ -15,6 +19,13 @@ DEFAULT_MOTION_PROFILE_STORE_PATH = BASE_DIR / "examples" / "m6_7_vrma_samples" 
 DEFAULT_MOTION_MINING_LOG_STORE_PATH = BASE_DIR / "examples" / "m6_7_vrma_samples" / "review" / "mining_log.json"
 VRMA_SAMPLE_DIR = BASE_DIR / "examples" / "m6_7_vrma_samples"
 LOCAL_VRMA_SAMPLE_DIR = BASE_DIR / "local_assets" / "vrma"
+YOUTUBE_CAPTURE_MAX_FILE_SIZE_MB = 500
+YOUTUBE_CAPTURE_TIMEOUT_SEC = 180
+VIDEO_SKELETON_DEFAULT_FPS = 8
+VIDEO_SKELETON_MAX_FRAMES = 240
+MOTIONBERT_TIMEOUT_SEC = 240
+MOTIONBERT_DEFAULT_CONFIG = "configs/pose3d/MB_ft_h36m_global_lite.yaml"
+MOTIONBERT_DEFAULT_CHECKPOINT = "checkpoint/pose3d/FT_MB_lite_MB_ft_h36m_global_lite/best_epoch.bin"
 MOTION_PROFILE_CATEGORIES = {
     "present",
     "point",
@@ -28,6 +39,597 @@ MOTION_PROFILE_CATEGORIES = {
 
 def _now_iso():
     return datetime.now().astimezone().isoformat(timespec="seconds")
+
+
+def _youtube_capture_dir():
+    return BASE_DIR / "local_assets" / "capture" / "youtube"
+
+
+def _path_is_inside(path, base_dir):
+    try:
+        path.resolve().relative_to(base_dir.resolve())
+        return True
+    except ValueError:
+        return False
+
+
+def _normalize_youtube_url(raw_url):
+    url = str(raw_url or "").strip()
+    if not url:
+        raise ValueError("請輸入 YouTube URL")
+
+    parsed = urlparse(url)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        raise ValueError("請輸入完整的 YouTube URL")
+
+    host = (parsed.hostname or "").lower()
+    is_youtube_host = (
+        host == "youtu.be"
+        or host == "youtube.com"
+        or host.endswith(".youtube.com")
+        or host == "youtube-nocookie.com"
+        or host.endswith(".youtube-nocookie.com")
+    )
+    if not is_youtube_host:
+        raise ValueError("只支援 YouTube URL")
+
+    return urlunparse(parsed._replace(fragment=""))
+
+
+def _download_youtube_capture(url):
+    normalized_url = _normalize_youtube_url(url)
+    capture_dir = _youtube_capture_dir()
+    capture_dir.mkdir(parents=True, exist_ok=True)
+    output_template = str(capture_dir / "%(id)s.%(ext)s")
+    started_at = time.time()
+
+    command = [
+        sys.executable,
+        "-m",
+        "yt_dlp",
+        "--no-playlist",
+        "--restrict-filenames",
+        "--windows-filenames",
+        "--socket-timeout",
+        "20",
+        "--retries",
+        "2",
+        "--fragment-retries",
+        "2",
+        "--max-filesize",
+        f"{YOUTUBE_CAPTURE_MAX_FILE_SIZE_MB}M",
+        "--format",
+        "bestvideo[height<=720][ext=mp4]/best[height<=720][ext=mp4]/best[height<=720]/best",
+        "--print",
+        "after_move:%(filepath)s",
+        "-o",
+        output_template,
+        normalized_url,
+    ]
+
+    try:
+        result = subprocess.run(
+            command,
+            cwd=str(BASE_DIR),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=YOUTUBE_CAPTURE_TIMEOUT_SEC,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(f"YouTube 下載逾時，請稍後重試或改用較短影片。({YOUTUBE_CAPTURE_TIMEOUT_SEC}s)") from exc
+
+    if result.returncode != 0:
+        stderr = (result.stderr or "").strip()
+        if "No module named yt_dlp" in stderr or "yt_dlp" in stderr and "No module named" in stderr:
+            raise RuntimeError("找不到 yt-dlp，請先執行 pip install -r requirements.txt")
+        raise RuntimeError(stderr[-800:] or "YouTube 下載失敗")
+
+    resolved_capture_dir = capture_dir.resolve()
+    candidate_paths = []
+    for line in (result.stdout or "").splitlines():
+        text = line.strip().strip('"')
+        if not text:
+            continue
+        path = Path(text)
+        if not path.is_absolute():
+            path = capture_dir / text
+        try:
+            resolved_path = path.resolve()
+        except OSError:
+            continue
+        if resolved_path.is_file() and _path_is_inside(resolved_path, resolved_capture_dir):
+            candidate_paths.append(resolved_path)
+
+    if not candidate_paths:
+        video_suffixes = {".mp4", ".webm", ".mkv", ".mov", ".m4v"}
+        candidate_paths = [
+            path.resolve()
+            for path in capture_dir.iterdir()
+            if path.is_file()
+            and path.suffix.lower() in video_suffixes
+            and path.stat().st_mtime >= started_at - 2
+        ]
+
+    if not candidate_paths:
+        raise RuntimeError("YouTube 下載完成但找不到輸出影片檔")
+
+    video_path = max(candidate_paths, key=lambda path: path.stat().st_mtime)
+    return {
+        "title": video_path.stem,
+        "filename": video_path.name,
+        "path": video_path,
+        "size": video_path.stat().st_size,
+    }
+
+
+def _build_youtube_capture_source(source_url, download_result):
+    filename = os.path.basename(str(download_result.get("filename", "")))
+    if not filename:
+        raise ValueError("YouTube 下載結果缺少檔名")
+
+    content_type = mimetypes.guess_type(filename)[0] or "video/mp4"
+    return {
+        "type": "youtube",
+        "sourceUrl": _normalize_youtube_url(source_url),
+        "title": str(download_result.get("title") or Path(filename).stem),
+        "filename": filename,
+        "url": f"capture/youtube/{filename}",
+        "contentType": content_type,
+        "size": int(download_result.get("size") or 0),
+        "downloadedAt": _now_iso(),
+    }
+
+
+def _resolve_local_video_url(video_url):
+    raw_url = str(video_url or "").strip()
+    if not raw_url:
+        raise ValueError("videoUrl 為必填欄位")
+
+    parsed = urlparse(raw_url)
+    if parsed.scheme or parsed.netloc:
+        raise ValueError("videoUrl 必須是本機 local video URL")
+
+    normalized = raw_url.replace("\\", "/").lstrip("/")
+    if not normalized.startswith("capture/youtube/"):
+        raise ValueError("目前只支援 local video URL，例如 capture/youtube/demo.mp4")
+
+    filename = os.path.basename(normalized)
+    if not filename or normalized != f"capture/youtube/{filename}":
+        raise ValueError("不合法的 local video URL")
+
+    video_path = _youtube_capture_dir() / filename
+    if not video_path.is_file() or not _path_is_inside(video_path, _youtube_capture_dir()):
+        raise FileNotFoundError("找不到本機影片檔，請先載入 YouTube 影片")
+
+    return video_path
+
+
+def _clamped_int(value, fallback, lower, upper):
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        number = fallback
+    return max(lower, min(upper, number))
+
+
+def _normalize_video_capture_range(data):
+    try:
+        start_ms = float(data.get("startMs", 0) or 0)
+    except (TypeError, ValueError):
+        raise ValueError("startMs 必須是數值")
+    if start_ms < 0:
+        raise ValueError("startMs 不可小於 0")
+
+    raw_end_ms = data.get("endMs")
+    if raw_end_ms in (None, ""):
+        return round(start_ms, 3), None
+
+    try:
+        end_ms = float(raw_end_ms)
+    except (TypeError, ValueError):
+        raise ValueError("endMs 必須是數值")
+    if end_ms <= start_ms:
+        raise ValueError("endMs 必須大於 startMs")
+
+    return round(start_ms, 3), round(end_ms, 3)
+
+
+def _average_pose_landmark(landmarks, indexes):
+    points = [landmarks[index] for index in indexes]
+    count = len(points)
+    return {
+        "x": sum(point.x for point in points) / count,
+        "y": sum(point.y for point in points) / count,
+        "z": sum(point.z for point in points) / count,
+        "visibility": sum(float(getattr(point, "visibility", 1.0) or 0.0) for point in points) / count,
+    }
+
+
+def _pose_landmark_to_dict(point):
+    return {
+        "x": float(point.x),
+        "y": float(point.y),
+        "z": float(point.z),
+        "visibility": float(getattr(point, "visibility", 1.0) or 0.0),
+    }
+
+
+def _convert_mediapipe_landmarks_to_canonical(raw_landmarks):
+    landmarks = raw_landmarks.landmark
+    left_hip = landmarks[23]
+    right_hip = landmarks[24]
+    left_ankle = landmarks[27]
+    right_ankle = landmarks[28]
+    nose = landmarks[0]
+
+    hip_center = _average_pose_landmark(landmarks, [23, 24])
+    shoulder_center = _average_pose_landmark(landmarks, [11, 12])
+    floor_y = max(left_ankle.y, right_ankle.y)
+    body_height = max(0.15, floor_y - min(nose.y, shoulder_center["y"]))
+    scale = 1.7 / body_height
+    hip_z = (left_hip.z + right_hip.z) / 2
+
+    def convert(point):
+        source = point if isinstance(point, dict) else _pose_landmark_to_dict(point)
+        return {
+            "x": round((source["x"] - hip_center["x"]) * scale, 4),
+            "y": round((floor_y - source["y"]) * scale + 0.05, 4),
+            "z": round((source["z"] - hip_z) * scale, 4),
+            "visibility": round(source["visibility"], 4),
+        }
+
+    return {
+        "hips": convert(hip_center),
+        "chest": convert(shoulder_center),
+        "head": convert(nose),
+        "leftShoulder": convert(landmarks[11]),
+        "rightShoulder": convert(landmarks[12]),
+        "leftElbow": convert(landmarks[13]),
+        "rightElbow": convert(landmarks[14]),
+        "leftWrist": convert(landmarks[15]),
+        "rightWrist": convert(landmarks[16]),
+        "leftKnee": convert(landmarks[25]),
+        "rightKnee": convert(landmarks[26]),
+        "leftAnkle": convert(left_ankle),
+        "rightAnkle": convert(right_ankle),
+    }
+
+
+def _landmark_z_values(frames, names):
+    values = []
+    for frame in frames:
+        landmarks = frame.get("landmarks", {}) if isinstance(frame, dict) else {}
+        for name in names:
+            try:
+                values.append(float(landmarks.get(name, {}).get("z")))
+            except (TypeError, ValueError):
+                pass
+    return values
+
+
+def _motionbert_depth_metadata(frames):
+    left_values = _landmark_z_values(frames, ["leftKnee", "leftAnkle"])
+    right_values = _landmark_z_values(frames, ["rightKnee", "rightAnkle"])
+    if not left_values or not right_values:
+        return {
+            "viewpoint": "front",
+            "frontBackConfidence": 0.0,
+            "leadFoot": "unknown",
+        }
+
+    left_depth = sum(left_values) / len(left_values)
+    right_depth = sum(right_values) / len(right_values)
+    delta = right_depth - left_depth
+    confidence = max(0.0, min(1.0, abs(delta) / 0.6))
+    return {
+        "viewpoint": "front",
+        "frontBackConfidence": round(confidence, 3),
+        "leadFoot": "left" if delta >= 0 else "right",
+    }
+
+
+def _motionbert_workspace_dir():
+    configured = os.environ.get("MOTIONBERT_WORKSPACE_DIR")
+    return Path(configured) if configured else BASE_DIR / "conda_vm" / "motionBERT"
+
+
+def _motionbert_repo_dir():
+    configured = os.environ.get("MOTIONBERT_REPO_DIR")
+    return Path(configured) if configured else _motionbert_workspace_dir() / "MotionBERT"
+
+
+def _motionbert_env_dir():
+    configured = os.environ.get("MOTIONBERT_ENV_DIR")
+    return Path(configured) if configured else _motionbert_workspace_dir() / "env"
+
+
+def _motionbert_python_path():
+    configured = os.environ.get("MOTIONBERT_PYTHON")
+    if configured:
+        return Path(configured)
+    env_dir = _motionbert_env_dir()
+    if os.name == "nt":
+        return env_dir / "python.exe"
+    return env_dir / "bin" / "python"
+
+
+def _motionbert_checkpoint_path():
+    configured = os.environ.get("MOTIONBERT_CHECKPOINT")
+    return Path(configured) if configured else _motionbert_repo_dir() / MOTIONBERT_DEFAULT_CHECKPOINT
+
+
+def _motionbert_config_path():
+    configured = os.environ.get("MOTIONBERT_CONFIG")
+    return Path(configured) if configured else _motionbert_repo_dir() / MOTIONBERT_DEFAULT_CONFIG
+
+
+def _motionbert_sidecar_path():
+    configured = os.environ.get("MOTIONBERT_SIDECAR")
+    return Path(configured) if configured else BASE_DIR / "scripts" / "motionbert_lift.py"
+
+
+def _motionbert_runtime_env():
+    env = os.environ.copy()
+    env_dir = _motionbert_env_dir()
+    path_parts = [
+        str(env_dir),
+        str(env_dir / "Library" / "bin"),
+        str(env_dir / "Scripts"),
+        env.get("PATH", ""),
+    ]
+    env["PATH"] = os.pathsep.join(part for part in path_parts if part)
+    return env
+
+
+def _assert_motionbert_runtime_ready():
+    checks = [
+        (_motionbert_python_path(), "MotionBERT python env not found"),
+        (_motionbert_repo_dir(), "MotionBERT repo not found"),
+        (_motionbert_config_path(), "MotionBERT config not found"),
+        (_motionbert_checkpoint_path(), "MotionBERT checkpoint missing"),
+        (_motionbert_sidecar_path(), "MotionBERT sidecar not found"),
+    ]
+    for path, message in checks:
+        if not path.exists():
+            raise RuntimeError(f"{message}: {path}")
+
+
+def _run_motionbert_3d_lift(sequence, video_path):
+    _assert_motionbert_runtime_ready()
+    started_at = time.time()
+    with tempfile.TemporaryDirectory(prefix="motionbert_lift_") as tmp_dir:
+        tmp_path = Path(tmp_dir)
+        input_path = tmp_path / "sequence.json"
+        output_path = tmp_path / "lifted.json"
+        with input_path.open("w", encoding="utf-8", newline="\n") as f:
+            json.dump(sequence, f, ensure_ascii=False)
+
+        command = [
+            str(_motionbert_python_path()),
+            str(_motionbert_sidecar_path()),
+            "--motionbert-root",
+            str(_motionbert_repo_dir()),
+            "--config",
+            str(_motionbert_config_path()),
+            "--checkpoint",
+            str(_motionbert_checkpoint_path()),
+            "--input-json",
+            str(input_path),
+            "--output-json",
+            str(output_path),
+            "--video-path",
+            str(video_path),
+            "--device",
+            os.environ.get("MOTIONBERT_DEVICE", "cuda"),
+        ]
+
+        try:
+            result = subprocess.run(
+                command,
+                cwd=str(_motionbert_repo_dir()),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=MOTIONBERT_TIMEOUT_SEC,
+                env=_motionbert_runtime_env(),
+            )
+        except subprocess.TimeoutExpired as exc:
+            raise RuntimeError(f"MotionBERT lift timeout ({MOTIONBERT_TIMEOUT_SEC}s)") from exc
+
+        if result.returncode != 0:
+            detail = (result.stderr or result.stdout or "").strip()
+            raise RuntimeError(f"MotionBERT lift failed: {detail[-1200:]}")
+        if not output_path.is_file():
+            raise RuntimeError("MotionBERT lift failed: output JSON missing")
+
+        with output_path.open("r", encoding="utf-8") as f:
+            lifted = json.load(f)
+    if not isinstance(lifted, dict) or lifted.get("ok") is False:
+        raise RuntimeError(str(lifted.get("error") if isinstance(lifted, dict) else "MotionBERT output invalid"))
+    lifted.setdefault("metadata", {})
+    lifted["metadata"]["runtimeMs"] = round((time.time() - started_at) * 1000)
+    return lifted
+
+
+def _merge_motionbert_lifted_frames(sequence, lifted_frames):
+    original_frames = sequence.get("frames", []) if isinstance(sequence, dict) else []
+    if not original_frames or not isinstance(lifted_frames, list):
+        return original_frames
+
+    for index, frame in enumerate(original_frames):
+        lifted = lifted_frames[min(index, len(lifted_frames) - 1)] if lifted_frames else {}
+        lifted_landmarks = lifted.get("landmarks", {}) if isinstance(lifted, dict) else {}
+        frame_landmarks = frame.get("landmarks", {}) if isinstance(frame, dict) else {}
+        for name, lifted_point in lifted_landmarks.items():
+            if not isinstance(lifted_point, dict):
+                continue
+            try:
+                z = float(lifted_point.get("z"))
+            except (TypeError, ValueError):
+                continue
+            if name in frame_landmarks and isinstance(frame_landmarks[name], dict):
+                frame_landmarks[name]["z"] = round(z, 5)
+    return original_frames
+
+
+def _apply_motionbert_3d_lift(sequence, video_path, *, strict=False):
+    try:
+        lifted = _run_motionbert_3d_lift(sequence, video_path)
+        lifted_frames = lifted.get("frames", [])
+        _merge_motionbert_lifted_frames(sequence, lifted_frames)
+        metadata = lifted.get("metadata", {})
+        fallback_metadata = _motionbert_depth_metadata(sequence.get("frames", []))
+        source = sequence.get("source", {}) if isinstance(sequence.get("source"), dict) else {}
+        front_back_confidence = metadata.get("frontBackConfidence", fallback_metadata["frontBackConfidence"])
+        sequence["poseMode"] = "3d_lifted"
+        sequence["depthSource"] = "motionbert"
+        sequence["landmarksVersion"] = "motionbert_3d_lift_v1"
+        sequence["viewpoint"] = metadata.get("viewpoint", fallback_metadata["viewpoint"])
+        sequence["frontBackConfidence"] = round(float(front_back_confidence), 3)
+        sequence["depthConfidence"] = round(float(metadata.get("depthConfidence", front_back_confidence)), 3)
+        sequence["leadFoot"] = metadata.get("leadFoot", fallback_metadata["leadFoot"])
+        sequence["source"] = {
+            **source,
+            "depthSource": "motionbert",
+            "liftAdapter": "MotionBert3DLiftSubprocess",
+            "motionBert": {
+                "ok": True,
+                "adapter": "MotionBert3DLiftSubprocess",
+                "runtimeMs": metadata.get("runtimeMs"),
+                "checkpoint": _motionbert_checkpoint_path().name,
+            },
+        }
+        return sequence
+    except RuntimeError as exc:
+        if strict:
+            raise
+        return _apply_motionbert_3d_lift_poc(sequence, unavailable_error=str(exc))
+
+
+def _apply_motionbert_3d_lift_poc(sequence, unavailable_error=None):
+    frames = sequence.get("frames", []) if isinstance(sequence, dict) else []
+    metadata = _motionbert_depth_metadata(frames)
+    source = sequence.get("source", {}) if isinstance(sequence.get("source"), dict) else {}
+    motionbert_status = source.get("motionBert") if isinstance(source.get("motionBert"), dict) else None
+    if unavailable_error:
+        motionbert_status = {
+            "ok": False,
+            "fallback": "motionbert_poc",
+            "error": unavailable_error,
+        }
+    sequence["poseMode"] = "3d_lifted"
+    sequence["depthSource"] = "motionbert_poc"
+    sequence["viewpoint"] = metadata["viewpoint"]
+    sequence["frontBackConfidence"] = metadata["frontBackConfidence"]
+    sequence["leadFoot"] = metadata["leadFoot"]
+    sequence["source"] = {
+        **source,
+        "depthSource": "motionbert_poc",
+        "liftAdapter": "MotionBert3DLiftPoc",
+    }
+    if motionbert_status:
+        sequence["source"]["motionBert"] = motionbert_status
+    return sequence
+
+
+def _extract_video_skeleton_sequence(
+    video_path,
+    *,
+    target_fps=VIDEO_SKELETON_DEFAULT_FPS,
+    max_frames=VIDEO_SKELETON_MAX_FRAMES,
+    start_ms=0,
+    end_ms=None,
+):
+    try:
+        import cv2
+        import mediapipe as mp
+    except ImportError as exc:
+        raise RuntimeError("缺少姿態偵測套件，請先執行 pip install -r requirements.txt") from exc
+
+    capture = cv2.VideoCapture(str(video_path))
+    if not capture.isOpened():
+        raise RuntimeError("無法開啟本機影片檔")
+
+    source_fps = capture.get(cv2.CAP_PROP_FPS) or 30
+    source_fps = source_fps if source_fps > 0 else 30
+    frame_step = max(1, round(source_fps / max(1, target_fps)))
+    start_ms = max(0, float(start_ms or 0))
+    end_ms = None if end_ms is None else float(end_ms)
+    if end_ms is not None and end_ms <= start_ms:
+        capture.release()
+        raise ValueError("endMs 必須大於 startMs")
+    start_frame_index = max(0, round((start_ms / 1000) * source_fps))
+    if start_frame_index > 0:
+        capture.set(cv2.CAP_PROP_POS_FRAMES, start_frame_index)
+
+    frames = []
+    detected_frame_count = 0
+    frame_index = start_frame_index
+    stem = video_path.stem
+
+    # MediaPipe Pose 是目前最小可用路徑；未來可在同一個函式替換 YOLO/MoveNet。
+    with mp.solutions.pose.Pose(
+        static_image_mode=False,
+        model_complexity=1,
+        enable_segmentation=False,
+        min_detection_confidence=0.5,
+        min_tracking_confidence=0.5,
+    ) as pose:
+        while len(frames) < max_frames:
+            current_time_ms = (frame_index / source_fps) * 1000
+            if end_ms is not None and current_time_ms > end_ms:
+                break
+
+            ok, frame = capture.read()
+            if not ok:
+                break
+            if (frame_index - start_frame_index) % frame_step != 0:
+                frame_index += 1
+                continue
+
+            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            result = pose.process(rgb)
+            if result.pose_landmarks:
+                detected_frame_count += 1
+                frames.append({
+                    "timeMs": round(current_time_ms, 3),
+                    "landmarks": _convert_mediapipe_landmarks_to_canonical(result.pose_landmarks),
+                })
+            frame_index += 1
+
+    capture.release()
+
+    if not frames:
+        raise RuntimeError("影片中沒有偵測到可用人體骨架，請改用人物更清楚的片段")
+
+    return {
+        "ok": True,
+        "sequence": {
+            "id": f"{stem}_skeleton",
+            "label": f"{stem} skeleton",
+            "sourceType": "video",
+            "fps": target_fps,
+            "frames": frames,
+            "source": {
+                "type": "video",
+                "url": f"capture/youtube/{video_path.name}",
+                "extractor": "mediapipe_pose",
+                "range": {
+                    "startMs": round(start_ms, 3),
+                    "endMs": None if end_ms is None else round(end_ms, 3),
+                },
+            },
+        },
+        "frameCount": len(frames),
+        "detectedFrameCount": detected_frame_count,
+        "sourceFps": round(source_fps, 3),
+        "targetFps": target_fps,
+    }
 
 
 def _motion_profile_store_path():
@@ -323,6 +925,76 @@ def serve_motions(filepath):
         return send_from_directory(full_static_path.parent, full_static_path.name)
 
     return "File not found", 404
+
+
+@app.route('/capture/youtube/<path:filename>')
+def serve_youtube_capture(filename):
+    safe_name = os.path.basename(filename)
+    if not safe_name or safe_name != filename:
+        return "File not found", 404
+
+    capture_dir = _youtube_capture_dir()
+    video_path = capture_dir / safe_name
+    try:
+        resolved_path = video_path.resolve()
+        if not _path_is_inside(resolved_path, capture_dir):
+            return "File not found", 404
+    except OSError:
+        return "File not found", 404
+
+    if video_path.is_file():
+        return send_from_directory(video_path.parent, video_path.name)
+    return "File not found", 404
+
+
+@app.route('/api/capture/youtube', methods=['POST'])
+def capture_youtube():
+    data = request.get_json() or {}
+    source_url = data.get("url")
+    try:
+        normalized_url = _normalize_youtube_url(source_url)
+        download_result = _download_youtube_capture(normalized_url)
+        source = _build_youtube_capture_source(normalized_url, download_result)
+    except ValueError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+    except RuntimeError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 503
+
+    return jsonify({
+        "ok": True,
+        "source": source,
+    })
+
+
+@app.route('/api/capture/video/skeleton', methods=['POST'])
+def capture_video_skeleton():
+    data = request.get_json() or {}
+    try:
+        video_path = _resolve_local_video_url(data.get("videoUrl"))
+        target_fps = _clamped_int(data.get("targetFps"), VIDEO_SKELETON_DEFAULT_FPS, 1, 15)
+        max_frames = _clamped_int(data.get("maxFrames"), VIDEO_SKELETON_MAX_FRAMES, 8, 600)
+        start_ms, end_ms = _normalize_video_capture_range(data)
+        result = _extract_video_skeleton_sequence(
+            video_path,
+            target_fps=target_fps,
+            max_frames=max_frames,
+            start_ms=start_ms,
+            end_ms=end_ms,
+        )
+        if data.get("enable3dLift") is True:
+            result["sequence"] = _apply_motionbert_3d_lift(
+                result["sequence"],
+                video_path,
+                strict=data.get("strict3dLift") is True,
+            )
+    except ValueError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+    except FileNotFoundError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 404
+    except RuntimeError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 503
+
+    return jsonify(result)
 
 
 @app.route('/api/vrma-samples', methods=['GET'])

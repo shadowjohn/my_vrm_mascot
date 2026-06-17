@@ -28,6 +28,12 @@ export class SkeletonSequenceAdapter {
       label: rawSequence.label || rawSequence.id || this.sourceId,
       sourceType: rawSequence.sourceType || 'skeleton_json',
       fps: Number(rawSequence.fps) || 30,
+      poseMode: rawSequence.poseMode,
+      depthSource: rawSequence.depthSource,
+      viewpoint: rawSequence.viewpoint,
+      frontBackConfidence: rawSequence.frontBackConfidence,
+      leadFoot: rawSequence.leadFoot,
+      source: rawSequence.source,
       frames: rawSequence.frames
     };
 
