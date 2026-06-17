@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { SkeletonSequenceAdapter } from '../js/SkeletonSequenceAdapter.js';
 import { MotionCycleDetector } from '../js/MotionCycleDetector.js';
 import { exportMotionClip } from '../js/MotionClipExporter.js';
+import { AliciaMotionPreviewAdapter } from '../js/AliciaMotionPreviewAdapter.js';
 
 const adapter = new SkeletonSequenceAdapter({ sourceId: 'walk_reference_001' });
 const { sequence } = adapter.loadFromText(readFileSync('motions/capture_samples/walk_reference_001.json', 'utf8'));
@@ -151,5 +152,36 @@ assert.deepEqual(missingFrameClip.retargetHints, {
   hipBobScale: 1,
   smoothing: 0.35
 });
+
+const calls = [];
+const preview = new AliciaMotionPreviewAdapter({
+  mascot: {
+    enableHumanization(config) {
+      calls.push(['enableHumanization', config]);
+    },
+    motion: {
+      play(name) {
+        calls.push(['motion.play', name]);
+      }
+    }
+  }
+});
+
+const previewResult = preview.previewClip(clip);
+assert.equal(previewResult.ok, true);
+assert.deepEqual(calls[0], ['enableHumanization', { profile: 'alicia', level: 2 }]);
+assert.deepEqual(calls[1], ['motion.play', 'walk_cycle']);
+
+const badPreview = preview.previewClip({ kind: 'pose_preset' });
+assert.equal(badPreview.ok, false);
+assert.equal(badPreview.reason, 'unsupported_clip');
+
+const missingMascotPreview = new AliciaMotionPreviewAdapter().previewClip(clip);
+assert.equal(missingMascotPreview.ok, false);
+assert.equal(missingMascotPreview.reason, 'missing_mascot');
+
+const optionalMethodsPreview = new AliciaMotionPreviewAdapter({ mascot: {} }).previewClip(clip);
+assert.equal(optionalMethodsPreview.ok, true);
+assert.equal(optionalMethodsPreview.clipId, 'walk_cycle_001');
 
 console.log('PASS test_motion_clip_exporter');
