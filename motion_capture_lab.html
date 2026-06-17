@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Alicia Motion Capture Lab</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #141716;
+      --panel: #1d2421;
+      --panel-2: #222b27;
+      --line: #3b4942;
+      --text: #eef6ef;
+      --muted: #9daf9f;
+      --accent: #9ee493;
+      --accent-2: #f0c86a;
+      --danger: #ff8d7a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", "Noto Sans TC", sans-serif;
+    }
+
+    body {
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 22px 14px;
+      border-bottom: 1px solid var(--line);
+      background: #101311;
+    }
+
+    h1,
+    h2,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 750;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    #captureStatus {
+      max-width: 46vw;
+      color: var(--accent);
+      font-size: 13px;
+      text-align: right;
+    }
+
+    main {
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.15fr) minmax(0, 1fr);
+      gap: 1px;
+      background: var(--line);
+    }
+
+    section {
+      min-width: 0;
+      min-height: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      padding: 18px;
+      background: var(--panel);
+    }
+
+    section:nth-child(2) {
+      background: #18201d;
+    }
+
+    h2 {
+      margin-bottom: 14px;
+      color: #d8e8d9;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      margin-bottom: 13px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+      text-transform: uppercase;
+    }
+
+    input,
+    select,
+    button,
+    textarea {
+      min-width: 0;
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel-2);
+      color: var(--text);
+      font: inherit;
+    }
+
+    input,
+    select,
+    textarea {
+      padding: 9px 10px;
+    }
+
+    input[type="file"] {
+      padding: 8px;
+      color: var(--muted);
+    }
+
+    button {
+      min-height: 38px;
+      padding: 9px 12px;
+      cursor: pointer;
+      font-weight: 750;
+    }
+
+    button.primary {
+      border-color: #b7ef99;
+      background: #2b4a30;
+      color: #efffed;
+    }
+
+    button.secondary {
+      border-color: #6f6340;
+      background: #40381f;
+      color: #fff0be;
+    }
+
+    video,
+    canvas,
+    #aliciaPreview,
+    textarea {
+      display: block;
+      min-width: 0;
+      width: 100%;
+    }
+
+    video,
+    canvas,
+    #aliciaPreview {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #0b0e0c;
+    }
+
+    #videoPreview {
+      aspect-ratio: 16 / 9;
+      object-fit: contain;
+    }
+
+    #skeletonPreviewCanvas {
+      aspect-ratio: 4 / 5;
+      min-height: 360px;
+    }
+
+    #aliciaPreview {
+      min-height: 360px;
+      overflow: hidden;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 10px;
+    }
+
+    .phase-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px;
+      margin: 12px 0;
+    }
+
+    .phase-grid label {
+      margin: 0;
+    }
+
+    .stack {
+      display: grid;
+      gap: 11px;
+    }
+
+    .hint {
+      margin: 10px 0 14px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    #motionClipOutput {
+      min-height: 260px;
+      margin-top: 12px;
+      resize: vertical;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 980px) {
+      main {
+        grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.05fr) minmax(0, 0.95fr);
+      }
+
+      section {
+        padding: 10px;
+      }
+
+      label {
+        gap: 5px;
+        margin-bottom: 9px;
+        font-size: 10px;
+      }
+
+      input,
+      select,
+      textarea {
+        padding: 7px 6px;
+      }
+
+      button {
+        min-height: 34px;
+        padding: 7px 8px;
+        font-size: 12px;
+      }
+
+      #skeletonPreviewCanvas,
+      #aliciaPreview {
+        min-height: 240px;
+      }
+
+      .phase-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 7px;
+      }
+
+      #captureStatus {
+        max-width: none;
+        text-align: left;
+      }
+
+      header {
+        align-items: start;
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Alicia Motion Capture Lab</h1>
+      <p class="subtitle">M20.3 Capture → Cycle → Motion Clip</p>
+    </div>
+    <p id="captureStatus" role="status">Ready. Load a sample skeleton or import capture data.</p>
+  </header>
+
+  <main>
+    <section aria-label="Capture source">
+      <h2>Source</h2>
+      <label for="captureSourceType">
+        Capture source
+        <select id="captureSourceType">
+          <option value="video">Video</option>
+          <option value="webcam">Webcam</option>
+          <option value="skeleton_json" selected>Skeleton JSON</option>
+          <option value="vrma">VRMA</option>
+        </select>
+      </label>
+      <label for="captureVideoInput">
+        Video file
+        <input id="captureVideoInput" type="file" accept="video/*">
+      </label>
+      <button id="captureWebcamButton" type="button">Start Webcam</button>
+      <label for="captureSkeletonJsonInput">
+        Skeleton JSON
+        <input id="captureSkeletonJsonInput" type="file" accept="application/json,.json">
+      </label>
+      <label for="captureVrmaInput">
+        VRMA
+        <input id="captureVrmaInput" type="file" accept=".vrma,model/gltf-binary">
+      </label>
+      <button id="btnLoadSampleSkeleton" class="primary" type="button">Load Sample Skeleton</button>
+      <p class="hint">Video and webcam inputs prepare capture sources. Skeleton JSON drives the cycle detector and motion clip export.</p>
+      <video id="videoPreview" controls muted playsinline></video>
+    </section>
+
+    <section aria-label="Skeleton and cycle markers">
+      <h2>Skeleton Cycle</h2>
+      <canvas id="skeletonPreviewCanvas" width="560" height="700"></canvas>
+      <div class="row">
+        <label for="cycleStartMs">
+          Start ms
+          <input id="cycleStartMs" type="number" value="0" step="10">
+        </label>
+        <label for="cycleEndMs">
+          End ms
+          <input id="cycleEndMs" type="number" value="960" step="10">
+        </label>
+      </div>
+      <button id="btnSeedCyclePhases" class="secondary" type="button">Seed Cycle Phases</button>
+      <div class="phase-grid">
+        <label for="phase_contact_left">Contact left<input id="phase_contact_left" type="number" step="10"></label>
+        <label for="phase_down_left">Down left<input id="phase_down_left" type="number" step="10"></label>
+        <label for="phase_passing_left">Passing left<input id="phase_passing_left" type="number" step="10"></label>
+        <label for="phase_up_left">Up left<input id="phase_up_left" type="number" step="10"></label>
+        <label for="phase_contact_right">Contact right<input id="phase_contact_right" type="number" step="10"></label>
+        <label for="phase_down_right">Down right<input id="phase_down_right" type="number" step="10"></label>
+        <label for="phase_passing_right">Passing right<input id="phase_passing_right" type="number" step="10"></label>
+        <label for="phase_up_right">Up right<input id="phase_up_right" type="number" step="10"></label>
+      </div>
+    </section>
+
+    <section aria-label="Alicia preview and export">
+      <h2>Alicia Export</h2>
+      <div id="aliciaPreview"></div>
+      <div class="stack" style="margin-top: 12px;">
+        <button id="btnPreviewWalkCycle" class="secondary" type="button">Preview Walk Cycle</button>
+        <button id="btnExportMotionClip" class="primary" type="button">Export Motion Clip</button>
+      </div>
+      <textarea id="motionClipOutput" spellcheck="false" placeholder="Exported motion clip JSON appears here."></textarea>
+    </section>
+  </main>
+
+  <script src="vendor/three.min.js"></script>
+  <script src="vendor/GLTFLoader.js"></script>
+  <script src="vendor/OrbitControls.js"></script>
+  <script src="vendor/three-vrm.min.js"></script>
+  <script type="module">
+    import { CYCLE_PHASES } from './js/MotionCaptureTypes.js';
+    import { SkeletonSequenceAdapter } from './js/SkeletonSequenceAdapter.js';
+    import {
+      PoseEstimatorRegistry,
+      createMediaPipePoseAdapter,
+      createMoveNetPoseAdapter,
+      createYoloPoseAdapter
+    } from './js/PoseEstimatorAdapters.js';
+    import { MotionCycleDetector } from './js/MotionCycleDetector.js';
+    import { exportMotionClip } from './js/MotionClipExporter.js';
+    import { AliciaMotionPreviewAdapter } from './js/AliciaMotionPreviewAdapter.js';
+
+    const $ = (id) => document.getElementById(id);
+    const phaseInputId = (phase) => `phase_${phase}`;
+    const DEFAULT_VRM_MODEL_URL = 'models/mascot.vrm';
+
+    const state = {
+      adapter: new SkeletonSequenceAdapter({ sourceId: 'motion_capture_lab' }),
+      detector: new MotionCycleDetector(),
+      registry: new PoseEstimatorRegistry(),
+      sequence: null,
+      clip: null,
+      mascot: null,
+      previewAdapter: new AliciaMotionPreviewAdapter(),
+      videoObjectUrl: null
+    };
+
+    state.registry.register('mediapipe_pose', createMediaPipePoseAdapter());
+    state.registry.register('movenet', createMoveNetPoseAdapter());
+    state.registry.register('yolo_pose', createYoloPoseAdapter());
+
+    function setStatus(message, tone = 'ok') {
+      $('captureStatus').textContent = message;
+      $('captureStatus').style.color = tone === 'error' ? 'var(--danger)' : 'var(--accent)';
+    }
+
+    function setPreviewAvailable(isAvailable) {
+      if (isAvailable) {
+        $('btnPreviewWalkCycle').disabled = false;
+      } else {
+        $('btnPreviewWalkCycle').disabled = true;
+      }
+    }
+
+    async function checkModelAvailable(url) {
+      try {
+        const head = await fetch(url, { method: 'HEAD' });
+        if (head.ok) {
+          return true;
+        }
+        if (head.status !== 405 && head.status !== 501) {
+          return false;
+        }
+      } catch (error) {
+        return false;
+      }
+
+      try {
+        const get = await fetch(url, { method: 'GET' });
+        return get.ok;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function setLoopFromInputs() {
+      const startMs = Number($('cycleStartMs').value);
+      const endMs = Number($('cycleEndMs').value);
+      const result = state.detector.setLoopRange(startMs, endMs);
+      if (!result.ok) {
+        setStatus(`Invalid loop range: ${result.reason}`, 'error');
+        return false;
+      }
+      return true;
+    }
+
+    function fillPhaseInputs() {
+      const markers = state.detector.getPhaseMarkers();
+      for (const phase of CYCLE_PHASES) {
+        const input = $(phaseInputId(phase));
+        input.value = markers[phase]?.timeMs ?? '';
+      }
+    }
+
+    function drawSkeletonCanvas() {
+      const canvas = $('skeletonPreviewCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#0b0e0c';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = '#26342e';
+      ctx.lineWidth = 1;
+      for (let x = 40; x < canvas.width; x += 80) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 50; y < canvas.height; y += 80) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+
+      const frame = state.sequence?.frames?.[0];
+      if (!frame) {
+        ctx.fillStyle = '#9daf9f';
+        ctx.font = '15px Segoe UI, sans-serif';
+        ctx.fillText('Load a skeleton sequence to preview landmarks.', 28, 42);
+        return;
+      }
+
+      const landmarks = Object.entries(frame.landmarks);
+      const xs = landmarks.map(([, point]) => point.x);
+      const ys = landmarks.map(([, point]) => point.y);
+      const minX = Math.min(...xs, -0.5);
+      const maxX = Math.max(...xs, 0.5);
+      const minY = Math.min(...ys, 0);
+      const maxY = Math.max(...ys, 1.8);
+      const width = Math.max(0.1, maxX - minX);
+      const height = Math.max(0.1, maxY - minY);
+
+      for (const [name, point] of landmarks) {
+        const x = 54 + ((point.x - minX) / width) * (canvas.width - 108);
+        const y = canvas.height - 54 - ((point.y - minY) / height) * (canvas.height - 108);
+        ctx.beginPath();
+        ctx.arc(x, y, name === 'hips' ? 8 : 5, 0, Math.PI * 2);
+        ctx.fillStyle = name === 'hips' ? '#f0c86a' : '#9ee493';
+        ctx.fill();
+        ctx.fillStyle = '#dfeadf';
+        ctx.font = '12px Segoe UI, sans-serif';
+        ctx.fillText(name, x + 8, y - 8);
+      }
+    }
+
+    function applyLoadedSequence(result, sourceLabel) {
+      if (!result.ok) {
+        setStatus(`Could not load skeleton: ${result.reason}`, 'error');
+        return false;
+      }
+      state.sequence = result.sequence;
+      state.clip = null;
+      const first = state.sequence.frames[0];
+      const last = state.sequence.frames[state.sequence.frames.length - 1];
+      $('cycleStartMs').value = first.timeMs;
+      $('cycleEndMs').value = last.timeMs;
+      state.detector.setLoopRange(first.timeMs, last.timeMs);
+      const seeded = state.detector.seedEvenWalkPhases(state.sequence);
+      fillPhaseInputs();
+      drawSkeletonCanvas();
+      setStatus(`${sourceLabel}: ${result.frameCount} frames loaded; ${seeded.ok ? 'cycle phases seeded' : seeded.reason}.`);
+      return true;
+    }
+
+    async function loadSampleSkeleton() {
+      try {
+        const response = await fetch('motions/capture_samples/walk_reference_001.json');
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const text = await response.text();
+        const adapter = new SkeletonSequenceAdapter({ sourceId: 'walk_reference_001' });
+        const result = adapter.loadFromText(text);
+        state.adapter = adapter;
+        applyLoadedSequence(result, 'Sample walk_reference_001');
+      } catch (error) {
+        setStatus(`Sample load failed: ${error.message}`, 'error');
+      }
+    }
+
+    function seedCyclePhases() {
+      if (!state.sequence) {
+        setStatus('Load sequence first before seeding cycle phases.', 'error');
+        return false;
+      }
+      if (!setLoopFromInputs()) {
+        return false;
+      }
+      const result = state.detector.seedEvenWalkPhases(state.sequence);
+      if (!result.ok) {
+        setStatus(`Could not seed phases: ${result.reason}`, 'error');
+        return false;
+      }
+      fillPhaseInputs();
+      drawSkeletonCanvas();
+      state.clip = null;
+      setStatus('Cycle phases seeded from the current loop range.');
+      return true;
+    }
+
+    function exportCurrentClip({ silent = false } = {}) {
+      if (!state.sequence) {
+        setStatus('Load sequence first before exporting a motion clip.', 'error');
+        return null;
+      }
+      if (!setLoopFromInputs()) {
+        return null;
+      }
+      for (const phase of CYCLE_PHASES) {
+        const input = $(phaseInputId(phase));
+        if (input.value.trim() === '') {
+          continue;
+        }
+        const value = Number(input.value);
+        if (Number.isFinite(value)) {
+          state.detector.setPhaseMarker(phase, value, state.sequence);
+        }
+      }
+      state.clip = exportMotionClip({
+        id: 'walk_cycle_001',
+        label: 'Walk Cycle 001',
+        sequence: state.sequence,
+        detector: state.detector,
+        source: {
+          type: 'skeleton_json',
+          adapter: 'SkeletonSequenceAdapter',
+          sourceId: state.sequence.id || 'motion_capture_lab'
+        }
+      });
+      $('motionClipOutput').value = JSON.stringify(state.clip, null, 2);
+      if (!silent) {
+        setStatus(`Exported ${state.clip.id} with ${state.clip.keyPoses.length} key poses.`);
+      }
+      return state.clip;
+    }
+
+    function previewWalkCycle() {
+      if (!state.mascot || $('btnPreviewWalkCycle').disabled) {
+        setStatus('Preview unavailable: Alicia local model is not loaded. Skeleton JSON export remains usable.', 'error');
+        return;
+      }
+      const clip = state.clip || exportCurrentClip({ silent: true });
+      if (!clip) {
+        return;
+      }
+      const previewAdapter = state.previewAdapter;
+      const result = previewAdapter.previewClip(state.clip);
+      setStatus(result.ok ? `Preview started for ${result.clipId}.` : `Preview unavailable: ${result.reason}`, result.ok ? 'ok' : 'error');
+    }
+
+    async function handleSkeletonJsonFile(file) {
+      if (!file) {
+        return;
+      }
+      const text = await file.text();
+      const adapter = new SkeletonSequenceAdapter({ sourceId: file.name.replace(/\.json$/i, '') });
+      const result = adapter.loadFromText(text);
+      state.adapter = adapter;
+      applyLoadedSequence(result, file.name);
+    }
+
+    async function startWebcam() {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setStatus('Webcam capture is not available in this browser context.', 'error');
+        return;
+      }
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        if (state.videoObjectUrl) {
+          URL.revokeObjectURL(state.videoObjectUrl);
+          state.videoObjectUrl = null;
+        }
+        $('videoPreview').srcObject = stream;
+        await $('videoPreview').play();
+        $('captureSourceType').value = 'webcam';
+        setStatus('Webcam stream attached. Pose adapters are registered for capture when available.');
+      } catch (error) {
+        setStatus(`Webcam start failed: ${error.message}`, 'error');
+      }
+    }
+
+    async function bootAliciaPreview() {
+      setPreviewAvailable(false);
+      try {
+        const hasModel = await checkModelAvailable(DEFAULT_VRM_MODEL_URL);
+        if (!hasModel) {
+          state.mascot = null;
+          state.previewAdapter = new AliciaMotionPreviewAdapter();
+          setStatus(`Alicia preview unavailable: local model ${DEFAULT_VRM_MODEL_URL} not found. Skeleton JSON export remains usable.`, 'error');
+          return;
+        }
+
+        const { VrmMascot } = await import('./js/VrmMascot.js');
+        state.mascot = new VrmMascot($('aliciaPreview'), { orbitControls: true, grid: true });
+        state.previewAdapter = new AliciaMotionPreviewAdapter({ mascot: state.mascot });
+        if (typeof state.mascot.load === 'function') {
+          await state.mascot.load(DEFAULT_VRM_MODEL_URL);
+        }
+        setPreviewAvailable(true);
+        setStatus('Alicia preview booted. Load a skeleton to export a motion clip.');
+      } catch (error) {
+        if (typeof state.mascot?.dispose === 'function') {
+          state.mascot.dispose();
+        } else if (typeof state.mascot?.destroy === 'function') {
+          state.mascot.destroy();
+        }
+        state.mascot = null;
+        state.previewAdapter = new AliciaMotionPreviewAdapter();
+        setPreviewAvailable(false);
+        setStatus(`Alicia preview boot skipped: ${error.message}. Skeleton JSON export remains usable.`, 'error');
+      }
+    }
+
+    $('captureVideoInput').addEventListener('change', (event) => {
+      const file = event.target.files?.[0];
+      if (!file) {
+        return;
+      }
+      $('videoPreview').srcObject = null;
+      if (state.videoObjectUrl) {
+        URL.revokeObjectURL(state.videoObjectUrl);
+      }
+      state.videoObjectUrl = URL.createObjectURL(file);
+      $('videoPreview').src = state.videoObjectUrl;
+      $('captureSourceType').value = 'video';
+      setStatus(`Video loaded: ${file.name}.`);
+    });
+
+    $('captureSkeletonJsonInput').addEventListener('change', (event) => {
+      handleSkeletonJsonFile(event.target.files?.[0]).catch((error) => {
+        setStatus(`Skeleton JSON load failed: ${error.message}`, 'error');
+      });
+    });
+
+    $('captureVrmaInput').addEventListener('change', (event) => {
+      const file = event.target.files?.[0];
+      $('captureSourceType').value = 'vrma';
+      setStatus(file ? `VRMA selected: ${file.name}. VRMA capture import is adapter contract only in M20.3.` : 'VRMA capture import is adapter contract only in M20.3.');
+    });
+
+    $('captureWebcamButton').addEventListener('click', startWebcam);
+    $('btnLoadSampleSkeleton').addEventListener('click', loadSampleSkeleton);
+    $('btnSeedCyclePhases').addEventListener('click', seedCyclePhases);
+    $('btnExportMotionClip').addEventListener('click', () => exportCurrentClip());
+    $('btnPreviewWalkCycle').addEventListener('click', previewWalkCycle);
+
+    drawSkeletonCanvas();
+    bootAliciaPreview();
+  </script>
+</body>
+</html>
