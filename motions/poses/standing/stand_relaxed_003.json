@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "stand_relaxed_001",
+  "id": "stand_relaxed_003",
   "category": "standing",
-  "label": "自然站姿",
+  "label": "雙手插腰腳微開站姿",
   "model": "AliciaSolid",
   "basePose": {
     "rotation": {
@@ -12,59 +12,59 @@
         "z": -2
       },
       "chest": {
-        "x": -2,
+        "x": -1,
         "y": -2,
         "z": -1
       },
       "leftShoulder": {
         "x": 0,
         "y": 0,
-        "z": 2
+        "z": 4
       },
       "rightShoulder": {
         "x": 0,
         "y": 0,
-        "z": -2
+        "z": -4
       },
       "leftUpperArm": {
-        "x": -24,
-        "y": -72,
-        "z": 54
+        "x": 9,
+        "y": 10,
+        "z": 47
       },
       "rightUpperArm": {
-        "x": 31,
-        "y": -70,
-        "z": -54
+        "x": 9,
+        "y": -10,
+        "z": -47
       },
       "leftLowerArm": {
-        "x": -37,
-        "y": -2,
-        "z": 9
+        "x": -17,
+        "y": -51,
+        "z": 54
       },
       "rightLowerArm": {
-        "x": -58,
-        "y": 42,
-        "z": -9
+        "x": -17,
+        "y": 51,
+        "z": -54
       },
       "leftHand": {
-        "x": -2,
+        "x": 0,
         "y": 0,
-        "z": -2
+        "z": 0
       },
       "rightHand": {
-        "x": -2,
+        "x": 0,
         "y": 0,
-        "z": 2
+        "z": 0
       },
       "leftUpperLeg": {
-        "x": 1,
-        "y": 0,
-        "z": 2
+        "x": 0,
+        "y": 33,
+        "z": -14
       },
       "rightUpperLeg": {
-        "x": -1,
-        "y": 0,
-        "z": -2
+        "x": 0,
+        "y": -33,
+        "z": 14
       },
       "leftLowerLeg": {
         "x": 0,
@@ -77,7 +77,7 @@
         "z": 0
       },
       "leftFoot": {
-        "x": 0,
+        "x": 26,
         "y": 0,
         "z": 0
       },
@@ -89,9 +89,9 @@
     },
     "position": {
       "hips": {
-        "x": -0.014,
+        "x": 0,
         "y": 0,
-        "z": 0.004
+        "z": 0
       }
     }
   },

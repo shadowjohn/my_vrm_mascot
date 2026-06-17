@@ -1,12 +1,97 @@
 {
   "schemaVersion": 1,
   "poses": {
+    "crouching_001": {
+      "id": "crouching_001",
+      "category": "crouching",
+      "label": "蹲下",
+      "model": "AliciaSolid",
+      "path": "motions/poses/crouching/crouching_001.json",
+      "humanization": {
+        "profile": "alicia",
+        "level": 2
+      },
+      "qa": {
+        "balance": 5,
+        "silhouette": 5,
+        "noTpose": true,
+        "noArmCrossBody": true
+      }
+    },
     "stand_relaxed_001": {
       "id": "stand_relaxed_001",
       "category": "standing",
       "label": "自然站姿",
       "model": "AliciaSolid",
       "path": "motions/poses/standing/stand_relaxed_001.json",
+      "humanization": {
+        "profile": "alicia",
+        "level": 2
+      },
+      "qa": {
+        "balance": 5,
+        "silhouette": 5,
+        "noTpose": true,
+        "noArmCrossBody": true
+      }
+    },
+    "stand_relaxed_002": {
+      "id": "stand_relaxed_002",
+      "category": "standing",
+      "label": "雙手插腰站姿",
+      "model": "AliciaSolid",
+      "path": "motions/poses/standing/stand_relaxed_002.json",
+      "humanization": {
+        "profile": "alicia",
+        "level": 2
+      },
+      "qa": {
+        "balance": 5,
+        "silhouette": 5,
+        "noTpose": true,
+        "noArmCrossBody": true
+      }
+    },
+    "stand_relaxed_003": {
+      "id": "stand_relaxed_003",
+      "category": "standing",
+      "label": "雙手插腰腳微開站姿",
+      "model": "AliciaSolid",
+      "path": "motions/poses/standing/stand_relaxed_003.json",
+      "humanization": {
+        "profile": "alicia",
+        "level": 2
+      },
+      "qa": {
+        "balance": 5,
+        "silhouette": 5,
+        "noTpose": true,
+        "noArmCrossBody": true
+      }
+    },
+    "stretch_001": {
+      "id": "stretch_001",
+      "category": "stretch",
+      "label": "向後伸展",
+      "model": "AliciaSolid",
+      "path": "motions/poses/stretch/stretch_001.json",
+      "humanization": {
+        "profile": "alicia",
+        "level": 2
+      },
+      "qa": {
+        "balance": 5,
+        "silhouette": 5,
+        "noTpose": true,
+        "noArmCrossBody": true
+      }
+    },
+    "walking_001": {
+      "id": "walking_001",
+      "category": "walking",
+      "label": "走路",
+      "model": "AliciaSolid",
+      "path": "motions/poses/walking/walking_001.json",
       "humanization": {
         "profile": "alicia",
         "level": 2
