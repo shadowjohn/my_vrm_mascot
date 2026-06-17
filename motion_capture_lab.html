@@ -607,12 +607,22 @@
       applyLoadedSequence(result, file.name);
     }
 
+    function stopWebcamStream() {
+      const video = $('videoPreview');
+      const stream = video.srcObject;
+      if (stream && typeof stream.getTracks === 'function') {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+      video.srcObject = null;
+    }
+
     async function startWebcam() {
       if (!navigator.mediaDevices?.getUserMedia) {
         setStatus('Webcam capture is not available in this browser context.', 'error');
         return;
       }
       try {
+        stopWebcamStream();
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
         if (state.videoObjectUrl) {
           URL.revokeObjectURL(state.videoObjectUrl);
@@ -664,7 +674,7 @@
       if (!file) {
         return;
       }
-      $('videoPreview').srcObject = null;
+      stopWebcamStream();
       if (state.videoObjectUrl) {
         URL.revokeObjectURL(state.videoObjectUrl);
       }

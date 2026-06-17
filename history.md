@@ -7,6 +7,7 @@
   - 新增 Motion Capture 資料契約與 adapter：`MotionCaptureTypes`、`SkeletonSequenceAdapter`、`PoseEstimatorAdapters`、`MotionCycleDetector`、`MotionClipExporter`、`AliciaMotionPreviewAdapter`，先完成 deterministic Skeleton JSON -> Cycle Detection -> Key Pose Extraction -> `motion_clip_v1` -> Alicia Preview adapter 路徑。
   - 新增 `motions/capture_samples/walk_reference_001.json` 作為 9-frame walk reference sample，支援 Contact/Down/Passing/Up 八相位 seed 與 `walk_cycle_001` export。
   - Alicia preview 維持 optional：VRM binary 仍是 local-only，不簽入 repo；頁面會先檢查 `models/mascot.vrm`，缺本機模型時停用 preview 並保留 Skeleton JSON export 完整可用。
+  - 修正 lab source 切換時的 webcam stream cleanup：重新啟動 webcam 或切換到 video file 前會停止既有 `MediaStreamTrack`，避免攝影機在頁面 session 中殘留啟用。
   - 補齊 M20.3 regression tests：資料契約、Skeleton JSON adapter、pose estimator adapter registry、cycle detector、motion clip exporter、preview adapter 與 lab page contract；測試涵蓋 malformed input、missing model fallback、retarget hint fallback、missing frame marker 與 sample -> seed -> export 行為。
 
 - 新增 M21 Scene Object Interaction Demo Adapter：
