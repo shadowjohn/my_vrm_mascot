@@ -2,6 +2,13 @@
 
 ## 2026-06-17
 
+- 新增 M20.3 Motion Capture Lab：
+  - 建立 `motion_capture_lab.html` lab-only 捕捉頁，串接 Video/Webcam/Skeleton JSON/VRMA 來源入口、Skeleton Preview、Cycle Detection、Alicia Preview 與 Motion Clip export；頁面保持 body no-scroll、三欄面板內部捲動，避免中間預覽高度誤判。
+  - 新增 Motion Capture 資料契約與 adapter：`MotionCaptureTypes`、`SkeletonSequenceAdapter`、`PoseEstimatorAdapters`、`MotionCycleDetector`、`MotionClipExporter`、`AliciaMotionPreviewAdapter`，先完成 deterministic Skeleton JSON -> Cycle Detection -> Key Pose Extraction -> `motion_clip_v1` -> Alicia Preview adapter 路徑。
+  - 新增 `motions/capture_samples/walk_reference_001.json` 作為 9-frame walk reference sample，支援 Contact/Down/Passing/Up 八相位 seed 與 `walk_cycle_001` export。
+  - Alicia preview 維持 optional：VRM binary 仍是 local-only，不簽入 repo；頁面會先檢查 `models/mascot.vrm`，缺本機模型時停用 preview 並保留 Skeleton JSON export 完整可用。
+  - 補齊 M20.3 regression tests：資料契約、Skeleton JSON adapter、pose estimator adapter registry、cycle detector、motion clip exporter、preview adapter 與 lab page contract；測試涵蓋 malformed input、missing model fallback、retarget hint fallback、missing frame marker 與 sample -> seed -> export 行為。
+
 - 新增 M21 Scene Object Interaction Demo Adapter：
   - 新增 `js/SceneObjectAdapter.js`，提供 `registerObject()`、`listObjects()`、`getObject()` 與 `perform()`，支援 deterministic listing、duplicate guard、replace、unknown object / unknown verb 安全回傳，以及 callback dispatcher。
   - 升級 `demo.php` 的 Alicia Scene Playground，註冊 `cake`、`release_box`、`warning_probe` 三個 3D prop 物件，並加入 DOM-only `asset_manifest_panel` 與 `terminal_panel`，先在 demo 層驗證 object + verb 語意模型。
