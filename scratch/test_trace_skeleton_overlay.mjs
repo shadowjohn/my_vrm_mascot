@@ -41,8 +41,8 @@ assert.equal(normalized.timeMs, 1000);
 assert.equal(normalized.frameIndex, 12);
 assert.ok(Math.abs(normalized.joints.hips.x) < 0.000001, 'hips should be centered on Alicia');
 assert.ok(
-  normalized.joints.leftShoulder.x < 0 && normalized.joints.rightShoulder.x > 0,
-  'trace overlay should mirror image-space x into Alicia-facing scene coordinates'
+  normalized.joints.leftShoulder.x > 0 && normalized.joints.rightShoulder.x < 0,
+  'trace overlay should preserve source left/right visual sides by default'
 );
 assert.ok(Math.abs(normalized.joints.rightAnkle.y - -0.95) < 0.000001, 'lowest ankle should touch Alicia ground');
 assert.ok(normalized.joints.leftAnkle.z > normalized.joints.rightAnkle.z, 'near camera depth should map toward camera');

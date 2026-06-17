@@ -127,7 +127,7 @@ export function buildTraceSkeletonFrame(frame, options = {}) {
   const targetCenterX = finiteNumber(options.targetCenterX, 0);
   const targetCenterZ = finiteNumber(options.targetCenterZ, 0);
   const depthScale = finiteNumber(options.depthScale, DEFAULT_DEPTH_SCALE);
-  const mirrorX = options.mirrorX !== false;
+  const mirrorX = options.mirrorX === true;
   const xSign = mirrorX ? -1 : 1;
   const scale = targetHeight / bounds.height;
   const joints = {};
@@ -418,7 +418,7 @@ export class TraceSkeletonOverlay {
       groundY: DEFAULT_GROUND_Y,
       targetHeight: DEFAULT_TARGET_HEIGHT,
       depthScale: DEFAULT_DEPTH_SCALE,
-      mirrorX: true
+      mirrorX: false
     };
     }
 
@@ -430,7 +430,7 @@ export class TraceSkeletonOverlay {
       targetCenterX: 0,
       targetCenterZ: 0,
       depthScale: DEFAULT_DEPTH_SCALE,
-      mirrorX: true
+      mirrorX: false
     };
   }
 
