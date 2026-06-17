@@ -135,10 +135,20 @@ function testDemoStagesPhysicalContactAndGaze() {
   const riskyLegRotations = [...crouchBlock.matchAll(/(?:left|right)(?:Upper|Lower)Leg:\s*\[[^\n]+/g)]
     .flatMap((match) => [...match[0].matchAll(/x:\s*(-?\d+)/g)].map((value) => Number(value[1])))
     .filter(Number.isFinite);
+  const spineBend = [...(crouchBlock.match(/spine:\s*\[[^\n]+/)?.[0] || '').matchAll(/x:\s*(-?\d+)/g)]
+    .map((value) => Number(value[1]))
+    .filter(Number.isFinite);
+  const chestBend = [...(crouchBlock.match(/chest:\s*\[[^\n]+/)?.[0] || '').matchAll(/x:\s*(-?\d+)/g)]
+    .map((value) => Number(value[1]))
+    .filter(Number.isFinite);
 
   assert.match(demo, /crouch_touch/);
   assert.match(demo, /hipsPosition:\s*\[/);
-  assert.ok(Math.min(...hipsY) <= -0.12, 'crouch_touch should visibly lower Alicia, not just bend slightly');
+  assert.ok(Math.min(...hipsY) <= -0.22, 'crouch_touch should visibly lower Alicia, not just bend slightly');
+  assert.ok(Math.min(...spineBend) < 0, 'crouch_touch spine should bend forward, not arch backward');
+  assert.ok(Math.min(...chestBend) < 0, 'crouch_touch chest should bend forward, not arch backward');
+  assert.ok(Math.min(...spineBend) <= -45, 'crouch_touch should lean far enough forward to read as picking up');
+  assert.ok(Math.min(...chestBend) <= -28, 'crouch_touch chest should support the forward pickup bend');
   assert.ok(
     riskyLegRotations.every((value) => Math.abs(value) <= 24),
     'crouch_touch must not use large leg rotations without IK / foot locking'
@@ -150,16 +160,23 @@ function testDemoStagesPhysicalContactAndGaze() {
   assert.match(demo, /mouseOverrideUntil = performance\.now\(\) \+ 1150/);
   assert.match(demo, /gazeDirector\.focusEvent\(event\)/);
   assert.match(demo, /aliciaGazeDirector\?\.handleMouseMove/);
+  assert.match(demo, /waitForSceneRoot\(timeoutMs = 1600\)/);
+  assert.match(demo, /walker\.reset\(\{ instant: true \}\)/);
   assert.match(demo, /shortestAngleDelta\(from, to\)/);
   assert.match(demo, /facingRotationFor\(fromX, fromZ, toX, toZ\)/);
   assert.match(demo, /async moveTo\(target = \{\}, options = \{\}\)/);
   assert.match(demo, /const faceWorld = this\.propLayer\?\.getPropWorldPosition\?\.\(event\.prop\) \|\| null/);
-  assert.match(demo, /this\.walker\.moveTo\(event\.walkTo \|\| \{ x: 0, y: 0, scale: 1 \}, \{ faceWorld \}\)/);
+  assert.match(demo, /forceWalk:\s*Boolean\(event\.walkTo\)/);
   assert.match(demo, /this\.rootBaseRotationY \+ Math\.atan2\(dx, dz\)/);
-  assert.match(demo, /distance3d > 0\.006/);
-  assert.match(demo, /this\.shortestAngleDelta\(from\.rotationY, to\.rotationY\)/);
-  assert.match(demo, /const moveT = isWalking \? this\.clamp\(\(p - 0\.18\) \/ 0\.82, 0, 1\) : ease\(p\)/);
-  assert.match(demo, /const turnT = isWalking \? \(1 - Math\.pow\(1 - this\.clamp\(p \/ 0\.32, 0, 1\), 3\)\) : moveT/);
+  assert.match(demo, /walkRotationY/);
+  assert.match(demo, /finalRotationY/);
+  assert.match(demo, /options\.forceWalk === true/);
+  assert.match(demo, /duration = Math\.max\(850, Math\.min\(2400, duration\)\)/);
+  assert.match(demo, /this\.shortestAngleDelta\(from\.rotationY, to\.walkRotationY\)/);
+  assert.match(demo, /this\.shortestAngleDelta\(walkFacing, to\.rotationY\)/);
+  assert.match(demo, /const moveT = isWalking \? this\.clamp\(\(p - 0\.18\) \/ 0\.72, 0, 1\) : ease\(p\)/);
+  assert.match(demo, /const walkTurnT = isWalking \? \(1 - Math\.pow\(1 - this\.clamp\(p \/ 0\.24, 0, 1\), 3\)\) : moveT/);
+  assert.match(demo, /const finalTurnT = isWalking \? \(1 - Math\.pow\(1 - this\.clamp\(\(p - 0\.72\) \/ 0\.28, 0, 1\), 3\)\) : 1/);
   assert.match(demo, /const noAutoDirector = query\.has\('noAuto'\) \|\| query\.has\('manual'\)/);
   assert.match(demo, /auto director disabled by query flag/);
   assert.match(motionController, /async preloadVrmaForName\(name\)/);

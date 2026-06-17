@@ -1399,17 +1399,17 @@ $serverChecks = [
         fps: 10,
         hipsPosition: [
           { time_ms: 0, pos: [0, 0, 0] },
-          { time_ms: 420, pos: [0.004, -0.068, 0.014] },
-          { time_ms: 980, pos: [0.006, -0.138, 0.026] },
-          { time_ms: 1560, pos: [0.008, -0.13, 0.024] },
-          { time_ms: 1980, pos: [0.004, -0.048, 0.01] },
+          { time_ms: 420, pos: [0.004, -0.126, 0.024] },
+          { time_ms: 980, pos: [0.006, -0.252, 0.052] },
+          { time_ms: 1560, pos: [0.008, -0.236, 0.048] },
+          { time_ms: 1980, pos: [0.004, -0.082, 0.018] },
           { time_ms: 2400, pos: [0, 0, 0] },
         ],
         bones: {
-          spine: [[0, { x: 0 }], [420, { x: 10, z: -1 }], [980, { x: 16, z: -2 }], [1560, { x: 14, z: -1 }], [2400, { x: 0 }]],
-          chest: [[0, { x: 0 }], [420, { x: 6, y: -4 }], [980, { x: 10, y: -6 }], [1560, { x: 9, y: -5 }], [2400, { x: 0 }]],
-          leftUpperLeg: [[0, { x: 0 }], [420, { x: -10, z: 1 }], [980, { x: -18, z: 1 }], [1560, { x: -16, z: 1 }], [2400, { x: 0 }]],
-          rightUpperLeg: [[0, { x: 0 }], [420, { x: -10, z: -1 }], [980, { x: -18, z: -1 }], [1560, { x: -16, z: -1 }], [2400, { x: 0 }]],
+          spine: [[0, { x: 0 }], [420, { x: -26, z: -1 }], [980, { x: -52, z: -2 }], [1560, { x: -46, z: -1 }], [2400, { x: 0 }]],
+          chest: [[0, { x: 0 }], [420, { x: -16, y: -4 }], [980, { x: -32, y: -6 }], [1560, { x: -28, y: -5 }], [2400, { x: 0 }]],
+          leftUpperLeg: [[0, { x: 0 }], [420, { x: -13, z: 1 }], [980, { x: -24, z: 1 }], [1560, { x: -22, z: 1 }], [2400, { x: 0 }]],
+          rightUpperLeg: [[0, { x: 0 }], [420, { x: -13, z: -1 }], [980, { x: -24, z: -1 }], [1560, { x: -22, z: -1 }], [2400, { x: 0 }]],
           leftLowerLeg: [[0, { x: 0 }], [420, { x: 12 }], [980, { x: 24 }], [1560, { x: 22 }], [2400, { x: 0 }]],
           rightLowerLeg: [[0, { x: 0 }], [420, { x: 12 }], [980, { x: 24 }], [1560, { x: 22 }], [2400, { x: 0 }]],
           rightUpperArm: [[0, { z: 0 }], [360, { x: -18, y: -22, z: -54 }], [1180, { x: -22, y: -28, z: -60 }], [1680, { x: -18, y: -24, z: -56 }], [2400, { z: 0 }]],
@@ -2113,6 +2113,25 @@ $serverChecks = [
         return this.vrmRoot;
       }
 
+      waitForSceneRoot(timeoutMs = 1600) {
+        const startedAt = performance.now();
+        return new Promise((resolve) => {
+          const tick = () => {
+            const root = this.getSceneRoot();
+            if (root && this.rootBasePosition && this.rootBaseScale) {
+              resolve(root);
+              return;
+            }
+            if (performance.now() - startedAt >= timeoutMs) {
+              resolve(null);
+              return;
+            }
+            requestAnimationFrame(tick);
+          };
+          tick();
+        });
+      }
+
       clamp(value, min, max) {
         return Math.max(min, Math.min(max, value));
       }
@@ -2130,7 +2149,7 @@ $serverChecks = [
         return this.rootBaseRotationY + Math.atan2(dx, dz);
       }
 
-      sceneTargetFor(next, compact, scale, facingRotationY = null) {
+      sceneTargetFor(next, compact, scale, facingRotationY = null, walkRotationY = null) {
         const x = this.clamp(next.x * (compact ? 0.0032 : 0.0072), -1.2, 1.2);
         const z = this.clamp(next.y * (compact ? 0.006 : 0.011), -1.0, 1.0);
         return {
@@ -2138,6 +2157,7 @@ $serverChecks = [
           z,
           scale,
           rotationY: Number.isFinite(facingRotationY) ? facingRotationY : this.rootBaseRotationY - x * 0.18,
+          walkRotationY: Number.isFinite(walkRotationY) ? walkRotationY : null,
         };
       }
 
@@ -2156,20 +2176,23 @@ $serverChecks = [
           z: this.rootBasePosition.z + sceneTarget.z,
           scale: this.rootBaseScale.x * sceneTarget.scale,
           rotationY: sceneTarget.rotationY,
+          walkRotationY: Number.isFinite(sceneTarget.walkRotationY) ? sceneTarget.walkRotationY : sceneTarget.rotationY,
         };
         // 走路時使用線性插值 (Linear) 以貼合等速步行動畫；一般位移使用 ease-out cubic
         const ease = isWalking ? ((p) => p) : ((p) => 1 - Math.pow(1 - p, 3));
         const step = (now) => {
           if (token !== this.sceneMoveToken) return;
           const p = this.clamp((now - start) / duration, 0, 1);
-          const moveT = isWalking ? this.clamp((p - 0.18) / 0.82, 0, 1) : ease(p);
-          const turnT = isWalking ? (1 - Math.pow(1 - this.clamp(p / 0.32, 0, 1), 3)) : moveT;
+          const moveT = isWalking ? this.clamp((p - 0.18) / 0.72, 0, 1) : ease(p);
+          const walkTurnT = isWalking ? (1 - Math.pow(1 - this.clamp(p / 0.24, 0, 1), 3)) : moveT;
+          const finalTurnT = isWalking ? (1 - Math.pow(1 - this.clamp((p - 0.72) / 0.28, 0, 1), 3)) : 1;
           root.position.x = from.x + (to.x - from.x) * moveT;
           root.position.z = from.z + (to.z - from.z) * moveT;
           root.position.y = this.rootBasePosition.y;
           const scale = from.scale + (to.scale - from.scale) * moveT;
           root.scale.setScalar(scale);
-          root.rotation.y = from.rotationY + this.shortestAngleDelta(from.rotationY, to.rotationY) * turnT;
+          const walkFacing = from.rotationY + this.shortestAngleDelta(from.rotationY, to.walkRotationY) * walkTurnT;
+          root.rotation.y = walkFacing + this.shortestAngleDelta(walkFacing, to.rotationY) * finalTurnT;
           if (p < 1) {
             requestAnimationFrame(step);
           }
@@ -2249,10 +2272,14 @@ $serverChecks = [
         const dy = next.y - (this.position?.y ?? 0);
         const distance = Math.hypot(dx, dy);
 
-        const root = this.getSceneRoot();
+        let root = this.getSceneRoot();
+        if (!root && options.forceWalk === true) {
+          root = await this.waitForSceneRoot(900);
+        }
         let sceneTarget = null;
         let distance3d = 0;
-        let facingRotationY = null;
+        let finalRotationY = null;
+        let walkRotationY = null;
         if (root && this.rootBasePosition) {
           const preliminaryTarget = this.sceneTargetFor(next, compact, scale);
           const targetX = this.rootBasePosition.x + preliminaryTarget.x;
@@ -2260,21 +2287,25 @@ $serverChecks = [
           const faceWorld = options.faceWorld || null;
           const faceX = Number.isFinite(faceWorld?.x) ? faceWorld.x : targetX;
           const faceZ = Number.isFinite(faceWorld?.z) ? faceWorld.z : targetZ;
-          facingRotationY = this.facingRotationFor(root.position.x, root.position.z, faceX, faceZ);
-          sceneTarget = this.sceneTargetFor(next, compact, scale, facingRotationY);
+          walkRotationY = this.facingRotationFor(root.position.x, root.position.z, targetX, targetZ);
+          finalRotationY = Number.isFinite(faceWorld?.x) || Number.isFinite(faceWorld?.z)
+            ? this.facingRotationFor(targetX, targetZ, faceX, faceZ)
+            : walkRotationY;
+          sceneTarget = this.sceneTargetFor(next, compact, scale, finalRotationY, walkRotationY);
           distance3d = Math.hypot(targetX - root.position.x, targetZ - root.position.z);
         }
 
         let duration = 1150;
         let isWalking = false;
 
-        if (this.mascot && ((root && distance3d > 0.006) || distance > 2)) {
+        const forcedWalk = options.forceWalk === true && (distance3d > 0.002 || distance > 1);
+        if (this.mascot && (forcedWalk || (root && distance3d > 0.006) || distance > 2)) {
           isWalking = true;
           if (root && this.rootBasePosition) {
             const walkSpeed = this.mascot.motion?.getWalkSpeed?.() || 0.85;
             duration = (distance3d / walkSpeed) * 1000;
-            // 限制移動時間在合理範圍 [400, 2200] ms 內
-            duration = Math.max(400, Math.min(2200, duration));
+            // 走路展示寧可稍慢，讓腳步讀得出來，不像 canvas 直接平移。
+            duration = Math.max(850, Math.min(2400, duration));
           } else {
             // 非 3D 模式的後備計算
             duration = Math.max(400, Math.min(1800, (distance / 110) * 1000));
@@ -2294,7 +2325,7 @@ $serverChecks = [
         if (root) {
           canvas.style.transition = 'none';
           canvas.style.transform = 'none';
-          this.animateSceneRoot(root, sceneTarget || this.sceneTargetFor(next, compact, scale, facingRotationY), duration, isWalking);
+          this.animateSceneRoot(root, sceneTarget || this.sceneTargetFor(next, compact, scale, finalRotationY), duration, isWalking);
         } else {
           const easing = isWalking ? 'linear' : 'cubic-bezier(.2,.82,.22,1)';
           canvas.style.transition = `transform ${duration}ms ${easing}`;
@@ -2328,8 +2359,25 @@ $serverChecks = [
         this.stepIndex++;
       }
 
-      reset() {
-        this.moveTo({ x: 0, y: 0, scale: 1, roomPath: 'center' });
+      reset(options = {}) {
+        const next = { x: 0, y: 0, scale: 1, roomPath: 'center' };
+        if (options.instant) {
+          const root = this.getSceneRoot();
+          const canvas = this.getCanvas();
+          if (root && this.rootBasePosition && this.rootBaseScale) {
+            root.position.copy(this.rootBasePosition);
+            root.scale.copy(this.rootBaseScale);
+            root.rotation.y = this.rootBaseRotationY;
+          }
+          if (canvas) {
+            canvas.style.transition = 'none';
+            canvas.style.transform = 'none';
+          }
+          this.updateShadow(0, 0, 1, 'center');
+          this.position = next;
+          return 0;
+        }
+        return this.moveTo(next);
       }
     }
 
@@ -2689,7 +2737,10 @@ $serverChecks = [
         this.propLayer?.focus(event.prop);
         const faceWorld = this.propLayer?.getPropWorldPosition?.(event.prop) || null;
         const travelDuration = this.walker
-          ? await this.walker.moveTo(event.walkTo || { x: 0, y: 0, scale: 1 }, { faceWorld })
+          ? await this.walker.moveTo(event.walkTo || { x: 0, y: 0, scale: 1 }, {
+              faceWorld,
+              forceWalk: Boolean(event.walkTo),
+            })
           : 80;
         if (this.gazeDirector) {
           this.gazeDirector.focusEvent(event);
@@ -2771,7 +2822,9 @@ $serverChecks = [
       await sleep(600);
       const walker = new AliciaStageWalker(stage, mascot);
       window.aliciaWalker = walker;
-      walker.reset();
+      await walker.waitForSceneRoot();
+      walker.reset({ instant: true });
+      await sleep(120);
       const gazeDirector = new GazeDirector(stage, mascot, propLayer);
       window.aliciaGazeDirector = gazeDirector;
       setCheck('model', 'ok', 'OK');
