@@ -2,6 +2,14 @@
 
 ## 2026-06-17
 
+- 新增 M21 Scene Object Interaction Demo Adapter：
+  - 新增 `js/SceneObjectAdapter.js`，提供 `registerObject()`、`listObjects()`、`getObject()` 與 `perform()`，支援 deterministic listing、duplicate guard、replace、unknown object / unknown verb 安全回傳，以及 callback dispatcher。
+  - 升級 `demo.php` 的 Alicia Scene Playground，註冊 `cake`、`release_box`、`warning_probe` 三個 3D prop 物件，並加入 DOM-only `asset_manifest_panel` 與 `terminal_panel`，先在 demo 層驗證 object + verb 語意模型。
+  - 將 toy card click flow 改成先呼叫 `sceneObjectAdapter.perform()`，再映射到既有 `AutoDirector.runEvent()` story beat；若 adapter 無法解析則 fallback 原本 topic 行為。
+  - 新增 `focus` 的 demo-only focus-only 分支，只做 scene focus / gaze，不觸發完整演出；蛋糕完整生日演出改以 `eventId: birthday_cake` 明確鎖定，避免一般 inspect/focus 誤觸發 celebration。
+  - 鎖定 Adapter Contract：`SceneObjectAdapter` 是 demo-first contract，不依賴 STEP、不修改 `VrmMascot` core；`perform()` 失敗一律回 `{ ok: false }`，`focus` 作為低風險共通 verb，`birthday_cake` 以 `eventId` 明確綁定 story beat，避免後續 topic 分歧。
+  - 新增 `scratch/test_scene_object_adapter.mjs`，並擴充 `scratch/test_showcase_pack.mjs`，確認 demo 引入 adapter、註冊至少三個物件、卡片點擊走 `adapter.perform()`、cake celebrate 對應 birthday cake story beat，且不修改 `VrmMascot` core default behavior。
+
 - 新增 M20.1.7 Scene Playground Integration 官方展示頁整合：
   - 升級 `demo.php`，在 Alicia 載入後自動啟用進階 Level 4 擬人化行為（眨眼、呼吸微動、重心位移與自動手勢）。
   - 在 `ScenePropLayer` 中加入程序化 `birthdayCake` 互助道具，包括粉紅蛋糕體、白色奶油層、黃色蠟燭及具備隨機抖動/縮放動畫效果的 `Flame` 火焰網格（MeshBasicMaterial）。

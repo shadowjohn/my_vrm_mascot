@@ -874,27 +874,27 @@ $serverChecks = [
       <div class="story-beat" data-story-beat>Chapter 0 / Alicia finds the toy room</div>
       <div class="scene-directive" data-scene-directive>Booting release sandbox...</div>
     </div>
-    <button type="button" class="toy-card release" data-topic="release" data-prop="releaseCore">
+    <button type="button" class="toy-card release" data-topic="release" data-prop="releaseCore" data-object-id="release_box" data-verb="introduce">
       <strong>release.json</strong>
       <small>Version <?= h($release['version'] ?? 'unknown') ?><br><?= h($release['builtAt'] ?? 'unknown') ?></small>
       <span class="chip">OK</span>
     </button>
-    <button type="button" class="toy-card assets" data-topic="assets" data-prop="assetCrate">
+    <button type="button" class="toy-card assets" data-topic="assets" data-prop="assetCrate" data-object-id="asset_manifest_panel" data-verb="inspect">
       <strong>asset_manifest</strong>
       <small><?= h(count($assets)) ?> shipped assets<br>runtime package scan</small>
       <span class="chip">OK</span>
     </button>
-    <button type="button" class="toy-card motion" data-topic="motion" data-prop="motionOrb">
+    <button type="button" class="toy-card motion" data-topic="motion" data-prop="motionOrb" data-object-id="terminal_panel" data-verb="introduce">
       <strong>motion registry</strong>
       <small>semantic motion hints<br>future scene verbs</small>
       <span class="chip">READY</span>
     </button>
-    <button type="button" class="toy-card target" data-topic="target" data-prop="warningTarget" data-tone="hot">
+    <button type="button" class="toy-card target" data-topic="target" data-prop="warningTarget" data-tone="hot" data-object-id="warning_probe" data-verb="warn">
       <strong>test target</strong>
       <small>inspect / warn / bonk<br>interaction dummy</small>
       <span class="chip">LIVE</span>
     </button>
-    <button type="button" class="toy-card cake" data-topic="cake" data-prop="birthdayCake">
+    <button type="button" class="toy-card cake" data-topic="cake" data-prop="birthdayCake" data-object-id="cake" data-verb="celebrate">
       <strong>birthday cake</strong>
       <small>thinking / gesture / success<br>celebration prop</small>
       <span class="chip">LIVE</span>
@@ -1062,6 +1062,7 @@ $serverChecks = [
   <script src="./js/vendor/three-vrm.min.js"></script>
   <script type="module">
     import { AutoDirectorLite } from './js/AutoDirectorLite.js';
+    import { SceneObjectAdapter } from './js/SceneObjectAdapter.js';
     const stage = document.getElementById('alicia-stage');
     const bubble = document.getElementById('speech-bubble');
     const toyCards = Array.from(document.querySelectorAll('[data-topic]'));
@@ -1192,6 +1193,290 @@ $serverChecks = [
       for (const pill of motionPills) {
         pill.disabled = !flag;
       }
+    }
+
+    function propPosition(propLayer, name) {
+      return () => propLayer?.getPropWorldPosition?.(name) || null;
+    }
+
+    function registerDemoSceneObjects(adapter, propLayer) {
+      const registrations = [
+        adapter.registerObject('cake', {
+          label: 'Birthday Cake',
+          type: 'prop',
+          object3d: propLayer?.props?.birthdayCake,
+          position: propPosition(propLayer, 'birthdayCake'),
+          verbs: {
+            focus: {
+              eventId: 'focus_cake',
+              event: {
+                eventId: 'focus_cake',
+                topic: 'cake',
+                prop: 'birthdayCake',
+                focusOnly: true,
+                label: 'Focus Birthday Cake',
+                directive: 'Alicia looks at the birthday cake.',
+                storyBeat: 'Scene Object / Focus cake',
+                gaze: { x: 0, y: -0.22 },
+                marker: { left: '50%', bottom: '38%' },
+              },
+            },
+            inspect: {
+              eventId: 'inspect_cake',
+              event: {
+                eventId: 'inspect_cake',
+                topic: 'cake',
+                prop: 'birthdayCake',
+                label: 'Inspect Birthday Cake',
+                directive: 'Alicia studies the candle and cake before deciding what to do.',
+                storyBeat: 'Scene Object / Inspect cake',
+                intent: 'explain',
+                motion: 'idle',
+                actState: 'thinking',
+                animation: 'curious_peek',
+                walkTo: { x: 0, y: -25, scale: 1.05, roomPath: 'center' },
+                text: '這個蛋糕的位置很好，蠟燭也看得到。先觀察一下，等等再決定要不要慶祝。',
+                gaze: { x: 0, y: -0.22 },
+                marker: { left: '50%', bottom: '38%' },
+              },
+            },
+            celebrate: {
+              eventId: 'birthday_cake',
+              event: {
+                eventId: 'birthday_cake',
+                topic: 'cake',
+                prop: 'birthdayCake',
+                storyBeat: 'Chapter 6 / Birthday Celebration',
+                label: 'Celebrate Birthday Cake',
+                directive: 'Alicia celebrates her birthday with a lovely cake.',
+                intent: 'success',
+                motion: 'idle',
+                animation: 'thinking',
+                walkTo: { x: 0, y: -25, scale: 1.05, roomPath: 'center' },
+                text: '哇！是生日蛋糕耶！上面還有蠟燭，太精緻了吧。讓我許個願，嗯...讓我想想...',
+                gaze: { x: 0, y: -0.22 },
+                marker: { left: '50%', bottom: '38%' },
+              },
+            },
+          },
+        }),
+        adapter.registerObject('release_box', {
+          label: 'Release Box',
+          type: 'prop',
+          object3d: propLayer?.props?.releaseCore,
+          position: propPosition(propLayer, 'releaseCore'),
+          verbs: {
+            focus: {
+              eventId: 'focus_release_box',
+              event: {
+                eventId: 'focus_release_box',
+                topic: 'release',
+                prop: 'releaseCore',
+                focusOnly: true,
+                label: 'Focus Release Box',
+                directive: 'Alicia looks at the release package.',
+                storyBeat: 'Scene Object / Focus release box',
+                gaze: { x: -0.5, y: 0.16 },
+                marker: { left: '31%', bottom: '42%' },
+              },
+            },
+            inspect: {
+              eventId: 'inspect_release_box',
+              event: {
+                eventId: 'inspect_release_box',
+                topic: 'release',
+                prop: 'releaseCore',
+                label: 'Inspect Release Box',
+                directive: 'Alicia checks release metadata.',
+                storyBeat: 'Scene Object / Inspect release box',
+                intent: 'explain',
+                motion: 'presenting',
+                animation: 'crouch_touch',
+                sceneAction: 'touch',
+                walkTo: { x: -125, y: 54, scale: 1.05, roomPath: 'front-left' },
+                text: `我先看 release box。版本 ${releaseStats.version}，build date ${releaseStats.builtAt}，這是目前展示頁的核心物件。`,
+                gaze: { x: -0.5, y: 0.16 },
+                marker: { left: '31%', bottom: '42%' },
+              },
+            },
+            introduce: {
+              eventId: 'introduce_release_box',
+              event: {
+                eventId: 'introduce_release_box',
+                topic: 'release',
+                prop: 'releaseCore',
+                label: 'Introduce Release Box',
+                directive: 'Alicia introduces the current runtime release.',
+                storyBeat: 'Scene Object / Introduce release',
+                intent: 'greeting',
+                motion: 'wave',
+                animation: 'shy_wave',
+                walkTo: { x: -72, y: 18, scale: 1.04, roomPath: 'front-left' },
+                text: `這是 Alicia Runtime ${releaseStats.version} 的 release box。我會先看它、介紹它，之後也可以把 STEP 物件接成同樣的互動語意。`,
+                gaze: { x: -0.48, y: 0.14 },
+                marker: { left: '31%', bottom: '42%' },
+              },
+            },
+          },
+        }),
+        adapter.registerObject('warning_probe', {
+          label: 'Warning Probe',
+          type: 'prop',
+          object3d: propLayer?.props?.warningTarget,
+          position: propPosition(propLayer, 'warningTarget'),
+          verbs: {
+            focus: {
+              eventId: 'focus_warning_probe',
+              event: {
+                eventId: 'focus_warning_probe',
+                topic: 'target',
+                prop: 'warningTarget',
+                focusOnly: true,
+                label: 'Focus Warning Probe',
+                directive: 'Alicia watches the warning probe.',
+                storyBeat: 'Scene Object / Focus warning probe',
+                gaze: { x: 0.48, y: -0.1 },
+                marker: { left: '70%', bottom: '24%' },
+                tone: 'hot',
+              },
+            },
+            inspect: {
+              eventId: 'inspect_warning_probe',
+              event: {
+                eventId: 'inspect_warning_probe',
+                topic: 'target',
+                prop: 'warningTarget',
+                label: 'Inspect Warning Probe',
+                directive: 'Alicia inspects a suspicious scene object.',
+                storyBeat: 'Scene Object / Inspect warning probe',
+                intent: 'explain',
+                motion: 'presenting',
+                animation: 'point_right',
+                walkTo: { x: 72, y: -5, scale: 1.06, roomPath: 'right-front' },
+                text: '這個 warning probe 是未來危險區域或異常零件的替身。我先指給你看，還不真的操作它。',
+                gaze: { x: 0.48, y: -0.1 },
+                marker: { left: '70%', bottom: '24%' },
+                tone: 'hot',
+              },
+            },
+            warn: {
+              eventId: 'warn_warning_probe',
+              event: {
+                eventId: 'warn_warning_probe',
+                topic: 'target',
+                prop: 'warningTarget',
+                label: 'Warn Warning Probe',
+                directive: 'Alicia warns the suspicious probe.',
+                storyBeat: 'Scene Object / Warn probe',
+                intent: 'warning',
+                motion: 'warning_nod',
+                animation: 'hands_waist',
+                sceneAction: 'touch',
+                walkTo: { x: 104, y: -54, scale: 1.06, roomPath: 'back-right-cut' },
+                text: '警告，這個 probe 先不要亂動。我會看著它、靠近它，然後把 warning 狀態演出來。',
+                gaze: { x: 0.45, y: -0.12 },
+                marker: { left: '68%', bottom: '23%' },
+                tone: 'hot',
+              },
+            },
+          },
+        }),
+        adapter.registerObject('asset_manifest_panel', {
+          label: 'Asset Manifest Panel',
+          type: 'dom',
+          domElement: document.querySelector('[data-object-id="asset_manifest_panel"]'),
+          verbs: {
+            inspect: {
+              eventId: 'inspect_asset_manifest_panel',
+              event: {
+                eventId: 'inspect_asset_manifest_panel',
+                topic: 'assets',
+                prop: 'assetCrate',
+                label: 'Inspect Asset Manifest Panel',
+                directive: 'Alicia checks the shipped asset manifest.',
+                storyBeat: 'Scene Object / Inspect assets',
+                intent: 'success',
+                motion: 'victory',
+                animation: 'crouch_touch',
+                sceneAction: 'touch',
+                walkTo: { x: 120, y: 45, scale: 1.05, roomPath: 'front-right' },
+                text: `Asset manifest 有 ${releaseStats.assetCount} 個檔案，其中 ${releaseStats.motionAssetCount} 個是 motion asset。我先看 panel，再摸一下 crate 確認。`,
+                gaze: { x: 0.5, y: 0.1 },
+                marker: { left: '66%', bottom: '41%' },
+              },
+            },
+            introduce: {
+              eventId: 'introduce_asset_manifest_panel',
+              event: {
+                eventId: 'introduce_asset_manifest_panel',
+                topic: 'assets',
+                prop: 'assetCrate',
+                label: 'Introduce Asset Manifest Panel',
+                directive: 'Alicia introduces the release asset manifest.',
+                storyBeat: 'Scene Object / Introduce assets',
+                intent: 'explain',
+                motion: 'presenting',
+                animation: 'curious_peek',
+                walkTo: { x: 72, y: 34, scale: 1.04, roomPath: 'front-right' },
+                text: '這塊 panel 是 release 的 asset manifest。未來 STEP 物件也可以先註冊，然後讓我看、介紹、警告或聚焦。',
+                gaze: { x: 0.45, y: 0.08 },
+                marker: { left: '66%', bottom: '41%' },
+              },
+            },
+          },
+        }),
+        adapter.registerObject('terminal_panel', {
+          label: 'Terminal Panel',
+          type: 'dom',
+          domElement: logEl,
+          verbs: {
+            inspect: {
+              eventId: 'inspect_terminal_panel',
+              event: {
+                eventId: 'inspect_terminal_panel',
+                topic: 'motion',
+                prop: 'motionOrb',
+                label: 'Inspect Terminal Panel',
+                directive: 'Alicia reads the runtime console panel.',
+                storyBeat: 'Scene Object / Inspect terminal',
+                intent: 'searching',
+                motion: 'idle',
+                actState: 'thinking',
+                animation: 'curious_peek',
+                walkTo: { x: -50, y: 7, scale: 1.03, roomPath: 'back-left-loop' },
+                text: '我看一下 terminal panel。這裡會顯示 adapter-result、story beat 和 runtime 狀態，很適合做 Scene Object 的驗證台。',
+                gaze: { x: -0.35, y: -0.18 },
+                marker: { left: '36%', bottom: '24%' },
+              },
+            },
+            introduce: {
+              eventId: 'introduce_terminal_panel',
+              event: {
+                eventId: 'introduce_terminal_panel',
+                topic: 'motion',
+                prop: 'motionOrb',
+                label: 'Introduce Terminal Panel',
+                directive: 'Alicia introduces the scene interaction console.',
+                storyBeat: 'Scene Object / Introduce terminal',
+                intent: 'explain',
+                motion: 'presenting',
+                animation: 'curious_peek',
+                walkTo: { x: -50, y: 7, scale: 1.03, roomPath: 'back-left-loop' },
+                text: '這個 console 是 M21 Demo Adapter 的觀察窗。每次你點物件，我會先用 object + verb 解析，再交給既有演出系統。',
+                gaze: { x: -0.35, y: -0.18 },
+                marker: { left: '36%', bottom: '24%' },
+              },
+            },
+          },
+        }),
+      ];
+
+      for (const result of registrations) {
+        if (!result.ok) {
+          appendLog(`scene object register failed: ${result.objectId} (${result.reason})`);
+        }
+      }
+      return adapter;
     }
 
     function configureDemoCamera(mascot) {
@@ -2586,6 +2871,7 @@ $serverChecks = [
             marker: { left: '66%', bottom: '36%' },
           },
           {
+            eventId: 'birthday_cake',
             topic: 'cake',
             prop: 'birthdayCake',
             storyBeat: 'Chapter 6 / Birthday Celebration',
@@ -2825,6 +3111,19 @@ $serverChecks = [
           setMotionFocus(event);
           this.propLayer?.focus(event.prop);
           const faceWorld = this.propLayer?.getPropWorldPosition?.(event.prop) || null;
+          if (event.focusOnly) {
+            if (this.gazeDirector) {
+              this.gazeDirector.focusEvent(event);
+            } else {
+              this.mascot.lookAt?.setTarget?.('point', event.gaze || { x: 0, y: 0 });
+            }
+            appendLog(`${source}: ${event.label} focus-only`);
+            await sleep(120);
+            setCheck('intent', 'ok', 'OK');
+            refreshConsoleStatus();
+            this.scheduleNext();
+            return;
+          }
           const travelDuration = this.walker
             ? await this.walker.moveTo(event.walkTo || { x: 0, y: 0, scale: 1 }, {
                 faceWorld,
@@ -2840,7 +3139,7 @@ $serverChecks = [
           appendLog(`${source}: ${event.label} @ ${event.walkTo?.roomPath || 'center'}`);
           await sleep(event.walkTo ? travelDuration : 80);
 
-          if (event.topic === 'cake') {
+          if (event.topic === 'cake' && event.eventId === 'birthday_cake') {
             // Custom cake event sequence!
             this.mascot.act?.('thinking', {
               trigger: 'birthday_cake_thinking',
@@ -2975,6 +3274,15 @@ $serverChecks = [
 
       const director = new AutoDirector(mascot, propLayer, walker, gazeDirector);
       window.aliciaDirector = director;
+      const sceneObjectAdapter = new SceneObjectAdapter({
+        onPerform: ({ event }) => {
+          if (!event) return null;
+          return director.runEvent(event, 'scene_object_adapter');
+        },
+      });
+      registerDemoSceneObjects(sceneObjectAdapter, propLayer);
+      window.aliciaSceneObjectAdapter = sceneObjectAdapter;
+      appendLog(`scene objects registered: ${sceneObjectAdapter.listObjects().length}`);
       if (noAutoDirector) {
         director.setAuto(false);
         appendLog('auto director disabled by query flag');
@@ -3026,7 +3334,16 @@ $serverChecks = [
       });
       for (const card of toyCards) {
         card.addEventListener('click', () => {
-          director.runTopic(card.dataset.topic);
+          const objectId = card.dataset.objectId;
+          const verb = card.dataset.verb || 'inspect';
+          const result = sceneObjectAdapter.perform(verb, objectId, {
+            source: 'toy_card',
+            card,
+          });
+          appendLog(`adapter-result: ${result.ok ? 'ok' : result.reason} ${objectId}.${verb}`);
+          if (!result.ok) {
+            director.runTopic(card.dataset.topic);
+          }
         });
       }
       for (const pill of motionPills) {

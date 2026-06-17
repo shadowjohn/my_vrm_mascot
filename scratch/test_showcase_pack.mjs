@@ -223,6 +223,25 @@ function testDemoAliciaScenePlaygroundIntegration() {
   assert.doesNotMatch(motionController, /enableHumanization\s*\([^)]*level:\s*4/);
 }
 
+function testDemoSceneObjectAdapterIntegration() {
+  const demo = readFileSync(DEMO_PATH, 'utf8');
+  const mascot = readFileSync(join('js', 'VrmMascot.js'), 'utf8');
+
+  assert.match(demo, /import\s*{\s*SceneObjectAdapter\s*}\s*from\s*['"]\.\/js\/SceneObjectAdapter\.js['"]/);
+  assert.match(demo, /new\s+SceneObjectAdapter\(/);
+  assert.match(demo, /registerObject\(['"]cake['"]/);
+  assert.match(demo, /registerObject\(['"]release_box['"]/);
+  assert.match(demo, /registerObject\(['"]warning_probe['"]/);
+  assert.match(demo, /celebrate:\s*{[\s\S]*?eventId:\s*['"]birthday_cake['"]/);
+  assert.match(demo, /sceneObjectAdapter\.perform\(/);
+  assert.match(demo, /card\.dataset\.objectId/);
+  assert.match(demo, /adapter-result/);
+
+  const registeredObjectCount = (demo.match(/registerObject\(/g) || []).length;
+  assert.ok(registeredObjectCount >= 3, 'demo should register at least three scene objects');
+
+  assert.doesNotMatch(mascot, /SceneObjectAdapter/);
+}
 
 async function run() {
   const tests = [
@@ -234,6 +253,7 @@ async function run() {
     testDemoPropsUseSharedThreeScene,
     testDemoStagesPhysicalContactAndGaze,
     testDemoAliciaScenePlaygroundIntegration,
+    testDemoSceneObjectAdapterIntegration,
   ];
 
   for (const test of tests) {
