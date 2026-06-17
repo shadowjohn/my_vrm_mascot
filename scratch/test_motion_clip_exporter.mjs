@@ -555,6 +555,67 @@ assert.ok(
   'diagonal skeleton torso should drive Alicia hips roll instead of keeping the body upright'
 );
 
+const legSpreadCalls = [];
+const legSpreadClip = {
+  ...raisedArmClip,
+  id: 'leg_spread_trace',
+  previewFrames: [
+    {
+      timeMs: 0,
+      landmarks: {
+        hips: { x: 0, y: 1, z: 0 },
+        chest: { x: 0, y: 1.42, z: 0 },
+        leftShoulder: { x: -0.2, y: 1.5, z: 0 },
+        rightShoulder: { x: 0.2, y: 1.5, z: 0 },
+        leftElbow: { x: -0.28, y: 1.25, z: 0 },
+        rightElbow: { x: 0.28, y: 1.25, z: 0 },
+        leftWrist: { x: -0.34, y: 1.05, z: 0 },
+        rightWrist: { x: 0.34, y: 1.05, z: 0 },
+        leftKnee: { x: -0.06, y: 0.52, z: 0 },
+        rightKnee: { x: 0.06, y: 0.52, z: 0 },
+        leftAnkle: { x: -0.1, y: 0, z: 0 },
+        rightAnkle: { x: 0.1, y: 0, z: 0 }
+      }
+    },
+    {
+      timeMs: 400,
+      landmarks: {
+        hips: { x: 0, y: 1, z: 0 },
+        chest: { x: 0, y: 1.42, z: 0 },
+        leftShoulder: { x: -0.2, y: 1.5, z: 0 },
+        rightShoulder: { x: 0.2, y: 1.5, z: 0 },
+        leftElbow: { x: -0.28, y: 1.25, z: 0 },
+        rightElbow: { x: 0.28, y: 1.25, z: 0 },
+        leftWrist: { x: -0.34, y: 1.05, z: 0 },
+        rightWrist: { x: 0.34, y: 1.05, z: 0 },
+        leftKnee: { x: -0.06, y: 0.52, z: 0 },
+        rightKnee: { x: 0.06, y: 0.52, z: 0 },
+        leftAnkle: { x: -0.48, y: 0, z: 0 },
+        rightAnkle: { x: 0.48, y: 0, z: 0 }
+      }
+    }
+  ]
+};
+new AliciaMotionPreviewAdapter({
+  mascot: {
+    motion: {
+      playCustom(animData) {
+        legSpreadCalls.push(animData);
+      }
+    }
+  }
+}).previewClip(legSpreadClip);
+assert.notDeepEqual(
+  legSpreadCalls[0].bones.leftUpperLeg[0].rot,
+  legSpreadCalls[0].bones.leftUpperLeg[1].rot,
+  'wide skeleton left ankle should expand Alicia left leg instead of staying crossed'
+);
+assert.notDeepEqual(
+  legSpreadCalls[0].bones.rightUpperLeg[0].rot,
+  legSpreadCalls[0].bones.rightUpperLeg[1].rot,
+  'wide skeleton right ankle should expand Alicia right leg instead of staying crossed'
+);
+
 const badPreview = preview.previewClip({ kind: 'pose_preset' });
 assert.equal(badPreview.ok, false);
 assert.equal(badPreview.reason, 'unsupported_clip');

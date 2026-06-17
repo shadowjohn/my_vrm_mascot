@@ -871,6 +871,32 @@
       height: 42px;
     }
 
+    .overlay-toggle {
+      grid-column: 1 / -1;
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0;
+      padding: 8px 10px;
+      border: 1px solid rgba(70, 88, 80, 0.72);
+      border-radius: 7px;
+      background: rgba(15, 22, 20, 0.82);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 750;
+      text-transform: none;
+    }
+
+    .overlay-toggle input {
+      width: 18px;
+      min-width: 18px;
+      height: 18px;
+      padding: 0;
+      accent-color: var(--accent);
+    }
+
     .summary-panel {
       display: grid;
       gap: 12px;
@@ -1230,6 +1256,10 @@
           <option value="1.5">1.5x</option>
         </select>
         <button id="btnRefreshWalkPreview" class="icon-button ghost-button" type="button" title="Refresh walk preview">↻</button>
+        <label for="traceOverlayToggle" class="overlay-toggle">
+          <span>Skeleton Overlay</span>
+          <input id="traceOverlayToggle" type="checkbox" checked>
+        </label>
       </div>
 
       <div class="summary-panel" aria-label="Walk style summary">
@@ -1242,6 +1272,8 @@
           <div class="summary-row"><span>Depth Source</span><output id="walkSummaryDepthSource">--</output></div>
           <div class="summary-row"><span>MotionBERT</span><output id="walkSummaryMotionBert">--</output></div>
           <div class="summary-row"><span>Lead Foot</span><output id="walkSummaryLeadFoot">--</output></div>
+          <div class="summary-row"><span>Skeleton Overlay</span><output id="walkSummaryTraceOverlay">--</output></div>
+          <div class="summary-row"><span>Trace Foot</span><output id="walkSummaryFootDelta">--</output></div>
           <div class="summary-row"><span>Loop</span><output id="walkSummaryLoop">--</output></div>
           <div class="summary-row"><span>Cadence</span><output id="walkSummaryCadence">--</output></div>
           <div class="summary-row"><span>Stride</span><output id="walkSummaryStride">--</output></div>
@@ -1275,6 +1307,7 @@
     import { MotionCycleDetector } from './js/MotionCycleDetector.js';
     import { exportWalkStyle } from './js/WalkStyleExtractor.js';
     import { AliciaMotionPreviewAdapter } from './js/AliciaMotionPreviewAdapter.js';
+    import { TraceSkeletonOverlay } from './js/TraceSkeletonOverlay.js';
 
     const $ = (id) => document.getElementById(id);
     const phaseInputId = (phase) => `phase_${phase}`;
@@ -1323,6 +1356,7 @@
       clip: null,
       mascot: null,
       previewAdapter: new AliciaMotionPreviewAdapter(),
+      traceOverlay: new TraceSkeletonOverlay(),
       videoObjectUrl: null,
       currentVideoUrl: null,
       currentVideoLabel: '',
@@ -1494,6 +1528,8 @@
         setText('walkSummaryDepthSource', '--');
         setText('walkSummaryMotionBert', '--');
         setText('walkSummaryLeadFoot', '--');
+        setText('walkSummaryTraceOverlay', '--');
+        setText('walkSummaryFootDelta', '--');
         setText('walkSummaryLoop', '--');
         setText('walkSummaryCadence', '--');
         setText('walkSummaryStride', '--');
@@ -1526,6 +1562,7 @@
       setText('walkSummaryDepthSource', style.metadata?.depthSource || '--');
       setText('walkSummaryMotionBert', motionBertSummaryLabel(style));
       setText('walkSummaryLeadFoot', style.leadFoot ? `${style.leadFoot} (${formatMetric(style.frontBackConfidence)})` : '--');
+      updateTraceOverlaySummary();
       setText('walkSummaryLoop', durationMs > 0 ? `${formatLoopRange(loop)} (${formatRangeTime(durationMs)})` : '--');
       setText('walkSummaryCadence', Number.isFinite(Number(params.cadence)) ? `${formatMetric(params.cadence)} steps/s` : '--');
       setText('walkSummaryStride', formatMetric(params.stride));
@@ -1563,6 +1600,74 @@
         return 'PoC heuristic';
       }
       return '--';
+    }
+
+    function traceOverlayIsEnabled() {
+      const toggle = $('traceOverlayToggle');
+      return Boolean(toggle?.checked);
+    }
+
+    function updateTraceOverlaySummary(summary = state.traceOverlay?.getSummary?.()) {
+      if (!traceOverlayIsEnabled()) {
+        setText('walkSummaryTraceOverlay', 'off');
+        setText('walkSummaryFootDelta', '--');
+        return;
+      }
+
+      if (!summary || !summary.sampleCount) {
+        setText('walkSummaryTraceOverlay', 'waiting');
+        setText('walkSummaryFootDelta', 'L -- / R --');
+        return;
+      }
+
+      const depth = formatMetric(summary.depthConfidence);
+      const lead = summary.leadFoot || 'unknown';
+      setText('walkSummaryTraceOverlay', `${summary.sampleCount} frames, ${lead} (${depth})`);
+      setText('walkSummaryFootDelta', summary.footDeltaLabel || 'L -- / R --');
+    }
+
+    function updateTraceOverlayForClip(clip, result) {
+      if (!state.traceOverlay) {
+        updateTraceOverlaySummary(null);
+        return;
+      }
+
+      state.traceOverlay.setEnabled(traceOverlayIsEnabled());
+      if (!traceOverlayIsEnabled()) {
+        updateTraceOverlaySummary();
+        return;
+      }
+
+      if (!result?.ok || !Array.isArray(clip?.previewFrames) || clip.previewFrames.length < 2) {
+        state.traceOverlay.stop();
+        updateTraceOverlaySummary(null);
+        return;
+      }
+
+      const summary = state.traceOverlay.play({
+        frames: clip.previewFrames,
+        loop: clip.loop,
+        previewSpeed: clip.previewSpeed,
+        clip
+      });
+      updateTraceOverlaySummary(summary);
+    }
+
+    function handleTraceOverlayToggle() {
+      if (!state.traceOverlay) {
+        updateTraceOverlaySummary(null);
+        return;
+      }
+      state.traceOverlay.setEnabled(traceOverlayIsEnabled());
+      if (!traceOverlayIsEnabled()) {
+        updateTraceOverlaySummary();
+        return;
+      }
+      if (state.clip && state.mascot && !$('btnPreviewWalkCycle').disabled) {
+        previewWalkCycle();
+      } else {
+        updateTraceOverlaySummary();
+      }
     }
 
     function skeletonMotionBertDebugPayload(style) {
@@ -2212,6 +2317,7 @@
       attachPreviewFramesToClip(clip);
       const previewAdapter = state.previewAdapter;
       const result = previewAdapter.previewClip(clip);
+      updateTraceOverlayForClip(clip, result);
       const adapterLabel = result.adapter === 'walk_style_skeleton_trace'
         ? 'extracted skeleton trace'
         : result.adapter === 'walk_style_generator'
@@ -2356,6 +2462,7 @@
         if (!hasModel) {
           state.mascot = null;
           state.previewAdapter = new AliciaMotionPreviewAdapter();
+          state.traceOverlay.setMascot(null);
           setStatus(`Alicia preview unavailable: local model ${DEFAULT_VRM_MODEL_URL} not found. Skeleton JSON export remains usable.`, 'error');
           return;
         }
@@ -2363,6 +2470,7 @@
         const { VrmMascot } = await import('./js/VrmMascot.js');
         state.mascot = new VrmMascot($('aliciaPreview'), { orbitControls: true, grid: true });
         state.previewAdapter = new AliciaMotionPreviewAdapter({ mascot: state.mascot });
+        state.traceOverlay.setMascot(state.mascot);
         if (typeof state.mascot.load === 'function') {
           await state.mascot.load(DEFAULT_VRM_MODEL_URL);
         }
@@ -2376,6 +2484,7 @@
         }
         state.mascot = null;
         state.previewAdapter = new AliciaMotionPreviewAdapter();
+        state.traceOverlay.setMascot(null);
         setPreviewAvailable(false);
         setStatus(`Alicia preview boot skipped: ${error.message}. Skeleton JSON export remains usable.`, 'error');
       }
@@ -2476,6 +2585,7 @@
       }
     });
     $('btnRefreshWalkPreview').addEventListener('click', previewWalkCycle);
+    $('traceOverlayToggle').addEventListener('change', handleTraceOverlayToggle);
 
     syncCaptureRangeControls();
     updateVideoInfo();

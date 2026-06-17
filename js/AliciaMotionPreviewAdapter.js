@@ -193,8 +193,10 @@ function legOffsets(landmarks, side, scale) {
   const fullLeg = vector(hips, ankle);
   const upperLeg = knee ? vector(hips, knee) : fullLeg;
   const lowerLeg = knee ? vector(knee, ankle) : fullLeg;
-  const swing = clamp(-upperLeg.z * 155 * scale, -42, 42);
-  const sideReach = clamp(upperLeg.x * 58 * scale, -24, 24);
+  const forwardReach = upperLeg.z * 0.65 + fullLeg.z * 0.35;
+  const lateralReach = knee ? upperLeg.x * 0.36 + fullLeg.x * 0.64 : fullLeg.x;
+  const swing = clamp(-forwardReach * 170 * scale, -46, 46);
+  const sideReach = clamp(lateralReach * 88 * scale, -36, 36);
   const kneeFlex = knee
     ? jointFlexionDegrees(hips, knee, ankle)
     : clamp((1.05 - Math.abs(fullLeg.y)) * 42 * scale, 0, 34);

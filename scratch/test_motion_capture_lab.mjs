@@ -70,12 +70,15 @@ const requiredIds = [
   'walkConfidenceSummary',
   'previewSpeedSelect',
   'btnRefreshWalkPreview',
+  'traceOverlayToggle',
   'walkSummaryType',
   'walkSummaryPreviewSource',
   'walkSummaryPoseMode',
   'walkSummaryDepthSource',
   'walkSummaryMotionBert',
   'walkSummaryLeadFoot',
+  'walkSummaryTraceOverlay',
+  'walkSummaryFootDelta',
   'walkSummaryLoop',
   'walkSummaryCadence',
   'walkSummaryStride',
@@ -94,6 +97,7 @@ const requiredImports = [
   './js/MotionCycleDetector.js',
   './js/WalkStyleExtractor.js',
   './js/AliciaMotionPreviewAdapter.js',
+  './js/TraceSkeletonOverlay.js',
   './js/VrmMascot.js'
 ];
 
@@ -131,6 +135,8 @@ assert.match(html, /Pose Mode/);
 assert.match(html, /Depth Source/);
 assert.match(html, /MotionBERT/);
 assert.match(html, /Lead Foot/);
+assert.match(html, /Skeleton Overlay/);
+assert.match(html, /Trace Foot/);
 assert.match(html, /grid-template-columns:\s*minmax\(320px,\s*0\.9fr\)\s+minmax\(380px,\s*1\.1fr\)\s+minmax\(420px,\s*1\.2fr\)/);
 assert.match(html, /#skeletonPreviewCanvas\s*\{[\s\S]*min-height:\s*280px/);
 assert.match(html, /fetch\('api\/capture\/youtube'/);
@@ -218,6 +224,10 @@ assert.match(html, /id="btnSeedCyclePhases"[\s\S]*Detect Walk Cycle/);
 assert.match(html, /function attachPreviewFramesToClip\(clip\)/);
 assert.match(html, /state\.detector\.extractCycleFrames\(state\.sequence\)/);
 assert.match(html, /clip\.previewFrames = previewFrames/);
+assert.match(html, /traceOverlay:\s*new TraceSkeletonOverlay\(\)/);
+assert.match(html, /function updateTraceOverlayForClip\(clip,\s*result\)/);
+assert.match(html, /state\.traceOverlay\.play\(\{[\s\S]*frames:\s*clip\.previewFrames/);
+assert.match(html, /traceOverlayToggle'\)\.addEventListener\('change'/);
 assert.match(html, /previewAdapter\.previewClip/);
 assert.match(html, /const clip = exportCurrentClip\(\{\s*silent:\s*true\s*\}\)/);
 assert.match(html, /attachPreviewFramesToClip\(clip\)/);
