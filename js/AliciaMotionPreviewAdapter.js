@@ -1,4 +1,5 @@
 import { buildAliciaWalkAnimation } from './AliciaWalkGenerator.js';
+import { normalizeSkeletonToAlicia } from './AliciaSkeletonRetargeter.js';
 
 const DEG = Math.PI / 180;
 
@@ -156,7 +157,7 @@ function armOffsets(landmarks, side, scale) {
   const forearmRaise = Math.max(0, lowerArm.y);
   const handDrop = Math.max(0, -fullArm.y);
   const lateralLift = clamp(Math.abs(upperArm.x) * 120 * scale, 0, 44);
-  const elevationLift = clamp((upperRaise * 190 + verticalRaise * 110 + forearmRaise * 40) * scale, 0, 112);
+  const elevationLift = clamp((upperRaise * 190 + verticalRaise * 160 + forearmRaise * 90) * scale, 0, 112);
   const downSettle = clamp(Math.max(0, handDrop - 0.26) * 32 * scale, 0, 18);
   const zLift = clamp(lateralLift + elevationLift - downSettle, 0, 118);
   const forward = clamp(-upperArm.z * 150 * scale, -50, 50);
@@ -174,7 +175,7 @@ function armOffsets(landmarks, side, scale) {
     },
     upper: {
       x: clamp(lift + forward * 0.55, -70, 96),
-      y: clamp(forward * 0.75, -45, 45),
+      y: sign * clamp(forward * 0.75, -45, 45),
       z: -sign * zLift
     },
     lower: {
@@ -277,14 +278,15 @@ function buildPreviewAnimation(clip, mascot) {
   const loopDurationMs = Math.max(300, Math.round(sourceLoopDurationMs / previewSpeed));
   const baseRotations = getBaseRotations(mascot);
   const hints = retargetHints(clip);
-  const firstHips = getPoint(transformRetargetLandmarks(previewFrames[0].landmarks, hints), 'hips');
+  const firstSourceHips = getPoint(transformRetargetLandmarks(previewFrames[0].landmarks, hints), 'hips');
   const bones = {};
   const hipsPosition = [];
 
   for (const previewFrame of previewFrames) {
-    const landmarks = transformRetargetLandmarks(previewFrame.landmarks, hints);
+    const sourceLandmarks = transformRetargetLandmarks(previewFrame.landmarks, hints);
+    const landmarks = normalizeSkeletonToAlicia(sourceLandmarks).landmarks;
     const timeMs = clamp(Math.round((finiteNumber(previewFrame.timeMs) - loopStartMs) / previewSpeed), 0, loopDurationMs);
-    const hips = getPoint(landmarks, 'hips');
+    const hips = getPoint(sourceLandmarks, 'hips');
     const leftArm = armOffsets(landmarks, 'left', hints.armSwingScale);
     const rightArm = armOffsets(landmarks, 'right', hints.armSwingScale);
     const leftLeg = legOffsets(landmarks, 'left', hints.strideScale);
@@ -295,7 +297,7 @@ function buildPreviewAnimation(clip, mascot) {
       time_ms: timeMs,
       pos: [
         clamp(hips.x * 0.018, -0.018, 0.018),
-        clamp((hips.y - firstHips.y) * 0.03 * hints.hipBobScale, -0.018, 0.024),
+        clamp((hips.y - firstSourceHips.y) * 0.03 * hints.hipBobScale, -0.018, 0.024),
         clamp(hips.z * 0.018, -0.018, 0.018)
       ]
     });

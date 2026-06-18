@@ -702,6 +702,68 @@ assert.ok(
   'lower legs should follow the knee-to-ankle segment back inward instead of continuing the thigh angle'
 );
 
+function proportionalTraceFrame(timeMs, sourceScale, active = false) {
+  const legReach = active ? 0.34 : 0.08;
+  const armReach = active ? 0.42 : 0.28;
+  return {
+    timeMs,
+    landmarks: {
+      hips: { x: 0, y: 1 * sourceScale, z: 0 },
+      chest: { x: 0.02 * sourceScale, y: 1.42 * sourceScale, z: -0.02 * sourceScale },
+      leftShoulder: { x: -0.2 * sourceScale, y: 1.5 * sourceScale, z: -0.02 * sourceScale },
+      rightShoulder: { x: 0.2 * sourceScale, y: 1.5 * sourceScale, z: -0.02 * sourceScale },
+      leftElbow: { x: -0.3 * sourceScale, y: 1.24 * sourceScale, z: -0.04 * sourceScale },
+      rightElbow: { x: 0.3 * sourceScale, y: 1.24 * sourceScale, z: -0.04 * sourceScale },
+      leftWrist: { x: -armReach * sourceScale, y: 1.04 * sourceScale, z: -0.06 * sourceScale },
+      rightWrist: { x: armReach * sourceScale, y: 1.04 * sourceScale, z: -0.06 * sourceScale },
+      leftKnee: { x: -0.08 * sourceScale, y: 0.52 * sourceScale, z: 0.02 * sourceScale },
+      rightKnee: { x: 0.08 * sourceScale, y: 0.52 * sourceScale, z: 0.02 * sourceScale },
+      leftAnkle: { x: -legReach * sourceScale, y: 0, z: 0.07 * sourceScale },
+      rightAnkle: { x: legReach * sourceScale, y: 0, z: 0.07 * sourceScale }
+    }
+  };
+}
+
+function previewTraceForScale(sourceScale) {
+  const calls = [];
+  new AliciaMotionPreviewAdapter({
+    mascot: {
+      motion: {
+        playCustom(animData) {
+          calls.push(animData);
+        }
+      }
+    }
+  }).previewClip({
+    ...raisedArmClip,
+    id: `proportional_trace_${sourceScale}`,
+    retargetHints: {
+      strideScale: 1,
+      armSwingScale: 1,
+      hipBobScale: 1,
+      smoothing: 0.35
+    },
+    previewFrames: [
+      proportionalTraceFrame(0, sourceScale, false),
+      proportionalTraceFrame(400, sourceScale, true)
+    ]
+  });
+  return calls[0];
+}
+
+const tallSourcePreview = previewTraceForScale(1.85);
+const shortSourcePreview = previewTraceForScale(0.72);
+assert.ok(
+  Math.abs(tallSourcePreview.bones.leftUpperLeg[1].rot[2] - shortSourcePreview.bones.leftUpperLeg[1].rot[2]) < 0.04 &&
+    Math.abs(tallSourcePreview.bones.rightUpperLeg[1].rot[2] - shortSourcePreview.bones.rightUpperLeg[1].rot[2]) < 0.04,
+  'Alicia preview leg rotations should stay close when the same motion comes from tall or short source skeletons'
+);
+assert.ok(
+  Math.abs(tallSourcePreview.bones.leftUpperArm[1].rot[2] - shortSourcePreview.bones.leftUpperArm[1].rot[2]) < 0.06 &&
+    Math.abs(tallSourcePreview.bones.rightUpperArm[1].rot[2] - shortSourcePreview.bones.rightUpperArm[1].rot[2]) < 0.06,
+  'Alicia preview arm rotations should stay close when source shoulder and arm scale changes'
+);
+
 const mirroredRetargetCalls = [];
 const preMirroredRetargetCalls = [];
 const cameraFacingClip = {

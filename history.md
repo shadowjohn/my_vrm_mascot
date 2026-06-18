@@ -14,6 +14,12 @@
   - lower leg 現在用 `knee -> ankle` segment 的 x 方向決定左右旋轉，缺少 knee landmark 時才 fallback 全腿向量；新增 `bent_knee_shin_trace` regression，鎖定小腿會跟 shin segment 回內。
   - 再收斂腿部 lateral retarget 係數與角度上限，避免寬腳踝 skeleton 在 Alicia preview 中被放大成過度劈腿；`leg_spread_trace` 現在鎖定上腿可見開腿但不可 over-abduct、小腿 lateral rotation 也有上限。
 
+- 新增 Alicia body-proportion skeleton retarget layer：
+  - 新增 `js/AliciaSkeletonRetargeter.js`，把來源影片 / MotionBERT skeleton 視為動作意圖，先正規化成 Alicia-local 身材比例骨架，再交給 `AliciaMotionPreviewAdapter` 產生 preview bones。
+  - retargeter 使用 Alicia rig profile 的骨長，並以 two-bone chain 保留 wrist / ankle endpoint 意圖與 elbow / knee bend plane，避免拍攝者身高、腿長、手長或 skeleton scale 漂移直接放大到 Alicia。
+  - `AliciaMotionPreviewAdapter` 現在只用 raw source hips 保留 root 位移，手腳 rotation 改吃 Alicia-normalized landmarks；upper arm Y twist 改左右鏡像，讓左右手基準 pose 對稱。
+  - 新增 `scratch/test_alicia_skeleton_retargeter.mjs`，並擴充 `scratch/test_motion_clip_exporter.mjs`，鎖定高個子 / 矮個子 / 長手長腿來源 retarget 後骨長與 preview rotation 都會收斂。
+
 - 修正 M21.0 3D lifted skeleton 對齊後 Alicia preview 手臂仍不跟的問題：
   - 根因在 `AliciaMotionPreviewAdapter` 的 skeleton trace retarget，而不是 MotionBERT；原本手/肘越往上，upper arm `z` offset 反而把 Alicia 往自然下垂方向推，且沒有輸出 shoulder 軌。
   - `joint_chain_preview` 現在會輸出 `leftShoulder/rightShoulder` keyframe，並把 arm elevation / lateral reach 轉成上舉方向的 upperArm offset，讓抬手到頭旁邊的 skeleton trace 能反映到右側 Alicia preview。
