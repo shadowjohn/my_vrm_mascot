@@ -497,6 +497,49 @@ assert.ok(
   'bent right hand near head should neutralize the Alicia down-pose side rotation'
 );
 
+const frontHandCalls = [];
+const frontHandClip = {
+  ...raisedArmClip,
+  id: 'front_hand_cross_body_trace',
+  previewFrames: [
+    raisedArmClip.previewFrames[0],
+    {
+      timeMs: 400,
+      landmarks: {
+        hips: { x: 0, y: 1, z: 0 },
+        chest: { x: 0, y: 1.42, z: 0 },
+        leftShoulder: { x: -0.2, y: 1.5, z: 0 },
+        rightShoulder: { x: 0.2, y: 1.5, z: 0 },
+        leftElbow: { x: -0.28, y: 1.24, z: 0 },
+        rightElbow: { x: 0.28, y: 1.24, z: 0.01 },
+        leftWrist: { x: -0.34, y: 1.05, z: 0 },
+        rightWrist: { x: -0.1, y: 1.07, z: -0.28 },
+        leftKnee: { x: -0.08, y: 0.5, z: 0 },
+        rightKnee: { x: 0.08, y: 0.5, z: 0 },
+        leftAnkle: { x: -0.1, y: 0, z: 0 },
+        rightAnkle: { x: 0.1, y: 0, z: 0 }
+      }
+    }
+  ]
+};
+new AliciaMotionPreviewAdapter({
+  mascot: {
+    motion: {
+      playCustom(animData) {
+        frontHandCalls.push(animData);
+      }
+    }
+  }
+}).previewClip(frontHandClip);
+assert.ok(
+  frontHandCalls[0].bones.rightUpperArm[1].rot[2] > -0.22,
+  'right wrist in front of the body should pull Alicia right upper arm off the side-hanging pose'
+);
+assert.ok(
+  Math.abs(frontHandCalls[0].bones.rightLowerArm[1].rot[1]) > Math.abs(frontHandCalls[0].bones.rightLowerArm[0].rot[1]) + 0.25,
+  'right forearm in front should still bend Alicia lower arm toward the copied hand pose'
+);
+
 const torsoLeanCalls = [];
 const torsoLeanClip = {
   ...raisedArmClip,

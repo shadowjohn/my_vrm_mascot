@@ -43,6 +43,11 @@
   - 根因在 `AliciaMotionPreviewAdapter` 的 skeleton trace retarget，而不是 MotionBERT；原本手/肘越往上，upper arm `z` offset 反而把 Alicia 往自然下垂方向推，且沒有輸出 shoulder 軌。
   - `joint_chain_preview` 現在會輸出 `leftShoulder/rightShoulder` keyframe，並把 arm elevation / lateral reach 轉成上舉方向的 upperArm offset，讓抬手到頭旁邊的 skeleton trace 能反映到右側 Alicia preview。
   - 新增 regression case `raised_arm_trace`，鎖定手腕抬高時左右 upper arm quaternion 會跨離 down-pose 方向，避免右側再次退回 generic walk / 手臂不跟的狀態。
+
+- 修正 Alicia 手在人物前方時仍停在身側：
+  - `AliciaMotionPreviewAdapter.armOffsets()` 現在會把 wrist / forearm 的 near-camera z 與 cross-body reach 納入上臂前伸與側掛解除；當手腕已在人物前方但 elbow 仍接近身側時，上臂也會離開自然下垂姿勢。
+  - 前伸補償只套在低位 / 胸前手勢，避免破壞既有手靠近頭部時 upper arm 側向旋轉被中和的修正。
+  - 新增 `front_hand_cross_body_trace` regression，鎖定右手在身體前方時 Alicia right upper arm 會跟出來，lower arm 仍維持向 hand pose 彎曲。
 - 針對 `https://www.youtube.com/shorts/fRcWSuVjjfc` 修正 Alicia skeleton trace 精準度：
   - 實測該片 real MotionBERT 可產生 92-frame `3d_lifted` trace，但 `depthConfidence/frontBackConfidence` 只有約 0.07，因此前後腳/前後手不適合硬做高信心判斷。
   - 新增 bent-hand-near-head regression：當 wrist 已高過 shoulder、elbow 仍低於 shoulder 時，forearm raise 也會中和 Alicia upperArm 的 down-pose 側向旋轉，改善手靠頭/彎手動作。

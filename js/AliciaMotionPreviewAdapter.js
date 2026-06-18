@@ -178,11 +178,18 @@ function armOffsets(landmarks, side, scale) {
   const upperRaise = Math.max(0, upperArm.y);
   const forearmRaise = Math.max(0, lowerArm.y);
   const handDrop = Math.max(0, -fullArm.y);
+  const handForwardReach = Math.max(0, -fullArm.z);
+  const forearmForwardReach = Math.max(0, -lowerArm.z);
+  const crossBodyReach = side === 'left'
+    ? Math.max(0, wrist.x - shoulder.x)
+    : Math.max(0, shoulder.x - wrist.x);
+  const frontCarryGate = clamp((0.16 - verticalRaise) / 0.16, 0, 1);
   const lateralLift = clamp(Math.abs(upperArm.x) * 120 * scale, 0, 44);
   const elevationLift = clamp((upperRaise * 190 + verticalRaise * 160 + forearmRaise * 90) * scale, 0, 112);
+  const frontCarryLift = clamp((handForwardReach * 95 + forearmForwardReach * 58 + crossBodyReach * 54) * scale * frontCarryGate, 0, 52);
   const downSettle = clamp(Math.max(0, handDrop - 0.26) * 32 * scale, 0, 18);
-  const zLift = clamp(lateralLift + elevationLift - downSettle, 0, 118);
-  const forward = clamp(-upperArm.z * 150 * scale, -50, 50);
+  const zLift = clamp(lateralLift + elevationLift + frontCarryLift - downSettle, 0, 118);
+  const forward = clamp(((-upperArm.z * 0.52) + (handForwardReach * 0.32) + (forearmForwardReach * 0.16)) * 150 * scale, -50, 50);
   const lift = clamp((upperArm.y * 170 + verticalRaise * 65) * scale, -65, 90);
   const elbowFlex = elbow
     ? jointFlexionDegrees(shoulder, elbow, wrist)
