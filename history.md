@@ -57,6 +57,11 @@
   - 針對影片 `xc-YZjU4xOs` 約 1.87s 的側伸手姿勢，`leftShoulder -> leftElbow -> leftWrist` 接近同方向往外延伸時，Alicia 原本會把 lower arm bend 放大成明顯下垂。
   - `AliciaMotionPreviewAdapter.armOffsets()` 現在只在手低於肩、上臂與前臂同方向往外側延伸時降低 elbow flex，保留頭上彎手與胸前跨身手的彎折。
   - 新增 `side_reach_lower_arm_trace` regression，鎖定低位側伸手會維持較接近伸直的前臂角度。
+
+- 修正 Alicia 手交叉無法跟上 skeleton：
+  - 針對影片 `Ko1zDenQA7Y` 約 6.27s 的雙手交叉姿勢，skeleton 的 wrist 已跨過 chest center，但 Alicia upper arm 仍留在身體兩側。
+  - 根因是 `AliciaMotionPreviewAdapter.armOffsets()` 用固定 left/right x 方向判斷 cross-body reach，遇到影片 / normalized skeleton 的左右座標方向相反時會把同側伸手當交叉、真正交叉手反而沒有 across-body 補償。
+  - cross-body reach 現改用 shoulder 相對 torso center 的實際位置判斷，不再依賴 hard-coded side；新增 `crossed_arm_trace` regression，鎖定 wrist 跨胸時 upper arm 會比同側 wrist 更往胸前收。
 - 針對 `https://www.youtube.com/shorts/fRcWSuVjjfc` 修正 Alicia skeleton trace 精準度：
   - 實測該片 real MotionBERT 可產生 92-frame `3d_lifted` trace，但 `depthConfidence/frontBackConfidence` 只有約 0.07，因此前後腳/前後手不適合硬做高信心判斷。
   - 新增 bent-hand-near-head regression：當 wrist 已高過 shoulder、elbow 仍低於 shoulder 時，forearm raise 也會中和 Alicia upperArm 的 down-pose 側向旋轉，改善手靠頭/彎手動作。

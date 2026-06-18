@@ -594,6 +594,79 @@ assert.ok(
   'low side reach should keep Alicia forearm mostly extended instead of folding sharply downward'
 );
 
+const crossedArmCalls = [];
+const crossedArmClip = {
+  ...raisedArmClip,
+  id: 'crossed_arm_trace',
+  loop: { startMs: 0, endMs: 800, durationMs: 800 },
+  previewFrames: [
+    {
+      timeMs: 0,
+      landmarks: {
+        hips: { x: 0, y: 1, z: 0 },
+        chest: { x: -0.02, y: 1.42, z: -0.06 },
+        leftShoulder: { x: 0.18, y: 1.42, z: -0.02 },
+        rightShoulder: { x: -0.24, y: 1.42, z: -0.08 },
+        leftElbow: { x: 0.17, y: 1.15, z: -0.05 },
+        rightElbow: { x: -0.08, y: 1.2, z: -0.09 },
+        leftWrist: { x: 0.34, y: 1.28, z: -0.08 },
+        rightWrist: { x: -0.31, y: 1.05, z: 0 },
+        leftKnee: { x: -0.08, y: 0.5, z: 0 },
+        rightKnee: { x: 0.08, y: 0.5, z: 0 },
+        leftAnkle: { x: -0.1, y: 0, z: 0 },
+        rightAnkle: { x: 0.1, y: 0, z: 0 }
+      }
+    },
+    {
+      timeMs: 400,
+      landmarks: {
+        hips: { x: 0, y: 1, z: 0 },
+        chest: { x: -0.02, y: 1.42, z: -0.06 },
+        leftShoulder: { x: 0.18, y: 1.42, z: -0.02 },
+        rightShoulder: { x: -0.24, y: 1.42, z: -0.08 },
+        leftElbow: { x: 0.17, y: 1.15, z: -0.05 },
+        rightElbow: { x: -0.08, y: 1.2, z: -0.09 },
+        leftWrist: { x: -0.04, y: 1.28, z: -0.08 },
+        rightWrist: { x: -0.31, y: 1.05, z: 0 },
+        leftKnee: { x: -0.08, y: 0.5, z: 0 },
+        rightKnee: { x: 0.08, y: 0.5, z: 0 },
+        leftAnkle: { x: -0.1, y: 0, z: 0 },
+        rightAnkle: { x: 0.1, y: 0, z: 0 }
+      }
+    },
+    {
+      timeMs: 800,
+      landmarks: {
+        hips: { x: 0, y: 1, z: 0 },
+        chest: { x: -0.02, y: 1.42, z: -0.06 },
+        leftShoulder: { x: 0.18, y: 1.42, z: -0.02 },
+        rightShoulder: { x: -0.24, y: 1.42, z: -0.08 },
+        leftElbow: { x: 0.17, y: 1.15, z: -0.05 },
+        rightElbow: { x: -0.08, y: 1.2, z: -0.09 },
+        leftWrist: { x: 0.36, y: 1.28, z: -0.08 },
+        rightWrist: { x: -0.31, y: 1.05, z: 0 },
+        leftKnee: { x: -0.08, y: 0.5, z: 0 },
+        rightKnee: { x: 0.08, y: 0.5, z: 0 },
+        leftAnkle: { x: -0.1, y: 0, z: 0 },
+        rightAnkle: { x: 0.1, y: 0, z: 0 }
+      }
+    }
+  ]
+};
+new AliciaMotionPreviewAdapter({
+  mascot: {
+    motion: {
+      playCustom(animData) {
+        crossedArmCalls.push(animData);
+      }
+    }
+  }
+}).previewClip(crossedArmClip);
+assert.ok(
+  crossedArmCalls[0].bones.leftUpperArm[1].rot[2] < crossedArmCalls[0].bones.leftUpperArm[2].rot[2] - 0.03,
+  'wrist crossing the chest should pull Alicia upper arm farther across than a same-side wrist'
+);
+
 const frontHandCalls = [];
 const frontHandClip = {
   ...raisedArmClip,

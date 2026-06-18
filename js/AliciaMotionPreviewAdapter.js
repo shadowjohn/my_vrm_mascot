@@ -171,6 +171,7 @@ function armOffsets(landmarks, side, scale) {
   const shoulder = getPoint(landmarks, `${side}Shoulder`);
   const elbow = getOptionalPoint(landmarks, `${side}Elbow`);
   const wrist = getPoint(landmarks, `${side}Wrist`);
+  const torso = getOptionalPoint(landmarks, 'chest') || getPoint(landmarks, 'hips');
   const fullArm = vector(shoulder, wrist);
   const upperArm = elbow ? vector(shoulder, elbow) : fullArm;
   const lowerArm = elbow ? vector(elbow, wrist) : fullArm;
@@ -180,9 +181,8 @@ function armOffsets(landmarks, side, scale) {
   const handDrop = Math.max(0, -fullArm.y);
   const handForwardReach = Math.max(0, -fullArm.z);
   const forearmForwardReach = Math.max(0, -lowerArm.z);
-  const crossBodyReach = side === 'left'
-    ? Math.max(0, wrist.x - shoulder.x)
-    : Math.max(0, shoulder.x - wrist.x);
+  const shoulderSide = Math.sign(shoulder.x - torso.x) || (side === 'left' ? -1 : 1);
+  const crossBodyReach = Math.max(0, (shoulder.x - wrist.x) * shoulderSide);
   const frontCarryGate = clamp((0.16 - verticalRaise) / 0.16, 0, 1);
   const lateralLift = clamp(Math.abs(upperArm.x) * 120 * scale, 0, 44);
   const elevationLift = clamp((upperRaise * 190 + verticalRaise * 160 + forearmRaise * 90) * scale, 0, 112);
