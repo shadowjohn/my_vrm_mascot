@@ -13,6 +13,12 @@
   - 新增 `scripts/gvhmr_lift.py` / `scripts/wham_lift.py` experimental stub，支援 fixture JSON 與 typed `missing_dependency` 回應，讓 Phase 1 不需要先建 GVHMR/WHAM conda env。
   - 新增 `scratch/test_alicia_world_motion_adapter.mjs`、`scratch/test_alicia_world_motion_fusion.mjs`、`scratch/test_world_motion_cli_stubs.mjs` 鎖定共同 contract、fusion 行為與 CLI stub。
 
+- 推進 M20.4 Phase 2A GVHMR Adapter 邊界：
+  - 新增 `docs/superpowers/plans/2026-06-18-m20-4-gvhmr-adapter-phase2a.md`，把本階段限定在 GVHMR checkout / demo command / static-camera / typed failure contract，不先猜 raw output parser。
+  - `scripts/gvhmr_lift.py` 新增 `--gvhmr-root`、`--python-exe`、`--dry-run`，可組出官方 `tools/demo/demo.py --video=... -s` 命令；缺少 checkout、缺影片、dry-run、provider 失敗與 parser 尚未完成都會回非崩潰 JSON。
+  - 擴充 `scratch/test_world_motion_cli_stubs.mjs`，鎖定 fixture 模式不退化、GVHMR dry-run command 形狀與 `-s` 靜態相機旗標。
+  - 以本機 `micromamba` 建立 ignored 的 `conda_vm/gvhmr/env`，目前為 Python 3.10.20 base env；完整 GVHMR requirements / checkpoints 尚未安裝。
+
 - 建立公司電腦 MotionBERT 本機環境：
   - 以 portable `micromamba` 建立 `conda_vm/motionBERT/env` prefix env，Python 3.10.20，並補上 MotionBERT sidecar 所需的 PyTorch、NumPy、PyYAML、EasyDict 等依賴。
   - 下載官方 Hugging Face `FT_MB_lite_MB_ft_h36m_global_lite/best_epoch.bin` checkpoint 到 MotionBERT 預設路徑，讓 `server.py` 的 real MotionBERT readiness checks 可找到 env、repo、config、checkpoint 與 sidecar。
