@@ -616,8 +616,12 @@ assert.notDeepEqual(
   'wide skeleton right ankle should expand Alicia right leg instead of staying crossed'
 );
 assert.ok(
-  legSpreadCalls[0].bones.leftUpperLeg[1].rot[2] * legSpreadCalls[0].bones.rightUpperLeg[1].rot[2] < 0,
-  'wide skeleton ankles should drive left and right Alicia legs in opposite lateral directions'
+  legSpreadCalls[0].bones.leftUpperLeg[1].rot[2] > 0,
+  'wide skeleton left ankle should drive Alicia left leg toward the same visual side'
+);
+assert.ok(
+  legSpreadCalls[0].bones.rightUpperLeg[1].rot[2] < 0,
+  'wide skeleton right ankle should drive Alicia right leg toward the same visual side'
 );
 assert.ok(
   Math.abs(legSpreadCalls[0].bones.leftUpperLeg[1].rot[2]) > 0.3 &&
@@ -625,8 +629,9 @@ assert.ok(
   'wide skeleton ankles should produce a visibly open Alicia stance'
 );
 assert.ok(
-  legSpreadCalls[0].bones.leftLowerLeg[1].rot[2] * legSpreadCalls[0].bones.rightLowerLeg[1].rot[2] < 0,
-  'wide skeleton ankles should carry some lateral direction into Alicia lower legs'
+  legSpreadCalls[0].bones.leftLowerLeg[1].rot[2] > 0 &&
+    legSpreadCalls[0].bones.rightLowerLeg[1].rot[2] < 0,
+  'wide skeleton ankles should carry same-side lateral direction into Alicia lower legs'
 );
 
 const mirroredRetargetCalls = [];

@@ -205,12 +205,12 @@ function legOffsets(landmarks, side, scale) {
     upper: {
       x: clamp(swing, -42, 42),
       y: 0,
-      z: sideReach
+      z: -sideReach
     },
     lower: {
       x: clamp(kneeFlex * 0.62 + lowerSwing, -10, 58),
       y: 0,
-      z: clamp(sideReach * 0.32, -18, 18)
+      z: clamp(-sideReach * 0.32, -18, 18)
     }
   };
 }
