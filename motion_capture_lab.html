@@ -372,6 +372,88 @@
       font-size: 12px;
     }
 
+    .extraction-progress-panel {
+      display: grid;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid rgba(82, 112, 94, 0.78);
+      border-radius: 8px;
+      background: rgba(13, 19, 17, 0.82);
+    }
+
+    .extraction-progress-panel[hidden] {
+      display: none;
+    }
+
+    .extraction-progress-panel[data-tone="error"] {
+      border-color: rgba(255, 141, 122, 0.72);
+    }
+
+    .extraction-progress-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .extraction-progress-header strong {
+      color: #eef6ef;
+      font-size: 12px;
+    }
+
+    .extraction-progress-header output {
+      color: var(--accent-2);
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .extraction-progress-bar {
+      width: 100%;
+      height: 9px;
+      overflow: hidden;
+      border: 1px solid rgba(94, 119, 109, 0.8);
+      border-radius: 999px;
+      background: #0d1210;
+    }
+
+    .extraction-progress-bar span {
+      display: block;
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #72c976, #f0c86a);
+      transition: width 240ms ease;
+    }
+
+    .extraction-progress-panel[data-tone="error"] .extraction-progress-bar span {
+      background: linear-gradient(90deg, #ff8d7a, #f0c86a);
+    }
+
+    #skeletonExtractionProgressDetail {
+      color: #cbd8cf;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    #skeletonExtractionProgressLog {
+      display: grid;
+      gap: 4px;
+      max-height: 96px;
+      margin: 0;
+      padding-left: 18px;
+      overflow: auto;
+      color: #9daf9f;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    #skeletonExtractionProgressLog li[data-tone="error"] {
+      color: var(--danger);
+    }
+
     .hint {
       margin: 10px 0 14px;
       color: var(--muted);
@@ -1125,6 +1207,17 @@
           <button id="btnUseCurrentAsRangeEnd" class="ghost-button" type="button">Set End</button>
         </div>
         <button id="btnExtractVideoSkeleton" class="primary" type="button">Extract Skeleton From Video</button>
+        <div id="skeletonExtractionProgressPanel" class="extraction-progress-panel" aria-live="polite" hidden>
+          <div class="extraction-progress-header">
+            <strong id="skeletonExtractionProgressStage">Idle</strong>
+            <output id="skeletonExtractionProgressPercent">0%</output>
+          </div>
+          <div id="skeletonExtractionProgressBar" class="extraction-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Skeleton extraction progress">
+            <span id="skeletonExtractionProgressFill"></span>
+          </div>
+          <p id="skeletonExtractionProgressDetail">Waiting for extraction.</p>
+          <ol id="skeletonExtractionProgressLog"></ol>
+        </div>
       </div>
     </section>
 
@@ -1361,6 +1454,11 @@
       currentVideoUrl: null,
       currentVideoLabel: '',
       captureRange: { startMs: 0, endMs: 0, durationMs: 0 },
+      extractionProgress: {
+        timer: null,
+        startedAt: 0,
+        log: []
+      },
       skeletonAnalysisMode: '2d',
       skeleton3d: {
         yaw: -24,
@@ -1378,6 +1476,71 @@
     function setStatus(message, tone = 'ok') {
       $('captureStatus').textContent = message;
       $('captureStatus').style.color = tone === 'error' ? 'var(--danger)' : 'var(--accent)';
+    }
+
+    function stopExtractionProgressHeartbeat() {
+      if (state.extractionProgress.timer) {
+        clearInterval(state.extractionProgress.timer);
+        state.extractionProgress.timer = null;
+      }
+    }
+
+    function appendExtractionProgressDetail(message, tone = 'ok') {
+      const log = $('skeletonExtractionProgressLog');
+      const item = document.createElement('li');
+      item.textContent = message;
+      item.dataset.tone = tone;
+      log.appendChild(item);
+      state.extractionProgress.log.push({ message, tone, at: Date.now() });
+      while (log.children.length > 8) {
+        log.removeChild(log.firstElementChild);
+      }
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function setExtractionProgress({ percent, stage, detail, tone = 'ok' }) {
+      const safePercent = Math.max(0, Math.min(100, Math.round(Number(percent) || 0)));
+      const panel = $('skeletonExtractionProgressPanel');
+      const bar = $('skeletonExtractionProgressBar');
+      panel.hidden = false;
+      panel.dataset.tone = tone;
+      $('skeletonExtractionProgressFill').style.width = `${safePercent}%`;
+      $('skeletonExtractionProgressStage').textContent = stage;
+      $('skeletonExtractionProgressPercent').textContent = `${safePercent}%`;
+      $('skeletonExtractionProgressDetail').textContent = detail;
+      bar.setAttribute('aria-valuenow', String(safePercent));
+      bar.setAttribute('aria-label', `${stage}: ${detail}`);
+    }
+
+    function startExtractionProgressHeartbeat(captureRange) {
+      stopExtractionProgressHeartbeat();
+      state.extractionProgress.startedAt = Date.now();
+      state.extractionProgress.log = [];
+      $('skeletonExtractionProgressLog').replaceChildren();
+      appendExtractionProgressDetail(`Range ${formatRangeTime(captureRange.startMs)} → ${formatRangeTime(captureRange.endMs)}`);
+      state.extractionProgress.timer = setInterval(() => {
+        const elapsedMs = Date.now() - state.extractionProgress.startedAt;
+        const elapsedLabel = formatRangeTime(elapsedMs);
+        let percent = 28;
+        let stage = 'Backend extraction';
+        let detail = `MediaPipe pose extraction is running. Elapsed ${elapsedLabel}.`;
+        if (elapsedMs > 2200) {
+          percent = 52;
+          stage = '3D depth lift';
+          detail = `MotionBERT depth lift may be running. Elapsed ${elapsedLabel}.`;
+        }
+        if (elapsedMs > 5200) {
+          percent = 74;
+          stage = 'Waiting for result';
+          detail = `Backend is still processing skeleton frames. Elapsed ${elapsedLabel}.`;
+        }
+        if (elapsedMs > 10000) {
+          percent = 86;
+          stage = 'Still processing';
+          detail = `Long clips can take more time. Elapsed ${elapsedLabel}.`;
+        }
+        setExtractionProgress({ percent, stage, detail });
+      }, 700);
     }
 
     function setPreviewAvailable(isAvailable) {
@@ -2427,6 +2590,12 @@
         button.disabled = true;
         button.textContent = 'Extracting Skeleton...';
         setStatus(`Extracting skeleton from ${formatRangeTime(captureRange.startMs)} to ${formatRangeTime(captureRange.endMs)}. This may take a while...`);
+        setExtractionProgress({
+          percent: 8,
+          stage: 'Preparing request',
+          detail: 'Validating source video, range, MotionBERT lift settings, and backend request payload.'
+        });
+        startExtractionProgressHeartbeat(captureRange);
 
         const response = await fetch('api/capture/video/skeleton', {
           method: 'POST',
@@ -2441,19 +2610,46 @@
             maxFrames: 240
           })
         });
+        stopExtractionProgressHeartbeat();
+        setExtractionProgress({
+          percent: 90,
+          stage: 'Parsing response',
+          detail: `Backend responded with HTTP ${response.status}. Reading skeleton JSON.`
+        });
         const body = await response.json().catch(() => null);
         if (!response.ok || !body?.ok) {
           throw new Error(body?.error || `HTTP ${response.status}`);
         }
 
         const sequence = body.sequence;
+        appendExtractionProgressDetail(`Received ${sequence.frames?.length || 0} skeleton frames (${sequence.poseMode || 'unknown pose mode'}).`);
+        appendExtractionProgressDetail(`Depth source: ${sequence.depthSource || sequence.source?.depthSource || 'none'}; lead foot: ${sequence.leadFoot || 'unknown'}.`);
+        setExtractionProgress({
+          percent: 96,
+          stage: 'Loading sequence',
+          detail: 'Applying skeleton frames to cycle detection, MotionBERT summary, and preview panels.'
+        });
         const adapter = new SkeletonSequenceAdapter({ sourceId: sequence.id || 'video_skeleton' });
         const result = adapter.load(sequence);
         state.adapter = adapter;
         applyLoadedSequence(result, `Video skeleton: ${sequence.label || sequence.id}`);
+        setExtractionProgress({
+          percent: 100,
+          stage: 'Complete',
+          detail: `Loaded ${sequence.frames?.length || 0} skeleton frames from ${formatRangeTime(captureRange.startMs)} to ${formatRangeTime(captureRange.endMs)}.`
+        });
       } catch (error) {
+        stopExtractionProgressHeartbeat();
+        appendExtractionProgressDetail(error.message, 'error');
+        setExtractionProgress({
+          percent: 100,
+          stage: 'Failed',
+          detail: `Video skeleton extraction failed: ${error.message}`,
+          tone: 'error'
+        });
         setStatus(`Video skeleton extraction failed: ${error.message}`, 'error');
       } finally {
+        stopExtractionProgressHeartbeat();
         button.disabled = false;
         button.textContent = previousLabel;
       }

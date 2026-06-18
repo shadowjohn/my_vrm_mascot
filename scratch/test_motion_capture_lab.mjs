@@ -21,6 +21,13 @@ const requiredIds = [
   'captureRangeEndMs',
   'btnUseCurrentAsRangeStart',
   'btnUseCurrentAsRangeEnd',
+  'skeletonExtractionProgressPanel',
+  'skeletonExtractionProgressBar',
+  'skeletonExtractionProgressFill',
+  'skeletonExtractionProgressStage',
+  'skeletonExtractionProgressPercent',
+  'skeletonExtractionProgressDetail',
+  'skeletonExtractionProgressLog',
   'captureWebcamButton',
   'captureSkeletonJsonInput',
   'captureVrmaInput',
@@ -116,6 +123,10 @@ assert.match(html, /id="captureRangeStartMs"[^>]*type="number"/);
 assert.match(html, /id="captureRangeEndMs"[^>]*type="number"/);
 assert.match(html, /id="btnUseCurrentAsRangeStart"/);
 assert.match(html, /id="btnUseCurrentAsRangeEnd"/);
+assert.match(html, /id="skeletonExtractionProgressPanel"[\s\S]*aria-live="polite"/);
+assert.match(html, /id="skeletonExtractionProgressBar"[\s\S]*role="progressbar"[\s\S]*aria-valuemin="0"[\s\S]*aria-valuemax="100"/);
+assert.match(html, /id="skeletonExtractionProgressFill"/);
+assert.match(html, /id="skeletonExtractionProgressLog"/);
 assert.match(html, /M20\.3 - Walk Style Extractor/);
 assert.match(html, /Advanced Debug/);
 assert.match(html, /Input Source/);
@@ -151,9 +162,20 @@ assert.match(html, /function updateWalkStylePanels\(style\)/);
 assert.match(html, /function previewSourceLabel\(result\)/);
 assert.match(html, /function setCurrentTimeAsCaptureRangeStart\(\)/);
 assert.match(html, /function setCurrentTimeAsCaptureRangeEnd\(\)/);
+assert.match(html, /function setExtractionProgress\(\{\s*percent,\s*stage,\s*detail,\s*tone/);
+assert.match(html, /function appendExtractionProgressDetail\(message,\s*tone/);
+assert.match(html, /function startExtractionProgressHeartbeat\(captureRange\)/);
+assert.match(html, /function stopExtractionProgressHeartbeat\(\)/);
 assert.match(html, /const captureRange = getCaptureRangeForRequest\(\)/);
+assert.match(html, /setExtractionProgress\(\{\s*percent:\s*8,\s*stage:\s*'Preparing request'/);
+assert.match(html, /appendExtractionProgressDetail\(`Range \$\{formatRangeTime\(captureRange\.startMs\)\} → \$\{formatRangeTime\(captureRange\.endMs\)\}`\)/);
+assert.match(html, /startExtractionProgressHeartbeat\(captureRange\)/);
 assert.match(html, /JSON\.stringify\(\{\s*videoUrl:\s*state\.currentVideoUrl,\s*startMs:\s*captureRange\.startMs,\s*endMs:\s*captureRange\.endMs/);
 assert.match(html, /enable3dLift:\s*true/);
+assert.match(html, /setExtractionProgress\(\{\s*percent:\s*90,\s*stage:\s*'Parsing response'/);
+assert.match(html, /appendExtractionProgressDetail\(`Received \$\{sequence\.frames\?\.length \|\| 0\} skeleton frames/);
+assert.match(html, /setExtractionProgress\(\{\s*percent:\s*100,\s*stage:\s*'Complete'/);
+assert.match(html, /setExtractionProgress\(\{\s*percent:\s*100,\s*stage:\s*'Failed'/);
 assert.match(html, /sourceType:\s*'youtube'/);
 assert.match(html, /applyLoadedSequence\(result,\s*`Video skeleton:/);
 assert.match(html, /const SKELETON_BONES = Object\.freeze/);
