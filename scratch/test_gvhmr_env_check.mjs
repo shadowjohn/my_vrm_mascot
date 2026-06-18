@@ -49,4 +49,16 @@ assert.equal(missingRoot.ready, false);
 assert.equal(missingRoot.reason, 'missing_gvhmr_root');
 assert.equal(missingRoot.checks.gvhmrRoot.ok, false);
 
+const importFailure = runChecker([
+  '--env-python', pythonPath,
+  '--gvhmr-root', fakeRoot,
+  '--required-import', 'json',
+  '--required-import', 'definitely_missing_gvhmr_test_module'
+]);
+assert.equal(importFailure.ok, true);
+assert.equal(importFailure.ready, false);
+assert.equal(importFailure.reason, 'missing_imports');
+assert.equal(importFailure.checks.imports.ok, false);
+assert.deepEqual(importFailure.checks.imports.missingImports, ['definitely_missing_gvhmr_test_module']);
+
 console.log('PASS test_gvhmr_env_check');

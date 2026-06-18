@@ -26,6 +26,13 @@
   - 暫停直接安裝官方 `requirements.txt`：其中 `pytorch3d` 指向 `linux_x86_64.whl`，Windows env 不能安裝；`torch==2.3.0+cu121` / `torchvision==0.18.0+cu121` 也不適合公司 RTX 5060 Ti / CUDA 12.8 路線。
   - 目前 readiness：repo / demo / requirements / Python 3.10 env 已就緒；缺 `torch` / `cv2` imports、GVHMR/HMR2/ViTPose/YOLO checkpoints，以及 SMPL / SMPLX body model 權重。
 
+- 安裝 GVHMR Windows/CUDA 12.8 conda env 主體依賴：
+  - 在 ignored `conda_vm/gvhmr/env` 內安裝 `torch==2.11.0+cu128`、`torchvision==0.26.0+cu128`，CUDA smoke test 可看到 RTX 5060 Ti、CUDA 12.8、compute capability `(12, 0)`，並可完成 GPU matmul。
+  - 安裝 GVHMR 主要 requirements：`numpy==1.23.5`、`timm==0.9.12`、`lightning==2.3.0`、Hydra、OpenCV、AV、Ultralytics、SMPLX、Wis3D、PyCOLMAP、`cython_bbox`、`lapx`、Jupyter 等；`chumpy==0.70` 需用 `--no-build-isolation` 才能避開舊 setup.py 的 build env 問題。
+  - `pip check` 乾淨，核心 import smoke test 已過：`torch` / `torchvision` / `cv2` / `ultralytics` / `smplx` / `pycolmap` / `cython_bbox` / `lap` / `hmr4d`。
+  - `scripts/gvhmr_env_check.py` 追加預設檢查 `pytorch3d` / `hmr4d`，並輸出 `missingImports`；目前真正剩餘 Python blocker 是 Windows 沒有可直接安裝的 `pytorch3d`。
+  - 實跑 `gvhmr_lift.py` 官方 sample 會乾淨回 `provider_failed`，stderr 指向 `ModuleNotFoundError: No module named 'pytorch3d'`；另外仍缺 GVHMR/HMR2/ViTPose/YOLO checkpoints 與 SMPL / SMPLX body model 權重。
+
 - 建立公司電腦 MotionBERT 本機環境：
   - 以 portable `micromamba` 建立 `conda_vm/motionBERT/env` prefix env，Python 3.10.20，並補上 MotionBERT sidecar 所需的 PyTorch、NumPy、PyYAML、EasyDict 等依賴。
   - 下載官方 Hugging Face `FT_MB_lite_MB_ft_h36m_global_lite/best_epoch.bin` checkpoint 到 MotionBERT 預設路徑，讓 `server.py` 的 real MotionBERT readiness checks 可找到 env、repo、config、checkpoint 與 sidecar。

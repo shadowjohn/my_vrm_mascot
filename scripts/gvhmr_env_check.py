@@ -54,22 +54,45 @@ def python_version_check(env_python):
     return check
 
 
-def import_check(env_python, skip_imports):
+DEFAULT_REQUIRED_IMPORTS = ["torch", "cv2", "pytorch3d", "hmr4d"]
+
+
+def import_check(env_python, skip_imports, required_imports):
     if skip_imports:
         return {"ok": True, "skipped": True, "imports": []}
-    modules = ["torch", "cv2"]
-    code = "import importlib; " + "; ".join(f"importlib.import_module('{name}')" for name in modules)
+    modules = required_imports or DEFAULT_REQUIRED_IMPORTS
+    code = """
+import importlib
+import json
+import sys
+
+missing = []
+for name in sys.argv[1:]:
+    try:
+        importlib.import_module(name)
+    except Exception as exc:
+        missing.append({"name": name, "error": f"{type(exc).__name__}: {exc}"})
+print(json.dumps(missing))
+sys.exit(1 if missing else 0)
+"""
     result = subprocess.run(
-        [str(env_python), "-c", code],
+        [str(env_python), "-c", code, *modules],
         capture_output=True,
         encoding="utf-8",
         errors="replace",
         check=False,
     )
+    missing = []
+    try:
+        missing = json.loads(result.stdout.strip() or "[]")
+    except json.JSONDecodeError:
+        missing = [{"name": "unknown", "error": result.stdout.strip()}]
     return {
         "ok": result.returncode == 0,
         "skipped": False,
         "imports": modules,
+        "missingImports": [item["name"] for item in missing],
+        "missingImportErrors": missing,
         "returnCode": result.returncode,
         "stderrTail": result.stderr[-2000:],
     }
@@ -99,7 +122,7 @@ def build_report(args):
         "gvhmrRoot": path_check(gvhmr_root, "dir"),
         "demoScript": path_check(gvhmr_root / "tools" / "demo" / "demo.py", "file"),
         "requirements": path_check(gvhmr_root / "requirements.txt", "file"),
-        "imports": import_check(env_python, args.skip_imports),
+        "imports": import_check(env_python, args.skip_imports, args.required_import),
     }
     missing_checkpoints = [
         checkpoint for checkpoint in EXPECTED_CHECKPOINTS
@@ -131,6 +154,7 @@ def main():
         default=str(REPO_ROOT / "conda_vm" / "gvhmr" / "GVHMR"),
     )
     parser.add_argument("--skip-imports", action="store_true")
+    parser.add_argument("--required-import", action="append", default=[])
     args = parser.parse_args()
     print(json.dumps(build_report(args), ensure_ascii=False, indent=2))
 
