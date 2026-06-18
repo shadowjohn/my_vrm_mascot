@@ -51,6 +51,27 @@ function distance(a, b) {
   return vectorLength(vector(a, b));
 }
 
+function rotatePointAround(point, center, yawDegrees) {
+  const yaw = finiteNumber(yawDegrees) * Math.PI / 180;
+  const dx = finiteNumber(point?.x) - finiteNumber(center?.x);
+  const dz = finiteNumber(point?.z) - finiteNumber(center?.z);
+  return {
+    ...point,
+    x: finiteNumber(center?.x) + dx * Math.cos(yaw) - dz * Math.sin(yaw),
+    z: finiteNumber(center?.z) + dx * Math.sin(yaw) + dz * Math.cos(yaw)
+  };
+}
+
+function rotateLandmarksAroundHips(landmarks, yawDegrees) {
+  if (Math.abs(finiteNumber(yawDegrees)) <= 0.000001) {
+    return landmarks;
+  }
+  const hips = sourcePoint(landmarks, 'hips', { x: 0, y: 0, z: 0 });
+  return Object.fromEntries(
+    Object.entries(landmarks || {}).map(([name, item]) => [name, rotatePointAround(item, hips, yawDegrees)])
+  );
+}
+
 function dot(a, b) {
   return finiteNumber(a?.x) * finiteNumber(b?.x) +
     finiteNumber(a?.y) * finiteNumber(b?.y) +
@@ -210,9 +231,10 @@ function buildBones(landmarks, profile) {
   };
 }
 
-export function normalizeSkeletonToAlicia(sourceSkeleton, aliciaRigProfile = DEFAULT_ALICIA_RIG_PROFILE) {
+export function normalizeSkeletonToAlicia(sourceSkeleton, aliciaRigProfile = DEFAULT_ALICIA_RIG_PROFILE, options = {}) {
   const profile = aliciaRigProfile || DEFAULT_ALICIA_RIG_PROFILE;
-  const source = sourceLandmarks(sourceSkeleton);
+  const bodyYawDegrees = finiteNumber(options?.yawDegrees);
+  const source = rotateLandmarksAroundHips(sourceLandmarks(sourceSkeleton), -bodyYawDegrees);
   const sourceHips = sourcePoint(source, 'hips', profile.joints.hips);
   const sourceChest = sourcePoint(source, 'chest', profile.joints.chest);
 
@@ -313,7 +335,8 @@ export function normalizeSkeletonToAlicia(sourceSkeleton, aliciaRigProfile = DEF
     bones,
     metadata: {
       profileId: profile.id,
-      normalizedToAlicia: true
+      normalizedToAlicia: true,
+      bodyYawDegrees
     }
   };
 }

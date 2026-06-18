@@ -724,6 +724,27 @@ function proportionalTraceFrame(timeMs, sourceScale, active = false) {
   };
 }
 
+function rotatePointAroundHips(point, hips, yawDegrees) {
+  const yaw = yawDegrees * Math.PI / 180;
+  const dx = point.x - hips.x;
+  const dz = point.z - hips.z;
+  return {
+    ...point,
+    x: hips.x + dx * Math.cos(yaw) - dz * Math.sin(yaw),
+    z: hips.z + dx * Math.sin(yaw) + dz * Math.cos(yaw)
+  };
+}
+
+function rotateFrameYaw(frame, yawDegrees) {
+  const hips = frame.landmarks.hips;
+  return {
+    ...frame,
+    landmarks: Object.fromEntries(
+      Object.entries(frame.landmarks).map(([name, point]) => [name, rotatePointAroundHips(point, hips, yawDegrees)])
+    )
+  };
+}
+
 function previewTraceForScale(sourceScale) {
   const calls = [];
   new AliciaMotionPreviewAdapter({
@@ -762,6 +783,42 @@ assert.ok(
   Math.abs(tallSourcePreview.bones.leftUpperArm[1].rot[2] - shortSourcePreview.bones.leftUpperArm[1].rot[2]) < 0.06 &&
     Math.abs(tallSourcePreview.bones.rightUpperArm[1].rot[2] - shortSourcePreview.bones.rightUpperArm[1].rot[2]) < 0.06,
   'Alicia preview arm rotations should stay close when source shoulder and arm scale changes'
+);
+
+const sideFacingCalls = [];
+new AliciaMotionPreviewAdapter({
+  mascot: {
+    motion: {
+      playCustom(animData) {
+        sideFacingCalls.push(animData);
+      }
+    }
+  }
+}).previewClip({
+  ...raisedArmClip,
+  id: 'side_facing_trace',
+  retargetHints: {
+    strideScale: 1,
+    armSwingScale: 1,
+    hipBobScale: 1,
+    smoothing: 0.35
+  },
+  previewFrames: [
+    rotateFrameYaw(proportionalTraceFrame(0, 1, false), 82),
+    rotateFrameYaw(proportionalTraceFrame(400, 1, true), 82)
+  ]
+});
+assert.equal(sideFacingCalls[0].body_orientation.facing, 'right_side');
+assert.ok(sideFacingCalls[0].body_orientation.yawDegrees > 65);
+assert.ok(sideFacingCalls[0].body_orientation.confidence >= 0.6);
+assert.ok(
+  Math.abs(sideFacingCalls[0].bones.hips[0].rot[1]) > 0.45,
+  'side-facing source should add body yaw to Alicia hips/root rotation'
+);
+assert.ok(
+  Math.abs(sideFacingCalls[0].bones.leftUpperLeg[1].rot[2]) < 0.25 &&
+    Math.abs(sideFacingCalls[0].bones.rightUpperLeg[1].rot[2]) < 0.25,
+  'side-facing walk should not turn front/back leg depth into a wide split stance'
 );
 
 const mirroredRetargetCalls = [];

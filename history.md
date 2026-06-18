@@ -21,6 +21,11 @@
   - `AliciaMotionPreviewAdapter` 現在只用 raw source hips 保留 root 位移，手腳 rotation 改吃 Alicia-normalized landmarks；upper arm Y twist 改左右鏡像，讓左右手基準 pose 對稱。
   - 新增 `scratch/test_alicia_skeleton_retargeter.mjs`，並擴充 `scratch/test_motion_clip_exporter.mjs`，鎖定高個子 / 矮個子 / 長手長腿來源 retarget 後骨長與 preview rotation 都會收斂。
 
+- 新增 Alicia body orientation / yaw estimator：
+  - 新增 `js/AliciaBodyOrientationEstimator.js`，以肩寬/髖寬投影、左右肩 / 髖 z order、臉部可見度與腳踝 z order 推估 `facing`、`yawDegrees` 與 `confidence`。
+  - Motion Capture Lab preview 現在會在 `normalizeSkeletonToAlicia()` 前先估 body yaw，將側身 source skeleton 反向旋回 Alicia front space 做 limb retarget，再把 yaw 加到 Alicia hips/root rotation。
+  - 新增 `scratch/test_alicia_body_orientation_estimator.mjs`，並補強 retargeter / preview exporter regression，鎖定側身走路不再把前後腳誤解成大幅左右開腳，且 Alicia root 會真的轉向。
+
 - 修正 M21.0 3D lifted skeleton 對齊後 Alicia preview 手臂仍不跟的問題：
   - 根因在 `AliciaMotionPreviewAdapter` 的 skeleton trace retarget，而不是 MotionBERT；原本手/肘越往上，upper arm `z` offset 反而把 Alicia 往自然下垂方向推，且沒有輸出 shoulder 軌。
   - `joint_chain_preview` 現在會輸出 `leftShoulder/rightShoulder` keyframe，並把 arm elevation / lateral reach 轉成上舉方向的 upperArm offset，讓抬手到頭旁邊的 skeleton trace 能反映到右側 Alicia preview。

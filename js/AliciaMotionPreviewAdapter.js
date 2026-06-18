@@ -1,4 +1,5 @@
 import { buildAliciaWalkAnimation } from './AliciaWalkGenerator.js';
+import { estimateBodyYaw } from './AliciaBodyOrientationEstimator.js';
 import { normalizeSkeletonToAlicia } from './AliciaSkeletonRetargeter.js';
 
 const DEG = Math.PI / 180;
@@ -278,13 +279,19 @@ function buildPreviewAnimation(clip, mascot) {
   const loopDurationMs = Math.max(300, Math.round(sourceLoopDurationMs / previewSpeed));
   const baseRotations = getBaseRotations(mascot);
   const hints = retargetHints(clip);
-  const firstSourceHips = getPoint(transformRetargetLandmarks(previewFrames[0].landmarks, hints), 'hips');
+  const transformedFrames = previewFrames.map((previewFrame) => ({
+    ...previewFrame,
+    landmarks: transformRetargetLandmarks(previewFrame.landmarks, hints)
+  }));
+  const bodyOrientation = estimateBodyYaw(transformedFrames);
+  const bodyYawDegrees = bodyOrientation.confidence >= 0.45 ? bodyOrientation.yawDegrees : 0;
+  const firstSourceHips = getPoint(transformedFrames[0].landmarks, 'hips');
   const bones = {};
   const hipsPosition = [];
 
-  for (const previewFrame of previewFrames) {
-    const sourceLandmarks = transformRetargetLandmarks(previewFrame.landmarks, hints);
-    const landmarks = normalizeSkeletonToAlicia(sourceLandmarks).landmarks;
+  for (const previewFrame of transformedFrames) {
+    const sourceLandmarks = previewFrame.landmarks;
+    const landmarks = normalizeSkeletonToAlicia(sourceLandmarks, undefined, { yawDegrees: bodyYawDegrees }).landmarks;
     const timeMs = clamp(Math.round((finiteNumber(previewFrame.timeMs) - loopStartMs) / previewSpeed), 0, loopDurationMs);
     const hips = getPoint(sourceLandmarks, 'hips');
     const leftArm = armOffsets(landmarks, 'left', hints.armSwingScale);
@@ -292,6 +299,7 @@ function buildPreviewAnimation(clip, mascot) {
     const leftLeg = legOffsets(landmarks, 'left', hints.strideScale);
     const rightLeg = legOffsets(landmarks, 'right', hints.strideScale);
     const torso = torsoOffsets(landmarks, hints.strideScale);
+    torso.hips.y += bodyYawDegrees;
 
     hipsPosition.push({
       time_ms: timeMs,
@@ -323,6 +331,10 @@ function buildPreviewAnimation(clip, mascot) {
     fps: 12,
     retarget_mode: hasJointChainLandmarks(previewFrames) ? 'joint_chain_preview' : 'endpoint_preview',
     source_kind: clip.kind || 'motion_clip_v1',
+    body_orientation: {
+      ...bodyOrientation,
+      appliedYawDegrees: bodyYawDegrees
+    },
     bones,
     hips_position: hipsPosition,
     sample_count: previewFrames.length

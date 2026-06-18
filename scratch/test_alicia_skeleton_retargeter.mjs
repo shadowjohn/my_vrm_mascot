@@ -20,6 +20,24 @@ function closePoint(actual, expected, label, epsilon = EPSILON) {
   closeTo(actual.z, expected.z, `${label}.z`, epsilon);
 }
 
+function rotatePointAroundHips(point, hips, yawDegrees) {
+  const yaw = yawDegrees * Math.PI / 180;
+  const dx = point.x - hips.x;
+  const dz = point.z - hips.z;
+  return {
+    ...point,
+    x: hips.x + dx * Math.cos(yaw) - dz * Math.sin(yaw),
+    z: hips.z + dx * Math.sin(yaw) + dz * Math.cos(yaw)
+  };
+}
+
+function rotateSkeletonYaw(landmarks, yawDegrees) {
+  const hips = landmarks.hips;
+  return Object.fromEntries(
+    Object.entries(landmarks).map(([name, point]) => [name, rotatePointAroundHips(point, hips, yawDegrees)])
+  );
+}
+
 function makeSourceSkeleton({ scale = 1, armScale = 1, legScale = 1 } = {}) {
   const leftShoulder = { x: -0.2 * scale, y: 1.5 * scale, z: -0.02 * scale };
   const rightShoulder = { x: 0.2 * scale, y: 1.5 * scale, z: -0.02 * scale };
@@ -111,5 +129,31 @@ assert.equal(tall.leftUpperLeg.length, DEFAULT_ALICIA_RIG_PROFILE.boneLengths.le
 assert.equal(tall.leftLowerLeg.length, DEFAULT_ALICIA_RIG_PROFILE.boneLengths.leftLowerLeg);
 assert.equal(tall.leftUpperArm.length, DEFAULT_ALICIA_RIG_PROFILE.boneLengths.leftUpperArm);
 assert.equal(tall.leftLowerArm.length, DEFAULT_ALICIA_RIG_PROFILE.boneLengths.leftLowerArm);
+
+const frontMotion = makeSourceSkeleton({ scale: 1 });
+const sideMotion = rotateSkeletonYaw(frontMotion, 82);
+const normalizedFrontMotion = normalizeSkeletonToAlicia(frontMotion);
+const normalizedSideMotion = normalizeSkeletonToAlicia(sideMotion, undefined, { yawDegrees: 82 });
+for (const name of [
+  'chest',
+  'leftShoulder',
+  'rightShoulder',
+  'leftElbow',
+  'rightElbow',
+  'leftWrist',
+  'rightWrist',
+  'leftKnee',
+  'rightKnee',
+  'leftAnkle',
+  'rightAnkle'
+]) {
+  closePoint(
+    normalizedSideMotion.landmarks[name],
+    normalizedFrontMotion.landmarks[name],
+    `side-facing source should rotate back into Alicia front space at ${name}`,
+    0.0001
+  );
+}
+assert.equal(normalizedSideMotion.metadata.bodyYawDegrees, 82);
 
 console.log('PASS test_alicia_skeleton_retargeter');
