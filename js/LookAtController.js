@@ -12,6 +12,9 @@ export class LookAtController {
   #enabled = true;
   #targetMode = 'mouse';
   #elapsed = 0;
+  #previewYawDegrees = 0;
+  #previewPitchDegrees = 0;
+  #previewConfidence = 0;
 
   // 目標（滑鼠正規化座標 -1~1）
   #targetX = 0;
@@ -83,6 +86,23 @@ export class LookAtController {
   }
 
   /**
+   * 設定影片姿勢拷貝的頭部注視方向。
+   * @param {{yawDegrees?:number, pitchDegrees?:number, confidence?:number}} gaze
+   */
+  setPreviewGaze(gaze = {}) {
+    const confidence = Math.max(0, Math.min(1, Number(gaze.confidence) || 0));
+    this.#enabled = true;
+    this.#targetMode = confidence >= 0.35 ? 'preview' : 'preview_low_confidence';
+    this.#previewYawDegrees = this.#targetMode === 'preview'
+      ? Math.max(-45, Math.min(45, Number(gaze.yawDegrees) || 0))
+      : 0;
+    this.#previewPitchDegrees = this.#targetMode === 'preview'
+      ? Math.max(-30, Math.min(30, Number(gaze.pitchDegrees) || 0))
+      : 0;
+    this.#previewConfidence = confidence;
+  }
+
+  /**
    * 處理滑鼠移動（由外部 mousemove 事件呼叫）
    * @param {number} nx - 正規化 X (-1 ~ 1，左到右)
    * @param {number} ny - 正規化 Y (-1 ~ 1，下到上)
@@ -101,6 +121,8 @@ export class LookAtController {
     return {
       yaw: +(this.#smoothX * this.#maxYaw).toFixed(1),
       pitch: +(this.#smoothY * this.#maxPitch).toFixed(1),
+      mode: this.#targetMode,
+      confidence: +this.#previewConfidence.toFixed(2),
     };
   }
 
@@ -119,13 +141,21 @@ export class LookAtController {
       return;
     }
 
+    if (this.#targetMode === 'preview' || this.#targetMode === 'preview_low_confidence') {
+      this.#applyHeadRotation(this.#previewYawDegrees, this.#previewPitchDegrees);
+      return;
+    }
+
     // EMA 平滑
     this.#smoothX += (this.#targetX - this.#smoothX) * this.#alpha;
     this.#smoothY += (this.#targetY - this.#smoothY) * this.#alpha;
 
-    const yawRad = (this.#smoothX * this.#maxYaw) * Math.PI / 180;
-    const pitchRad = (this.#smoothY * this.#maxPitch) * Math.PI / 180;
+    this.#applyHeadRotation(this.#smoothX * this.#maxYaw, this.#smoothY * this.#maxPitch);
+  }
 
+  #applyHeadRotation(yawDegrees, pitchDegrees) {
+    const yawRad = yawDegrees * Math.PI / 180;
+    const pitchRad = pitchDegrees * Math.PI / 180;
     // 分攤到脖子和頭部
     if (this.#neckBone) {
       this.#neckBone.rotation.y = yawRad * this.#neckRatio;

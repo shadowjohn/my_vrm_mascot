@@ -1403,6 +1403,10 @@
           <div class="summary-row"><span>GVHMR World Motion</span><output id="gvhmrWorldMotionStatus">ready</output></div>
           <div class="summary-row"><span>Yaw Confidence</span><output id="gvhmrYawConfidence">--</output></div>
           <div class="summary-row"><span>Foot Contact</span><output id="gvhmrFootContactTrace">--</output></div>
+          <div class="summary-row"><span>Orientation Layer</span><output id="orientationLayerStatus">off</output></div>
+          <div class="summary-row"><span>Body Yaw</span><output id="orientationBodyYaw">--</output></div>
+          <div class="summary-row"><span>Head Gaze</span><output id="orientationHeadGaze">--</output></div>
+          <div class="summary-row"><span>Chest Align</span><output id="orientationChestAlign">--</output></div>
           <div class="summary-row"><span>Lead Foot</span><output id="walkSummaryLeadFoot">--</output></div>
           <div class="summary-row"><span>Skeleton Overlay</span><output id="walkSummaryTraceOverlay">--</output></div>
           <div class="summary-row"><span>Trace Foot</span><output id="walkSummaryFootDelta">--</output></div>
@@ -1441,6 +1445,8 @@
     import { AliciaMotionPreviewAdapter } from './js/AliciaMotionPreviewAdapter.js';
     import { TraceSkeletonOverlay } from './js/TraceSkeletonOverlay.js';
     import { fuseAliciaWorldMotion } from './js/AliciaWorldMotionFusion.js';
+    import { estimateHeadGaze } from './js/AliciaHeadGazeEstimator.js';
+    import { estimateUpperBodyAlignment } from './js/AliciaUpperBodyAlignment.js';
 
     const $ = (id) => document.getElementById(id);
     const phaseInputId = (phase) => `phase_${phase}`;
@@ -1988,6 +1994,70 @@
       setText('gvhmrFootContactTrace', summarizeFootContactTrace(payload));
     }
 
+    function sourceFromSequenceDepth() {
+      if (state.sequence?.depthSource === 'motionbert') {
+        return 'motionbert';
+      }
+      if (state.sequence?.poseMode === '3d_lifted') {
+        return 'skeleton_3d';
+      }
+      return 'skeleton_2d';
+    }
+
+    function updateOrientationSummary(transform) {
+      if (!transform) {
+        setText('orientationLayerStatus', 'off');
+        setText('orientationBodyYaw', '--');
+        setText('orientationHeadGaze', '--');
+        setText('orientationChestAlign', '--');
+        return;
+      }
+      const status = transform.source.body === 'gvhmr' ? 'gvhmr' : 'heuristic';
+      const isMixed = new Set(Object.values(transform.source)).size > 1;
+      setText('orientationLayerStatus', isMixed ? `mixed (${status})` : status);
+      setText('orientationBodyYaw', `${formatMetric(transform.bodyYawDegrees, 1)} deg / ${formatMetric(transform.confidence.body)}`);
+      setText(
+        'orientationHeadGaze',
+        `yaw ${formatMetric(transform.headYawDegrees, 1)} / pitch ${formatMetric(transform.headPitchDegrees, 1)} / ${formatMetric(transform.confidence.head)}`
+      );
+      setText(
+        'orientationChestAlign',
+        `yaw ${formatMetric(transform.chestYawDegrees, 1)} / roll ${formatMetric(transform.shoulderRollDegrees, 1)} / ${formatMetric(transform.confidence.chest)}`
+      );
+    }
+
+    function buildOrientationTransformForFrame(frame, timeMs) {
+      if (!frame?.landmarks) {
+        updateOrientationSummary(null);
+        return null;
+      }
+      const timeSeconds = Math.max(0, Number(timeMs) || 0) / 1000;
+      const head = estimateHeadGaze(frame.landmarks);
+      const chest = estimateUpperBodyAlignment(frame.landmarks);
+      const worldFrame = nearestGvhmrWorldMotionFrame(state.worldMotion, timeSeconds);
+      const bodyConfidence = Number(worldFrame?.confidence) || state.sequence?.depthConfidence || 0;
+      const transform = {
+        t: timeSeconds,
+        bodyYawDegrees: Number(worldFrame?.bodyYawDegrees) || 0,
+        headYawDegrees: head.headYawDegrees,
+        headPitchDegrees: head.headPitchDegrees,
+        chestYawDegrees: chest.chestYawDegrees,
+        shoulderRollDegrees: chest.shoulderRollDegrees,
+        confidence: {
+          body: Math.max(0, Math.min(1, Number(bodyConfidence) || 0)),
+          head: head.confidence,
+          chest: chest.confidence
+        },
+        source: {
+          body: worldFrame ? 'gvhmr' : sourceFromSequenceDepth(),
+          head: head.source,
+          chest: chest.source
+        }
+      };
+      updateOrientationSummary(transform);
+      return transform;
+    }
+
     async function runGvhmrWorldMotion() {
       if (!state.currentVideoUrl) {
         state.gvhmrWorldMotion = {
@@ -2123,6 +2193,10 @@
         id: 'video_pose_copier_frame',
         kind: 'pose_copier_v1',
         retargetHints: poseSyncRetargetHints(),
+        orientationTransform: buildOrientationTransformForFrame(
+          state.adapter.getFrameAtMs(state.sequence, roundedTimeMs),
+          roundedTimeMs
+        ),
         transformAnimation: (animation) => fuseAliciaWorldMotion(animation, state.worldMotion, {
           timeSeconds: roundedTimeMs / 1000,
           rootScale: 0.08,
@@ -3094,6 +3168,7 @@
     updateVideoInfo();
     updateWalkStylePanels(null);
     updateGvhmrWorldMotionSummary();
+    updateOrientationSummary(null);
     setPreviewWorkflowMode('pose_copier');
     drawSkeletonCanvas();
     bootAliciaPreview();

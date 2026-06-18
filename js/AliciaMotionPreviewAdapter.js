@@ -1,5 +1,6 @@
 import { buildAliciaWalkAnimation } from './AliciaWalkGenerator.js';
 import { estimateBodyYaw } from './AliciaBodyOrientationEstimator.js';
+import { applyOrientationTransform } from './AliciaOrientationAlignment.js';
 import { normalizeSkeletonToAlicia } from './AliciaSkeletonRetargeter.js';
 
 const DEG = Math.PI / 180;
@@ -532,6 +533,17 @@ export class AliciaMotionPreviewAdapter {
       retargetHints: options.retargetHints || {}
     };
     let animation = buildPoseAnimation(frame, frames, clip, this.mascot);
+    if (options.orientationTransform) {
+      animation = applyOrientationTransform(animation, options.orientationTransform);
+      const head = animation.orientation_alignment?.head;
+      if (head?.applied && typeof this.mascot.lookAt?.setPreviewGaze === 'function') {
+        this.mascot.lookAt.setPreviewGaze({
+          yawDegrees: head.yawDegrees,
+          pitchDegrees: head.pitchDegrees,
+          confidence: head.confidence
+        });
+      }
+    }
     if (typeof options.transformAnimation === 'function') {
       animation = options.transformAnimation(animation, {
         frame,
@@ -548,6 +560,7 @@ export class AliciaMotionPreviewAdapter {
       frameIndex: frame.frameIndex ?? null,
       retargetMode: animation.retarget_mode,
       bodyOrientation: animation.body_orientation,
+      orientationAlignment: animation.orientation_alignment || null,
       worldMotion: animation.world_motion || null
     };
   }

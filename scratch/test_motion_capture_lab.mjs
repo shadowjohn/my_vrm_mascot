@@ -55,6 +55,10 @@ const requiredIds = [
   'gvhmrWorldMotionStatus',
   'gvhmrYawConfidence',
   'gvhmrFootContactTrace',
+  'orientationLayerStatus',
+  'orientationBodyYaw',
+  'orientationHeadGaze',
+  'orientationChestAlign',
   'btnSeedCyclePhases',
   'phase_contact_left',
   'phase_down_left',
@@ -112,6 +116,8 @@ const requiredImports = [
   './js/WalkStyleExtractor.js',
   './js/AliciaMotionPreviewAdapter.js',
   './js/TraceSkeletonOverlay.js',
+  './js/AliciaHeadGazeEstimator.js',
+  './js/AliciaUpperBodyAlignment.js',
   './js/VrmMascot.js'
 ];
 
@@ -160,6 +166,10 @@ assert.match(html, /Skeleton Overlay/);
 assert.match(html, /GVHMR World Motion/);
 assert.match(html, /Yaw Confidence/);
 assert.match(html, /Foot Contact/);
+assert.match(html, /Orientation Layer/);
+assert.match(html, /Body Yaw/);
+assert.match(html, /Head Gaze/);
+assert.match(html, /Chest Align/);
 assert.match(html, /Trace Foot/);
 assert.match(html, /grid-template-columns:\s*minmax\(320px,\s*0\.9fr\)\s+minmax\(380px,\s*1\.1fr\)\s+minmax\(420px,\s*1\.2fr\)/);
 assert.match(html, /#skeletonPreviewCanvas\s*\{[\s\S]*min-height:\s*280px/);
@@ -219,6 +229,8 @@ assert.match(html, /function drawSkeletonCanvas3d\(ctx,\s*canvas,\s*frame\)/);
 assert.match(html, /function updateMotionBertDebugPanel\(style\)/);
 assert.match(html, /function runGvhmrWorldMotion\(\)/);
 assert.match(html, /function updateGvhmrWorldMotionSummary/);
+assert.match(html, /function buildOrientationTransformForFrame/);
+assert.match(html, /function updateOrientationSummary/);
 assert.match(html, /function skeletonMotionBertDebugPayload\(style\)/);
 assert.match(html, /function setPreviewWorkflowMode\(mode\)/);
 assert.match(html, /function syncAliciaPoseToVideoTime\(\{\s*force/);
@@ -226,6 +238,9 @@ assert.match(html, /function syncPreviewToVideoTime\(\{\s*force/);
 assert.match(html, /function startPoseSyncPlaybackLoop\(\)/);
 assert.match(html, /function stopPoseSyncPlaybackLoop\(\)/);
 assert.match(html, /previewPoseAtTimeMs\(timeMs,\s*state\.sequence\.frames/);
+assert.match(html, /orientationTransform:\s*buildOrientationTransformForFrame/);
+assert.match(html, /estimateHeadGaze/);
+assert.match(html, /estimateUpperBodyAlignment/);
 assert.match(html, /setText\('poseSyncStatus'/);
 assert.match(html, /state\.skeletonAnalysisMode === '3d'/);
 assert.match(html, /Lead Foot :/);
