@@ -33,6 +33,13 @@
   - `scripts/gvhmr_env_check.py` 追加預設檢查 `pytorch3d` / `hmr4d`，並輸出 `missingImports`；目前真正剩餘 Python blocker 是 Windows 沒有可直接安裝的 `pytorch3d`。
   - 實跑 `gvhmr_lift.py` 官方 sample 會乾淨回 `provider_failed`，stderr 指向 `ModuleNotFoundError: No module named 'pytorch3d'`；另外仍缺 GVHMR/HMR2/ViTPose/YOLO checkpoints 與 SMPL / SMPLX body model 權重。
 
+- 整理 `conda_vm` 可重建環境腳本：
+  - `.gitignore` 改成繼續忽略 `conda_vm` 內的 env / cloned repo / binary / 權重，但允許追蹤 `*_build_conda_env.bat` 與 `*_requirements.txt`。
+  - 新增 `micromamba_build_conda_env.bat`、`motionBERT_build_conda_env.bat`、`gvhmr_build_conda_env.bat`、`server_build_conda_env.bat` 與對應 requirements，讓新機器可從 `conda_vm` 入口重建 portable micromamba、MotionBERT、GVHMR、server env。
+  - `run_server.bat` 現在優先使用 `conda_vm/server/env/python.exe` 執行 `server.py`，沒有 server env 時會提示先跑 `conda_vm/server_build_conda_env.bat` 並 fallback 系統 Python。
+  - 已建立 ignored 的 `conda_vm/server/env`，server import smoke test 可載入 Flask、yt-dlp、MediaPipe、OpenCV、NumPy 與 `server.py`；`pip check` 乾淨。
+  - 新增 `scratch/test_conda_env_build_assets.mjs`，鎖定 build assets 存在、可被 git 追蹤，且實際 env 路徑仍保持 ignored。
+
 - 建立公司電腦 MotionBERT 本機環境：
   - 以 portable `micromamba` 建立 `conda_vm/motionBERT/env` prefix env，Python 3.10.20，並補上 MotionBERT sidecar 所需的 PyTorch、NumPy、PyYAML、EasyDict 等依賴。
   - 下載官方 Hugging Face `FT_MB_lite_MB_ft_h36m_global_lite/best_epoch.bin` checkpoint 到 MotionBERT 預設路徑，讓 `server.py` 的 real MotionBERT readiness checks 可找到 env、repo、config、checkpoint 與 sidecar。

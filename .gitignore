@@ -18,6 +18,9 @@ build/
 
 # Local-only 3D/motion assets. Keep manifests and derived JSON in git instead.
 local_assets/
-conda_vm/
+conda_vm/*
+!conda_vm/
+!conda_vm/*_build_conda_env.bat
+!conda_vm/*_requirements.txt
 *.vrma
 *.vrm

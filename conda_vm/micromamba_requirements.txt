@@ -1,0 +1,3 @@
+# Portable micromamba bootstrap metadata. This is not a pip requirements file.
+MICROMAMBA_URL=https://micro.mamba.pm/api/micromamba/win-64/latest
+MICROMAMBA_CHANNEL=conda-forge
