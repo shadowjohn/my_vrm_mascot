@@ -1,20 +1,23 @@
 @echo off
 setlocal
-set PORT=8765
-set FOUND=
+cd /d "%~dp0"
+set "PORT=8765"
 
 echo.
 echo Stopping My VRM Mascot server on port %PORT%...
 echo.
 
-for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":%PORT%" ^| findstr "LISTENING"') do (
-    set FOUND=1
-    echo Stopping PID %%a
-    taskkill /PID %%a /F
+set "SERVER_PYTHON=%~dp0conda_vm\server\env\python.exe"
+if not exist "%SERVER_PYTHON%" (
+  echo Server conda env not found:
+  echo   %SERVER_PYTHON%
+  echo.
+  echo To create it, run:
+  echo   conda_vm\server_build_conda_env.bat
+  echo.
+  echo Falling back to system python.
+  set "SERVER_PYTHON=python"
 )
 
-if not defined FOUND (
-    echo No listening process found on port %PORT%.
-)
-
+"%SERVER_PYTHON%" "%~dp0scripts\stop_server.py" --port %PORT%
 pause

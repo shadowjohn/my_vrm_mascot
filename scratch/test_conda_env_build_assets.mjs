@@ -52,6 +52,10 @@ const runServer = readFileSync('run_server.bat', 'utf8');
 assert.match(runServer, /conda_vm\\server\\env\\python\.exe/);
 assert.match(runServer, /server\.py/);
 
+const stopServer = readFileSync('stop_server.bat', 'utf8');
+assert.match(stopServer, /conda_vm\\server\\env\\python\.exe/);
+assert.match(stopServer, /scripts\\stop_server\.py/);
+
 const motionBertReq = readFileSync('conda_vm/motionBERT_requirements.txt', 'utf8');
 assert.match(motionBertReq, /torch==2\.11\.0\+cu128/);
 assert.match(motionBertReq, /easydict==1\.13/);

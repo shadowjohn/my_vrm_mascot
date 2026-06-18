@@ -40,6 +40,11 @@
   - 已建立 ignored 的 `conda_vm/server/env`，server import smoke test 可載入 Flask、yt-dlp、MediaPipe、OpenCV、NumPy 與 `server.py`；`pip check` 乾淨。
   - 新增 `scratch/test_conda_env_build_assets.mjs`，鎖定 build assets 存在、可被 git 追蹤，且實際 env 路徑仍保持 ignored。
 
+- 改用 server conda env 管理本機 server 啟停：
+  - 新增 `scripts/stop_server.py`，以 Python 查 `netstat -ano` 找出指定 port 的 LISTENING PID，並用 `taskkill /F` 停止；支援 `--dry-run` 方便測試。
+  - `stop_server.bat` 現在與 `run_server.bat` 一樣優先使用 `conda_vm/server/env/python.exe`，缺 env 時提示先跑 `conda_vm/server_build_conda_env.bat` 並 fallback 系統 Python。
+  - 擴充 `scratch/test_conda_env_build_assets.mjs` 並新增 `scratch/test_stop_server_script.mjs`，鎖定 run/stop 都使用 server env，且 stop script 可安全 dry-run。
+
 - 建立公司電腦 MotionBERT 本機環境：
   - 以 portable `micromamba` 建立 `conda_vm/motionBERT/env` prefix env，Python 3.10.20，並補上 MotionBERT sidecar 所需的 PyTorch、NumPy、PyYAML、EasyDict 等依賴。
   - 下載官方 Hugging Face `FT_MB_lite_MB_ft_h36m_global_lite/best_epoch.bin` checkpoint 到 MotionBERT 預設路徑，讓 `server.py` 的 real MotionBERT readiness checks 可找到 env、repo、config、checkpoint 與 sidecar。
