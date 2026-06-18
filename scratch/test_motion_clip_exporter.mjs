@@ -624,14 +624,82 @@ assert.ok(
   'wide skeleton right ankle should drive Alicia right leg toward the same visual side'
 );
 assert.ok(
-  Math.abs(legSpreadCalls[0].bones.leftUpperLeg[1].rot[2]) > 0.3 &&
-    Math.abs(legSpreadCalls[0].bones.rightUpperLeg[1].rot[2]) > 0.3,
-  'wide skeleton ankles should produce a visibly open Alicia stance'
+  Math.abs(legSpreadCalls[0].bones.leftUpperLeg[1].rot[2]) > 0.12 &&
+    Math.abs(legSpreadCalls[0].bones.leftUpperLeg[1].rot[2]) < 0.36 &&
+    Math.abs(legSpreadCalls[0].bones.rightUpperLeg[1].rot[2]) > 0.12 &&
+    Math.abs(legSpreadCalls[0].bones.rightUpperLeg[1].rot[2]) < 0.36,
+  'wide skeleton ankles should produce a controlled Alicia stance without over-abducting the thighs'
+);
+assert.ok(
+  Math.abs(legSpreadCalls[0].bones.leftLowerLeg[1].rot[2]) < 0.14 &&
+    Math.abs(legSpreadCalls[0].bones.rightLowerLeg[1].rot[2]) < 0.14,
+  'wide skeleton ankles should not over-rotate Alicia lower legs laterally'
 );
 assert.ok(
   legSpreadCalls[0].bones.leftLowerLeg[1].rot[2] > 0 &&
     legSpreadCalls[0].bones.rightLowerLeg[1].rot[2] < 0,
   'wide skeleton ankles should carry same-side lateral direction into Alicia lower legs'
+);
+
+const bentKneeShinCalls = [];
+const bentKneeShinClip = {
+  ...raisedArmClip,
+  id: 'bent_knee_shin_trace',
+  previewFrames: [
+    {
+      timeMs: 0,
+      landmarks: {
+        hips: { x: 0, y: 1, z: 0 },
+        chest: { x: 0, y: 1.42, z: 0 },
+        leftShoulder: { x: -0.2, y: 1.5, z: 0 },
+        rightShoulder: { x: 0.2, y: 1.5, z: 0 },
+        leftElbow: { x: -0.28, y: 1.25, z: 0 },
+        rightElbow: { x: 0.28, y: 1.25, z: 0 },
+        leftWrist: { x: -0.34, y: 1.05, z: 0 },
+        rightWrist: { x: 0.34, y: 1.05, z: 0 },
+        leftKnee: { x: -0.08, y: 0.52, z: 0 },
+        rightKnee: { x: 0.08, y: 0.52, z: 0 },
+        leftAnkle: { x: -0.1, y: 0, z: 0 },
+        rightAnkle: { x: 0.1, y: 0, z: 0 }
+      }
+    },
+    {
+      timeMs: 400,
+      landmarks: {
+        hips: { x: 0, y: 1, z: 0 },
+        chest: { x: 0, y: 1.42, z: 0 },
+        leftShoulder: { x: -0.2, y: 1.5, z: 0 },
+        rightShoulder: { x: 0.2, y: 1.5, z: 0 },
+        leftElbow: { x: -0.28, y: 1.25, z: 0 },
+        rightElbow: { x: 0.28, y: 1.25, z: 0 },
+        leftWrist: { x: -0.34, y: 1.05, z: 0 },
+        rightWrist: { x: 0.34, y: 1.05, z: 0 },
+        leftKnee: { x: -0.44, y: 0.48, z: 0 },
+        rightKnee: { x: 0.44, y: 0.48, z: 0 },
+        leftAnkle: { x: -0.16, y: 0, z: 0 },
+        rightAnkle: { x: 0.16, y: 0, z: 0 }
+      }
+    }
+  ]
+};
+new AliciaMotionPreviewAdapter({
+  mascot: {
+    motion: {
+      playCustom(animData) {
+        bentKneeShinCalls.push(animData);
+      }
+    }
+  }
+}).previewClip(bentKneeShinClip);
+assert.ok(
+  bentKneeShinCalls[0].bones.leftUpperLeg[1].rot[2] > 0 &&
+    bentKneeShinCalls[0].bones.rightUpperLeg[1].rot[2] < 0,
+  'outward knees should still drive Alicia upper legs outward'
+);
+assert.ok(
+  bentKneeShinCalls[0].bones.leftLowerLeg[1].rot[2] < 0 &&
+    bentKneeShinCalls[0].bones.rightLowerLeg[1].rot[2] > 0,
+  'lower legs should follow the knee-to-ankle segment back inward instead of continuing the thigh angle'
 );
 
 const mirroredRetargetCalls = [];

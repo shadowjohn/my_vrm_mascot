@@ -33,18 +33,25 @@ function testIndexExistsAndIsChineseFirstWorkbench() {
 
 function testIndexLinksKnownMascotSurfaces() {
   const html = read(INDEX_PATH);
+  const portalHtml = read(PORTAL_PATH);
 
   for (const href of [
     'mascot_runtime.html',
     'motion_template_lab.html',
+    'motion_capture_lab.html',
     'm6_acting_bridge_demo.html',
     'README.md',
     'examples/m6_7_vrma_samples/README.md',
     'examples/m6_7_motion_mining/mining_log.json',
     'examples/m6_7_motion_mining/mining_report.json',
   ]) {
-    assert.match(html, new RegExp(`href="${href.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`));
+    const pattern = new RegExp(`href="${href.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`);
+    assert.match(html, pattern);
+    assert.match(portalHtml, pattern);
   }
+
+  assert.match(html, /Motion Capture Lab/);
+  assert.match(portalHtml, /Motion Capture Lab/);
 }
 
 function testIndexDocumentsLocalServerAndApacheBoundary() {

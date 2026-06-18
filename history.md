@@ -2,6 +2,18 @@
 
 ## 2026-06-18
 
+- 建立公司電腦 MotionBERT 本機環境：
+  - 以 portable `micromamba` 建立 `conda_vm/motionBERT/env` prefix env，Python 3.10.20，並補上 MotionBERT sidecar 所需的 PyTorch、NumPy、PyYAML、EasyDict 等依賴。
+  - 下載官方 Hugging Face `FT_MB_lite_MB_ft_h36m_global_lite/best_epoch.bin` checkpoint 到 MotionBERT 預設路徑，讓 `server.py` 的 real MotionBERT readiness checks 可找到 env、repo、config、checkpoint 與 sidecar。
+  - 公司 RTX 5060 Ti 是 `sm_120`，`torch+cu118` 會出架構不相容警告；改用 `torch 2.11.0+cu128` 後，CUDA tensor matmul 與 `scripts/motionbert_lift.py` sample smoke test 均可用 `device: cuda` 完成。
+
+- 修正 Workbench 首頁入口漏掛 Motion Capture Lab：`index.html` 與相容入口 `portal.html` 的首屏按鈕與 Motion Mining 卡片都加入 `motion_capture_lab.html`，並擴充 `scratch/test_workbench_portal.mjs` 鎖定入口 contract。
+
+- 修正 Motion Capture Lab Alicia preview 小腿 retarget 角度：
+  - 根因是 `AliciaMotionPreviewAdapter.legOffsets()` 的 lower leg lateral rotation 仍沿用全腿 / 大腿方向，遇到膝蓋在外、腳踝回內的姿勢時，小腿會繼續往外甩。
+  - lower leg 現在用 `knee -> ankle` segment 的 x 方向決定左右旋轉，缺少 knee landmark 時才 fallback 全腿向量；新增 `bent_knee_shin_trace` regression，鎖定小腿會跟 shin segment 回內。
+  - 再收斂腿部 lateral retarget 係數與角度上限，避免寬腳踝 skeleton 在 Alicia preview 中被放大成過度劈腿；`leg_spread_trace` 現在鎖定上腿可見開腿但不可 over-abduct、小腿 lateral rotation 也有上限。
+
 - 修正 M21.0 3D lifted skeleton 對齊後 Alicia preview 手臂仍不跟的問題：
   - 根因在 `AliciaMotionPreviewAdapter` 的 skeleton trace retarget，而不是 MotionBERT；原本手/肘越往上，upper arm `z` offset 反而把 Alicia 往自然下垂方向推，且沒有輸出 shoulder 軌。
   - `joint_chain_preview` 現在會輸出 `leftShoulder/rightShoulder` keyframe，並把 arm elevation / lateral reach 轉成上舉方向的 upperArm offset，讓抬手到頭旁邊的 skeleton trace 能反映到右側 Alicia preview。

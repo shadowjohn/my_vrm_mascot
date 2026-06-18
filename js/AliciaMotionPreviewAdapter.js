@@ -195,7 +195,8 @@ function legOffsets(landmarks, side, scale) {
   const forwardReach = upperLeg.z * 0.65 + fullLeg.z * 0.35;
   const lateralReach = knee ? upperLeg.x * 0.36 + fullLeg.x * 0.64 : fullLeg.x;
   const swing = clamp(-forwardReach * 170 * scale, -46, 46);
-  const sideReach = clamp(lateralReach * 145 * scale, -60, 60);
+  const sideReach = clamp(lateralReach * 96 * scale, -38, 38);
+  const lowerSideReach = clamp((knee ? lowerLeg.x : fullLeg.x) * 96 * scale, -38, 38);
   const kneeFlex = knee
     ? jointFlexionDegrees(hips, knee, ankle)
     : clamp((1.05 - Math.abs(fullLeg.y)) * 42 * scale, 0, 34);
@@ -210,7 +211,7 @@ function legOffsets(landmarks, side, scale) {
     lower: {
       x: clamp(kneeFlex * 0.62 + lowerSwing, -10, 58),
       y: 0,
-      z: clamp(-sideReach * 0.32, -18, 18)
+      z: clamp(-lowerSideReach * 0.32, -18, 18)
     }
   };
 }
