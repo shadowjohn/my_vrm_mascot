@@ -30,6 +30,10 @@
   - `Extract Skeleton From Video` 現在會顯示進度條、目前階段、細節 log 與成功 / 失敗收尾狀態；等待後端單次 API 回應期間以 client-side heartbeat 標示 MediaPipe extraction、MotionBERT depth lift 與等待結果。
   - 回應後會顯示實際 skeleton frame count、pose mode、depth source 與 lead foot 等細節，避免長時間抽取時不知道流程卡在哪一步。
 
+- 修正 Alicia 大腿 / 膝蓋 retarget 對齊：
+  - `AliciaMotionPreviewAdapter.legOffsets()` 現在有 knee chain 時會讓 upper leg lateral rotation 主要跟 `hips -> knee`，只有在 knee 與 ankle 同方向時才讓 `hips -> ankle` 補少量 stance。
+  - 新增 `knee_dominant_leg_trace` regression，鎖定腳踝外伸但膝蓋往內/靠身體時，大腿不會被 ankle endpoint 拉成過度外開，小腿仍跟 `knee -> ankle` 方向。
+
 - 修正 M21.0 3D lifted skeleton 對齊後 Alicia preview 手臂仍不跟的問題：
   - 根因在 `AliciaMotionPreviewAdapter` 的 skeleton trace retarget，而不是 MotionBERT；原本手/肘越往上，upper arm `z` offset 反而把 Alicia 往自然下垂方向推，且沒有輸出 shoulder 軌。
   - `joint_chain_preview` 現在會輸出 `leftShoulder/rightShoulder` keyframe，並把 arm elevation / lateral reach 轉成上舉方向的 upperArm offset，讓抬手到頭旁邊的 skeleton trace 能反映到右側 Alicia preview。

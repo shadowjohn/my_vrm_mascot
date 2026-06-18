@@ -702,6 +702,67 @@ assert.ok(
   'lower legs should follow the knee-to-ankle segment back inward instead of continuing the thigh angle'
 );
 
+const kneeDominantLegCalls = [];
+const kneeDominantLegClip = {
+  ...raisedArmClip,
+  id: 'knee_dominant_leg_trace',
+  previewFrames: [
+    {
+      timeMs: 0,
+      landmarks: {
+        hips: { x: 0, y: 1, z: 0 },
+        chest: { x: 0, y: 1.42, z: 0 },
+        leftShoulder: { x: -0.2, y: 1.5, z: 0 },
+        rightShoulder: { x: 0.2, y: 1.5, z: 0 },
+        leftElbow: { x: -0.28, y: 1.25, z: 0 },
+        rightElbow: { x: 0.28, y: 1.25, z: 0 },
+        leftWrist: { x: -0.34, y: 1.05, z: 0 },
+        rightWrist: { x: 0.34, y: 1.05, z: 0 },
+        leftKnee: { x: -0.08, y: 0.52, z: 0 },
+        rightKnee: { x: 0.08, y: 0.52, z: 0 },
+        leftAnkle: { x: -0.1, y: 0, z: 0 },
+        rightAnkle: { x: 0.1, y: 0, z: 0 }
+      }
+    },
+    {
+      timeMs: 400,
+      landmarks: {
+        hips: { x: 0, y: 1, z: 0 },
+        chest: { x: 0, y: 1.42, z: 0 },
+        leftShoulder: { x: -0.2, y: 1.5, z: 0 },
+        rightShoulder: { x: 0.2, y: 1.5, z: 0 },
+        leftElbow: { x: -0.28, y: 1.25, z: 0 },
+        rightElbow: { x: 0.28, y: 1.25, z: 0 },
+        leftWrist: { x: -0.34, y: 1.05, z: 0 },
+        rightWrist: { x: 0.34, y: 1.05, z: 0 },
+        leftKnee: { x: 0.08, y: 0.52, z: 0 },
+        rightKnee: { x: -0.08, y: 0.52, z: 0 },
+        leftAnkle: { x: -0.44, y: 0, z: 0 },
+        rightAnkle: { x: 0.44, y: 0, z: 0 }
+      }
+    }
+  ]
+};
+new AliciaMotionPreviewAdapter({
+  mascot: {
+    motion: {
+      playCustom(animData) {
+        kneeDominantLegCalls.push(animData);
+      }
+    }
+  }
+}).previewClip(kneeDominantLegClip);
+assert.ok(
+  kneeDominantLegCalls[0].bones.leftUpperLeg[1].rot[2] < 0.04 &&
+    kneeDominantLegCalls[0].bones.rightUpperLeg[1].rot[2] > -0.04,
+  'Alicia upper legs should follow the hip-to-knee segment instead of being pulled outward by ankle reach'
+);
+assert.ok(
+  kneeDominantLegCalls[0].bones.leftLowerLeg[1].rot[2] > 0 &&
+    kneeDominantLegCalls[0].bones.rightLowerLeg[1].rot[2] < 0,
+  'Alicia lower legs should still follow the knee-to-ankle shin segment'
+);
+
 function proportionalTraceFrame(timeMs, sourceScale, active = false) {
   const legReach = active ? 0.34 : 0.08;
   const armReach = active ? 0.42 : 0.28;
