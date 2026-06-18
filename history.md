@@ -2,6 +2,11 @@
 
 ## 2026-06-18
 
+- 新增 M20.4 World-Grounded Orientation Adapter 設計規格：
+  - 新增 `docs/superpowers/specs/2026-06-18-m20-4-world-grounded-orientation-adapter.md`，定義 MotionBERT 保四肢、GVHMR/WHAM 補 world-grounded root/yaw/footContact 的低風險融合路線。
+  - 明確 Phase 1 只做共同 world-motion contract、fixture-first tests、`AliciaWorldMotionAdapter` / `AliciaWorldMotionFusion` 與 GVHMR/WHAM subprocess stub，不要求本機先安裝重型研究模型。
+  - 紀錄 GVHMR 靜態相機 `-s` 路徑與 WHAM contact-aware trajectory refinement 作為後續 Phase 2/3 的實驗依據。
+
 - 建立公司電腦 MotionBERT 本機環境：
   - 以 portable `micromamba` 建立 `conda_vm/motionBERT/env` prefix env，Python 3.10.20，並補上 MotionBERT sidecar 所需的 PyTorch、NumPy、PyYAML、EasyDict 等依賴。
   - 下載官方 Hugging Face `FT_MB_lite_MB_ft_h36m_global_lite/best_epoch.bin` checkpoint 到 MotionBERT 預設路徑，讓 `server.py` 的 real MotionBERT readiness checks 可找到 env、repo、config、checkpoint 與 sidecar。
