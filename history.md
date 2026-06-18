@@ -7,6 +7,12 @@
   - 明確 Phase 1 只做共同 world-motion contract、fixture-first tests、`AliciaWorldMotionAdapter` / `AliciaWorldMotionFusion` 與 GVHMR/WHAM subprocess stub，不要求本機先安裝重型研究模型。
   - 紀錄 GVHMR 靜態相機 `-s` 路徑與 WHAM contact-aware trajectory refinement 作為後續 Phase 2/3 的實驗依據。
 
+- 完成 M20.4 Phase 1 World Motion Contract：
+  - 新增 `js/AliciaWorldMotionAdapter.js`，正規化 GVHMR/WHAM/fixture world-motion 輸出，統一 `bodyYawDegrees`、`rootTranslation`、`footContact`、`confidence` 與 nearest-frame lookup。
+  - 新增 `js/AliciaWorldMotionFusion.js`，先以非侵入方式把 world yaw、root translation 與 footContact metadata 融合進 Alicia pose payload；缺少或低信心 world motion 時會保留原 MotionBERT limb pose。
+  - 新增 `scripts/gvhmr_lift.py` / `scripts/wham_lift.py` experimental stub，支援 fixture JSON 與 typed `missing_dependency` 回應，讓 Phase 1 不需要先建 GVHMR/WHAM conda env。
+  - 新增 `scratch/test_alicia_world_motion_adapter.mjs`、`scratch/test_alicia_world_motion_fusion.mjs`、`scratch/test_world_motion_cli_stubs.mjs` 鎖定共同 contract、fusion 行為與 CLI stub。
+
 - 建立公司電腦 MotionBERT 本機環境：
   - 以 portable `micromamba` 建立 `conda_vm/motionBERT/env` prefix env，Python 3.10.20，並補上 MotionBERT sidecar 所需的 PyTorch、NumPy、PyYAML、EasyDict 等依賴。
   - 下載官方 Hugging Face `FT_MB_lite_MB_ft_h36m_global_lite/best_epoch.bin` checkpoint 到 MotionBERT 預設路徑，讓 `server.py` 的 real MotionBERT readiness checks 可找到 env、repo、config、checkpoint 與 sidecar。
