@@ -48,6 +48,9 @@ const requiredIds = [
   'motionBertDebugOutput',
   'cycleStartMs',
   'cycleEndMs',
+  'btnPoseCopierMode',
+  'btnWalkExtractorMode',
+  'poseSyncStatus',
   'btnSeedCyclePhases',
   'phase_contact_left',
   'phase_down_left',
@@ -136,7 +139,9 @@ assert.match(html, />2D<\/button>/);
 assert.match(html, />3D<\/button>/);
 assert.match(html, /3D Lifted Pose/);
 assert.match(html, /MotionBERT 3D Skeleton/);
-assert.match(html, /Alicia Walk Preview/);
+assert.match(html, /Alicia Pose Copier Preview/);
+assert.match(html, /Pose Copier/);
+assert.match(html, /Walk Extractor/);
 assert.match(html, /Detect Walk Cycle/);
 assert.match(html, /Walk Parameters \(Extracted\)/);
 assert.match(html, /Walk Style Summary/);
@@ -191,6 +196,8 @@ assert.match(html, /const DEPTH_MARKERS = Object\.freeze/);
 assert.match(html, /const MOTIONBERT_DEBUG_JOINTS = Object\.freeze/);
 assert.match(html, /skeletonAnalysisMode:\s*'2d'/);
 assert.match(html, /skeleton3d:\s*\{\s*yaw:/);
+assert.match(html, /previewWorkflowMode:\s*'pose_copier'/);
+assert.match(html, /poseSync:\s*\{\s*rafId:\s*null/);
 assert.match(html, /function setSkeletonAnalysisMode\(mode\)/);
 assert.match(html, /function setSkeleton3dRotation\(yaw,\s*pitch\)/);
 assert.match(html, /function getDepthValue\(point\)/);
@@ -202,6 +209,13 @@ assert.match(html, /function drawSkeletonCanvas2d\(ctx,\s*canvas,\s*frame\)/);
 assert.match(html, /function drawSkeletonCanvas3d\(ctx,\s*canvas,\s*frame\)/);
 assert.match(html, /function updateMotionBertDebugPanel\(style\)/);
 assert.match(html, /function skeletonMotionBertDebugPayload\(style\)/);
+assert.match(html, /function setPreviewWorkflowMode\(mode\)/);
+assert.match(html, /function syncAliciaPoseToVideoTime\(\{\s*force/);
+assert.match(html, /function syncPreviewToVideoTime\(\{\s*force/);
+assert.match(html, /function startPoseSyncPlaybackLoop\(\)/);
+assert.match(html, /function stopPoseSyncPlaybackLoop\(\)/);
+assert.match(html, /previewPoseAtTimeMs\(timeMs,\s*state\.sequence\.frames/);
+assert.match(html, /setText\('poseSyncStatus'/);
 assert.match(html, /state\.skeletonAnalysisMode === '3d'/);
 assert.match(html, /Lead Foot :/);
 assert.match(html, /Depth Conf :/);
@@ -218,6 +232,8 @@ assert.match(html, /far /);
 assert.match(html, /uncertain/);
 assert.match(html, /btnSkeletonMode2d'\)\.addEventListener\('click'/);
 assert.match(html, /btnSkeletonMode3d'\)\.addEventListener\('click'/);
+assert.match(html, /btnPoseCopierMode'\)\.addEventListener\('click',\s*\(\) => setPreviewWorkflowMode\('pose_copier'\)\)/);
+assert.match(html, /btnWalkExtractorMode'\)\.addEventListener\('click',\s*\(\) => setPreviewWorkflowMode\('walk_extractor'\)\)/);
 assert.match(html, /skeleton3dYaw'\)\.addEventListener\('input'/);
 assert.match(html, /skeleton3dPitch'\)\.addEventListener\('input'/);
 assert.match(html, /skeletonPreviewCanvas'\)\.addEventListener\('pointerdown'/);
@@ -226,9 +242,12 @@ assert.match(html, /skeletonPreviewCanvas'\)\.addEventListener\('pointerup'/);
 assert.match(html, /function getCurrentSkeletonPreviewTimeMs\(\)/);
 assert.match(html, /state\.adapter\.getFrameAtMs\(state\.sequence,\s*previewTimeMs\)/);
 assert.match(html, /for \(const \[from,\s*to\] of SKELETON_BONES\)/);
-assert.match(html, /addEventListener\('timeupdate',\s*\(\) => drawSkeletonCanvas\(\)\)/);
-assert.match(html, /addEventListener\('seeked',\s*\(\) => drawSkeletonCanvas\(\)\)/);
-assert.match(html, /addEventListener\('loadedmetadata',\s*\(\) => \{\s*updateCaptureRangeFromVideoMetadata\(\);\s*drawSkeletonCanvas\(\);\s*\}\)/);
+assert.match(html, /addEventListener\('timeupdate',\s*\(\) => syncPreviewToVideoTime\(\)/);
+assert.match(html, /addEventListener\('seeked',\s*\(\) => syncPreviewToVideoTime\(\{\s*force:\s*true\s*\}\)/);
+assert.match(html, /addEventListener\('play',\s*startPoseSyncPlaybackLoop\)/);
+assert.match(html, /addEventListener\('pause',\s*stopPoseSyncPlaybackLoop\)/);
+assert.match(html, /addEventListener\('ended',\s*stopPoseSyncPlaybackLoop\)/);
+assert.match(html, /addEventListener\('loadedmetadata',\s*\(\) => \{\s*updateCaptureRangeFromVideoMetadata\(\);\s*syncPreviewToVideoTime\(\{\s*force:\s*true\s*\}\);\s*\}\)/);
 assert.match(html, /captureRangeStartSlider'\)\.addEventListener\('input'/);
 assert.match(html, /captureRangeEndSlider'\)\.addEventListener\('input'/);
 assert.match(html, /captureRangeStartMs'\)\.addEventListener\('input'/);

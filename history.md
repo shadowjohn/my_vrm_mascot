@@ -34,6 +34,11 @@
   - `AliciaMotionPreviewAdapter.legOffsets()` 現在有 knee chain 時會讓 upper leg lateral rotation 主要跟 `hips -> knee`，只有在 knee 與 ankle 同方向時才讓 `hips -> ankle` 補少量 stance。
   - 新增 `knee_dominant_leg_trace` regression，鎖定腳踝外伸但膝蓋往內/靠身體時，大腿不會被 ankle endpoint 拉成過度外開，小腿仍跟 `knee -> ankle` 方向。
 
+- 新增 Motion Capture Lab Pose Copier 同步主線：
+  - 右側預覽改為 `Alicia Pose Copier Preview`，新增 `Pose Copier / Walk Extractor` 模式；Pose Copier 會在影片 scrub、seek 與播放中同步目前 skeleton frame 到 Alicia 單幀姿勢，不再只依賴 walk loop preview。
+  - `AliciaMotionPreviewAdapter` 新增 `previewPoseAtTimeMs()`，可找最近 skeleton frame 並產生 Alicia 單幀 retarget pose；`MotionController` 新增 `holdCustomPose()`，用 `custom_pose` 狀態維持該姿勢而不播放動畫時間軸。
+  - 保留原本 Walk Extractor 的 `walk_style_v1` 匯出與 preview，下一階段可在 Pose Copier 基礎上接 `Record Synced Pose Clip -> Smooth / Normalize -> Export Alicia Motion Clip`。
+
 - 修正 M21.0 3D lifted skeleton 對齊後 Alicia preview 手臂仍不跟的問題：
   - 根因在 `AliciaMotionPreviewAdapter` 的 skeleton trace retarget，而不是 MotionBERT；原本手/肘越往上，upper arm `z` offset 反而把 Alicia 往自然下垂方向推，且沒有輸出 shoulder 軌。
   - `joint_chain_preview` 現在會輸出 `leftShoulder/rightShoulder` keyframe，並把 arm elevation / lateral reach 轉成上舉方向的 upperArm offset，讓抬手到頭旁邊的 skeleton trace 能反映到右側 Alicia preview。

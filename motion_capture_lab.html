@@ -953,6 +953,30 @@
       height: 42px;
     }
 
+    .preview-mode-control {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #101715;
+    }
+
+    .preview-mode-control .mode-tab {
+      min-height: 34px;
+    }
+
+    #poseSyncStatus {
+      display: block;
+      grid-column: 1 / -1;
+      min-height: 18px;
+      color: var(--accent-2);
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      text-align: right;
+    }
+
     .overlay-toggle {
       grid-column: 1 / -1;
       min-height: 38px;
@@ -1331,10 +1355,15 @@
       </details>
     </section>
 
-    <section class="workflow-panel preview-panel" aria-label="Alicia Walk Preview">
+    <section class="workflow-panel preview-panel" aria-label="Alicia Pose Copier Preview">
       <div class="panel-title">
         <span class="step-badge">3</span>
-        <h2>Alicia Walk Preview</h2>
+        <h2>Alicia Pose Copier Preview</h2>
+      </div>
+
+      <div class="preview-mode-control" role="group" aria-label="Preview workflow mode">
+        <button id="btnPoseCopierMode" class="mode-tab active" type="button" aria-pressed="true">Pose Copier</button>
+        <button id="btnWalkExtractorMode" class="mode-tab" type="button" aria-pressed="false">Walk Extractor</button>
       </div>
 
       <div id="aliciaPreview"></div>
@@ -1353,6 +1382,7 @@
           <span>Skeleton Overlay</span>
           <input id="traceOverlayToggle" type="checkbox" checked>
         </label>
+        <output id="poseSyncStatus">Pose sync waits for skeleton frames.</output>
       </div>
 
       <div class="summary-panel" aria-label="Walk style summary">
@@ -1449,6 +1479,12 @@
       clip: null,
       mascot: null,
       previewAdapter: new AliciaMotionPreviewAdapter(),
+      previewWorkflowMode: 'pose_copier',
+      poseSync: {
+        rafId: null,
+        lastVideoTimeMs: null,
+        lastFrameTimeMs: null
+      },
       traceOverlay: new TraceSkeletonOverlay(),
       videoObjectUrl: null,
       currentVideoUrl: null,
@@ -1877,6 +1913,94 @@
       $('motionBertDebugOutput').value = JSON.stringify(payload.joints, null, 2);
     }
 
+    function setPreviewWorkflowMode(mode) {
+      state.previewWorkflowMode = mode === 'walk_extractor' ? 'walk_extractor' : 'pose_copier';
+      const isPoseCopier = state.previewWorkflowMode === 'pose_copier';
+      $('btnPoseCopierMode').classList.toggle('active', isPoseCopier);
+      $('btnWalkExtractorMode').classList.toggle('active', !isPoseCopier);
+      $('btnPoseCopierMode').setAttribute('aria-pressed', String(isPoseCopier));
+      $('btnWalkExtractorMode').setAttribute('aria-pressed', String(!isPoseCopier));
+      setText('poseSyncStatus', isPoseCopier ? 'Pose sync waits for skeleton frames.' : 'Walk extractor preview is manual.');
+      if (isPoseCopier) {
+        syncPreviewToVideoTime({ force: true });
+      } else {
+        stopPoseSyncPlaybackLoop();
+      }
+    }
+
+    function poseSyncRetargetHints() {
+      return {
+        strideScale: 1,
+        armSwingScale: 1,
+        hipBobScale: 1,
+        mirrorX: !!state.traceOverlay?.sceneAlignmentOptions?.().mirrorX
+      };
+    }
+
+    function syncAliciaPoseToVideoTime({ force = false, timeMs = getCurrentSkeletonPreviewTimeMs() } = {}) {
+      if (state.previewWorkflowMode !== 'pose_copier') {
+        return { ok: false, reason: 'walk_extractor_mode' };
+      }
+      if (!state.sequence?.frames?.length) {
+        setText('poseSyncStatus', 'Load or extract skeleton frames first.');
+        return { ok: false, reason: 'missing_skeleton' };
+      }
+      if (!state.mascot || !state.previewAdapter) {
+        setText('poseSyncStatus', 'Alicia preview is still booting.');
+        return { ok: false, reason: 'missing_mascot' };
+      }
+
+      const roundedTimeMs = Math.round(Number(timeMs) || 0);
+      if (!force && state.poseSync.lastVideoTimeMs !== null && Math.abs(roundedTimeMs - state.poseSync.lastVideoTimeMs) < 34) {
+        return { ok: true, skipped: true, frameTimeMs: state.poseSync.lastFrameTimeMs };
+      }
+
+      const result = state.previewAdapter.previewPoseAtTimeMs(timeMs, state.sequence.frames, {
+        id: 'video_pose_copier_frame',
+        kind: 'pose_copier_v1',
+        retargetHints: poseSyncRetargetHints()
+      });
+      if (result.ok) {
+        state.poseSync.lastVideoTimeMs = roundedTimeMs;
+        state.poseSync.lastFrameTimeMs = result.frameTimeMs;
+        setText('poseSyncStatus', `Video ${formatRangeTime(roundedTimeMs)} -> skeleton ${formatRangeTime(result.frameTimeMs)}`);
+        setText('walkSummaryPreviewSource', `Pose copier frame (${formatRangeTime(result.frameTimeMs)})`);
+      } else {
+        setText('poseSyncStatus', `Pose sync unavailable: ${result.reason}`);
+      }
+      return result;
+    }
+
+    function syncPreviewToVideoTime({ force = false } = {}) {
+      drawSkeletonCanvas();
+      if (state.previewWorkflowMode === 'pose_copier') {
+        return syncAliciaPoseToVideoTime({ force });
+      }
+      return { ok: true, skipped: true, reason: 'walk_extractor_mode' };
+    }
+
+    function startPoseSyncPlaybackLoop() {
+      if (state.poseSync.rafId) {
+        return;
+      }
+      const tick = () => {
+        state.poseSync.rafId = window.requestAnimationFrame(tick);
+        const video = $('videoPreview');
+        if (state.previewWorkflowMode === 'pose_copier' && !video.paused && !video.ended) {
+          syncPreviewToVideoTime();
+        }
+      };
+      state.poseSync.rafId = window.requestAnimationFrame(tick);
+    }
+
+    function stopPoseSyncPlaybackLoop() {
+      if (state.poseSync.rafId) {
+        window.cancelAnimationFrame(state.poseSync.rafId);
+        state.poseSync.rafId = null;
+      }
+      syncPreviewToVideoTime({ force: true });
+    }
+
     function setCaptureRange(startMs, endMs, { durationMs = state.captureRange.durationMs } = {}) {
       state.captureRange = clampCaptureRange(startMs, endMs, durationMs);
       syncCaptureRangeControls();
@@ -1952,13 +2076,13 @@
     function updateCaptureRangeStartFromInput(event) {
       const range = setCaptureRange(event.target.value, state.captureRange.endMs);
       seekVideoToMs(range.startMs);
-      drawSkeletonCanvas();
+      syncPreviewToVideoTime({ force: true });
     }
 
     function updateCaptureRangeEndFromInput(event) {
       const range = setCaptureRange(state.captureRange.startMs, event.target.value);
       seekVideoToMs(range.endMs);
-      drawSkeletonCanvas();
+      syncPreviewToVideoTime({ force: true });
     }
 
     async function checkModelAvailable(url) {
@@ -2002,12 +2126,10 @@
     }
 
     function getCurrentSkeletonPreviewTimeMs() {
-      if (state.sequence?.sourceType === 'video' && state.currentVideoUrl) {
-        const video = $('videoPreview');
-        const timeMs = Number(video.currentTime) * 1000;
-        if (Number.isFinite(timeMs)) {
-          return timeMs;
-        }
+      const video = $('videoPreview');
+      const timeMs = Number(video.currentTime) * 1000;
+      if (state.sequence?.sourceType === 'video' && Number.isFinite(timeMs)) {
+        return timeMs;
       }
       return state.sequence?.frames?.[0]?.timeMs ?? 0;
     }
@@ -2365,6 +2487,7 @@
       drawSkeletonCanvas();
       exportCurrentClip({ silent: true });
       updateVideoInfo();
+      syncPreviewToVideoTime({ force: true });
       setStatus(`${sourceLabel}: ${result.frameCount} frames loaded; ${seeded.ok ? 'cycle phases seeded' : seeded.reason}.`);
       return true;
     }
@@ -2676,6 +2799,7 @@
         }
         setPreviewAvailable(true);
         setStatus('Alicia preview booted. Load a skeleton to export a motion clip.');
+        syncPreviewToVideoTime({ force: true });
       } catch (error) {
         if (typeof state.mascot?.dispose === 'function') {
           state.mascot.dispose();
@@ -2756,12 +2880,12 @@
     $('captureRangeStartSlider').addEventListener('input', (event) => {
       const range = setCaptureRange(event.target.value, state.captureRange.endMs);
       seekVideoToMs(range.startMs);
-      drawSkeletonCanvas();
+      syncPreviewToVideoTime({ force: true });
     });
     $('captureRangeEndSlider').addEventListener('input', (event) => {
       const range = setCaptureRange(state.captureRange.startMs, event.target.value);
       seekVideoToMs(range.endMs);
-      drawSkeletonCanvas();
+      syncPreviewToVideoTime({ force: true });
     });
     $('captureRangeStartMs').addEventListener('input', updateCaptureRangeStartFromInput);
     $('captureRangeStartMs').addEventListener('change', updateCaptureRangeStartFromInput);
@@ -2769,16 +2893,21 @@
     $('captureRangeEndMs').addEventListener('change', updateCaptureRangeEndFromInput);
     $('btnUseCurrentAsRangeStart').addEventListener('click', setCurrentTimeAsCaptureRangeStart);
     $('btnUseCurrentAsRangeEnd').addEventListener('click', setCurrentTimeAsCaptureRangeEnd);
-    $('videoPreview').addEventListener('timeupdate', () => drawSkeletonCanvas());
-    $('videoPreview').addEventListener('seeked', () => drawSkeletonCanvas());
+    $('videoPreview').addEventListener('timeupdate', () => syncPreviewToVideoTime());
+    $('videoPreview').addEventListener('seeked', () => syncPreviewToVideoTime({ force: true }));
+    $('videoPreview').addEventListener('play', startPoseSyncPlaybackLoop);
+    $('videoPreview').addEventListener('pause', stopPoseSyncPlaybackLoop);
+    $('videoPreview').addEventListener('ended', stopPoseSyncPlaybackLoop);
     $('videoPreview').addEventListener('loadedmetadata', () => {
       updateCaptureRangeFromVideoMetadata();
-      drawSkeletonCanvas();
+      syncPreviewToVideoTime({ force: true });
     });
     $('btnLoadSampleSkeleton').addEventListener('click', loadSampleSkeleton);
     $('btnSeedCyclePhases').addEventListener('click', seedCyclePhases);
     $('btnExportMotionClip').addEventListener('click', () => exportCurrentClip());
     $('btnPreviewWalkCycle').addEventListener('click', previewWalkCycle);
+    $('btnPoseCopierMode').addEventListener('click', () => setPreviewWorkflowMode('pose_copier'));
+    $('btnWalkExtractorMode').addEventListener('click', () => setPreviewWorkflowMode('walk_extractor'));
     $('previewSpeedSelect').addEventListener('change', () => {
       if (state.clip && state.mascot && !$('btnPreviewWalkCycle').disabled) {
         previewWalkCycle();
@@ -2790,6 +2919,7 @@
     syncCaptureRangeControls();
     updateVideoInfo();
     updateWalkStylePanels(null);
+    setPreviewWorkflowMode('pose_copier');
     drawSkeletonCanvas();
     bootAliciaPreview();
   </script>

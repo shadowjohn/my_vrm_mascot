@@ -641,6 +641,36 @@ assert.ok(
   'wide skeleton ankles should carry same-side lateral direction into Alicia lower legs'
 );
 
+const poseSyncCalls = [];
+const poseSyncPreview = new AliciaMotionPreviewAdapter({
+  mascot: {
+    motion: {
+      holdCustomPose(animData, options) {
+        poseSyncCalls.push(['holdCustomPose', animData, options]);
+      },
+      playCustom(animData, options) {
+        poseSyncCalls.push(['playCustom', animData, options]);
+      }
+    }
+  }
+});
+const poseSyncResult = poseSyncPreview.previewPoseAtTimeMs(390, legSpreadClip.previewFrames, {
+  retargetHints: {
+    strideScale: 1,
+    armSwingScale: 1,
+    hipBobScale: 1
+  }
+});
+assert.equal(poseSyncResult.ok, true);
+assert.equal(poseSyncResult.adapter, 'pose_copier_single_frame');
+assert.equal(poseSyncResult.frameTimeMs, 400);
+assert.equal(poseSyncCalls.length, 1);
+assert.equal(poseSyncCalls[0][0], 'holdCustomPose');
+assert.equal(poseSyncCalls[0][1].retarget_mode, 'joint_chain_pose');
+assert.equal(poseSyncCalls[0][1].bones.leftUpperLeg.length, 1);
+assert.equal(poseSyncCalls[0][1].hips_position.length, 1);
+assert.deepEqual(poseSyncCalls[0][2], { timeMs: 0 });
+
 const bentKneeShinCalls = [];
 const bentKneeShinClip = {
   ...raisedArmClip,

@@ -55,10 +55,32 @@ function createRotation() {
   };
 }
 
+function createQuaternion() {
+  return {
+    x: 0,
+    y: 0,
+    z: 0,
+    w: 1,
+    set(x, y, z, w) {
+      this.x = x;
+      this.y = y;
+      this.z = z;
+      this.w = w;
+    },
+    slerpQuaternions(a, b, alpha) {
+      this.x = a.x + (b.x - a.x) * alpha;
+      this.y = a.y + (b.y - a.y) * alpha;
+      this.z = a.z + (b.z - a.z) * alpha;
+      this.w = a.w + (b.w - a.w) * alpha;
+    },
+  };
+}
+
 function createBone(name = '') {
   return {
     name,
     rotation: createRotation(),
+    quaternion: createQuaternion(),
     position: { x: 0, y: 1, z: 0 },
   };
 }
@@ -519,6 +541,48 @@ function testClipDoesNotMutateIdleMicroMotionState() {
   assert.notDeepEqual(snapshotCriticalBones(bones), afterClipBaseline, 'idle micro motion should resume after clip finish');
 }
 
+function testHoldCustomPoseMaintainsSingleFramePose() {
+  const previousThree = globalThis.THREE;
+  globalThis.THREE = {
+    Quaternion: class {
+      constructor() {
+        return createQuaternion();
+      }
+    },
+  };
+
+  try {
+    const motion = new MotionController();
+    const { vrm, bones } = createFakeVrm();
+
+    motion.setVrm(vrm);
+    motion.loadPosePreset(JSON.parse(readFileSync('motions/poses/alicia_solid.json', 'utf8')));
+    motion.holdCustomPose({
+      duration_ms: 1,
+      bones: {
+        leftUpperArm: [{ time_ms: 0, rot: [0.1, 0.2, 0.3, 0.9] }],
+      },
+      hips_position: [{ time_ms: 0, pos: [0.01, 0.02, 0.03] }],
+    }, { timeMs: 0 });
+
+    assert.equal(motion.currentAction, 'custom_pose');
+    assert.equal(bones.leftUpperArm.quaternion.z, 0.3);
+    assert.equal(bones.hips.position.x, 0.01);
+
+    motion.update(0.5);
+
+    assert.equal(motion.currentAction, 'custom_pose');
+    assert.equal(bones.leftUpperArm.quaternion.z, 0.3);
+    assert.equal(bones.hips.position.z, 0.03);
+  } finally {
+    if (previousThree === undefined) {
+      delete globalThis.THREE;
+    } else {
+      globalThis.THREE = previousThree;
+    }
+  }
+}
+
 function testShortClipsDoNotProduceTPose() {
   for (const name of MOTION_CLIP_NAMES) {
     const motion = new MotionController();
@@ -761,6 +825,7 @@ const tests = [
   testMotionClipRegistryHasBoundedDurations,
   testPlayClipEndsBackToIdleWithoutResidualPose,
   testClipDoesNotMutateIdleMicroMotionState,
+  testHoldCustomPoseMaintainsSingleFramePose,
   testShortClipsDoNotProduceTPose,
   testLegacyPlayRoutesClipNamesDeterministically,
   testCoreSemanticMotionsDoNotResolveToRawVrma,

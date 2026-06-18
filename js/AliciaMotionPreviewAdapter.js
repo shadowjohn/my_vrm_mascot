@@ -63,16 +63,37 @@ function getBaseRotations(mascot) {
   };
 }
 
-function sortedPreviewFrames(clip) {
-  const source = Array.isArray(clip?.previewFrames) && clip.previewFrames.length >= 2
-    ? clip.previewFrames
-    : clip?.keyPoses;
+function sortedFrameList(source) {
   return Array.isArray(source)
     ? source
       .filter((keyPose) => keyPose?.landmarks && Number.isFinite(Number(keyPose.timeMs)))
       .slice()
       .sort((a, b) => Number(a.timeMs) - Number(b.timeMs))
     : [];
+}
+
+function sortedPreviewFrames(clip) {
+  const source = Array.isArray(clip?.previewFrames) && clip.previewFrames.length >= 2
+    ? clip.previewFrames
+    : clip?.keyPoses;
+  return sortedFrameList(source);
+}
+
+function nearestFrameAtMs(frames, timeMs) {
+  if (!frames.length) {
+    return null;
+  }
+  const target = finiteNumber(timeMs, frames[0].timeMs);
+  let nearest = frames[0];
+  let nearestDelta = Math.abs(finiteNumber(nearest.timeMs) - target);
+  for (const frame of frames.slice(1)) {
+    const delta = Math.abs(finiteNumber(frame.timeMs) - target);
+    if (delta < nearestDelta) {
+      nearest = frame;
+      nearestDelta = delta;
+    }
+  }
+  return nearest;
 }
 
 function hasJointChainLandmarks(previewFrames) {
@@ -344,6 +365,71 @@ function buildPreviewAnimation(clip, mascot) {
   };
 }
 
+function buildPoseAnimation(frame, frames, clip, mascot) {
+  const sourceFrames = sortedFrameList(frames);
+  const baseRotations = getBaseRotations(mascot);
+  const hints = retargetHints(clip);
+  const transformedFrames = (sourceFrames.length ? sourceFrames : [frame]).map((previewFrame) => ({
+    ...previewFrame,
+    landmarks: transformRetargetLandmarks(previewFrame.landmarks, hints)
+  }));
+  const transformedFrame = {
+    ...frame,
+    landmarks: transformRetargetLandmarks(frame.landmarks, hints)
+  };
+  const bodyOrientation = estimateBodyYaw(transformedFrames);
+  const bodyYawDegrees = bodyOrientation.confidence >= 0.45 ? bodyOrientation.yawDegrees : 0;
+  const firstSourceHips = getPoint(transformedFrames[0]?.landmarks, 'hips');
+  const sourceLandmarks = transformedFrame.landmarks;
+  const landmarks = normalizeSkeletonToAlicia(sourceLandmarks, undefined, { yawDegrees: bodyYawDegrees }).landmarks;
+  const hips = getPoint(sourceLandmarks, 'hips');
+  const leftArm = armOffsets(landmarks, 'left', hints.armSwingScale);
+  const rightArm = armOffsets(landmarks, 'right', hints.armSwingScale);
+  const leftLeg = legOffsets(landmarks, 'left', hints.strideScale);
+  const rightLeg = legOffsets(landmarks, 'right', hints.strideScale);
+  const torso = torsoOffsets(landmarks, hints.strideScale);
+  const bones = {};
+  torso.hips.y += bodyYawDegrees;
+
+  pushBoneKey(bones, 'hips', 0, baseRotations, torso.hips);
+  pushBoneKey(bones, 'spine', 0, baseRotations, torso.spine);
+  pushBoneKey(bones, 'chest', 0, baseRotations, torso.chest);
+  pushBoneKey(bones, 'leftShoulder', 0, baseRotations, leftArm.shoulder);
+  pushBoneKey(bones, 'leftUpperArm', 0, baseRotations, leftArm.upper);
+  pushBoneKey(bones, 'leftLowerArm', 0, baseRotations, leftArm.lower);
+  pushBoneKey(bones, 'rightShoulder', 0, baseRotations, rightArm.shoulder);
+  pushBoneKey(bones, 'rightUpperArm', 0, baseRotations, rightArm.upper);
+  pushBoneKey(bones, 'rightLowerArm', 0, baseRotations, rightArm.lower);
+  pushBoneKey(bones, 'leftUpperLeg', 0, baseRotations, leftLeg.upper);
+  pushBoneKey(bones, 'leftLowerLeg', 0, baseRotations, leftLeg.lower);
+  pushBoneKey(bones, 'rightUpperLeg', 0, baseRotations, rightLeg.upper);
+  pushBoneKey(bones, 'rightLowerLeg', 0, baseRotations, rightLeg.lower);
+
+  return {
+    version: 1,
+    name: clip.id || 'pose_copier_frame',
+    duration_ms: 1,
+    fps: 1,
+    retarget_mode: hasJointChainLandmarks([frame]) ? 'joint_chain_pose' : 'endpoint_pose',
+    source_kind: clip.kind || 'pose_copier_v1',
+    source_time_ms: finiteNumber(frame.timeMs),
+    body_orientation: {
+      ...bodyOrientation,
+      appliedYawDegrees: bodyYawDegrees
+    },
+    bones,
+    hips_position: [{
+      time_ms: 0,
+      pos: [
+        clamp(hips.x * 0.018, -0.018, 0.018),
+        clamp((hips.y - firstSourceHips.y) * 0.03 * hints.hipBobScale, -0.018, 0.024),
+        clamp(hips.z * 0.018, -0.018, 0.018)
+      ]
+    }],
+    sample_count: 1
+  };
+}
+
 export class AliciaMotionPreviewAdapter {
   constructor({ mascot } = {}) {
     this.mascot = mascot;
@@ -407,5 +493,38 @@ export class AliciaMotionPreviewAdapter {
     }
 
     return { ok: true, clipId: clip.id, adapter: 'procedural_fallback' };
+  }
+
+  previewPoseAtTimeMs(timeMs, skeletonFrames, options = {}) {
+    if (!this.mascot) {
+      return { ok: false, reason: 'missing_mascot' };
+    }
+    if (typeof this.mascot.motion?.holdCustomPose !== 'function') {
+      return { ok: false, reason: 'missing_pose_hold' };
+    }
+
+    const frames = sortedFrameList(Array.isArray(skeletonFrames) ? skeletonFrames : skeletonFrames?.frames);
+    const requestedTimeMs = finiteNumber(timeMs, frames[0]?.timeMs || 0);
+    const frame = nearestFrameAtMs(frames, requestedTimeMs);
+    if (!frame) {
+      return { ok: false, reason: 'missing_skeleton_frame' };
+    }
+
+    const clip = {
+      kind: options.kind || 'pose_copier_v1',
+      id: options.id || 'pose_copier_frame',
+      retargetHints: options.retargetHints || {}
+    };
+    const animation = buildPoseAnimation(frame, frames, clip, this.mascot);
+    this.mascot.motion.holdCustomPose(animation, { timeMs: 0 });
+    return {
+      ok: true,
+      adapter: 'pose_copier_single_frame',
+      frameTimeMs: finiteNumber(frame.timeMs),
+      requestedTimeMs,
+      frameIndex: frame.frameIndex ?? null,
+      retargetMode: animation.retarget_mode,
+      bodyOrientation: animation.body_orientation
+    };
   }
 }

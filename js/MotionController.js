@@ -216,6 +216,7 @@ export class MotionController {
   #hipsBaseY = 0;     // hips 初始 Y 位置
   #customAnimData = null;
   #customOptions = {};
+  #customPoseTimeMs = 0;
   #tempQ1 = null;
   #tempQ2 = null;
   #posePreset = normalizePosePreset(DEFAULT_POSE_PRESET);
@@ -757,6 +758,24 @@ export class MotionController {
     this.#elapsed = 0;
     this.#customAnimData = animData;
     this.#customOptions = options;
+    this.#customPoseTimeMs = 0;
+  }
+
+  /**
+   * 維持自訂 JSON 動畫的單一時間點姿勢，不播放時間軸。
+   * @param {object} animData
+   * @param {object} [options]
+   * @param {number} [options.timeMs=0]
+   */
+  holdCustomPose(animData, options = {}) {
+    this.#stopActiveVrma();
+    this.#activeClip = null;
+    this.#currentAction = 'custom_pose';
+    this.#elapsed = 0;
+    this.#customAnimData = animData;
+    this.#customOptions = {};
+    this.#customPoseTimeMs = Math.max(0, finiteNumber(options.timeMs, 0));
+    this.#applyCustomAtTime(this.#customPoseTimeMs);
   }
 
   /**
@@ -892,6 +911,7 @@ export class MotionController {
       case 'walk':
       case 'walk_cycle':  this.#doWalkCycle(); break;
       case 'custom':      this.#doCustom(); break;
+      case 'custom_pose': this.#doCustomPose(); break;
       default:            this.#doIdle(); break;
     }
   }
@@ -1288,7 +1308,6 @@ export class MotionController {
   /** 播放自訂 JSON 動作軌跡（插值邏輯） */
   #doCustom() {
     if (!this.#customAnimData) return;
-    this.#applyNaturalPose(this.#elapsed);
     const durationMs = this.#customAnimData.duration_ms || 1000;
     const loop = this.#customOptions.loop ?? false;
     let timeMs = this.#elapsed * 1000;
@@ -1307,6 +1326,19 @@ export class MotionController {
       }
     }
 
+    this.#applyCustomAtTime(timeMs);
+  }
+
+  #doCustomPose() {
+    if (!this.#customAnimData) {
+      this.#finishTimedAction();
+      return;
+    }
+    this.#applyCustomAtTime(this.#customPoseTimeMs);
+  }
+
+  #applyCustomAtTime(timeMs) {
+    this.#applyNaturalPose(this.#elapsed);
     this.#lazyInitTempQ();
 
     // 1. 骨骼旋轉插值 (Slerp)
@@ -1393,6 +1425,7 @@ export class MotionController {
     this.#bones = {};
     this.#customAnimData = null;
     this.#customOptions = {};
+    this.#customPoseTimeMs = 0;
     this.#activeClip = null;
   }
 }
