@@ -58,6 +58,11 @@
   - `motion_capture_lab.html` 新增 `Run GVHMR World Motion` 實驗按鈕與 GVHMR status / yaw confidence / foot contact trace 摘要；成功取得 world motion 後，Pose Copier scrub/play sync 會透過 `AliciaWorldMotionFusion` 套用 root yaw 與 root translation。
   - `AliciaWorldMotionFusion` 追加 hips/root yaw quaternion 差值融合，保留 MotionBERT limb pose，但讓 GVHMR world yaw 真正影響 Alicia root，不只停在 metadata。
 
+- 新增 M20.5 Orientation Alignment Layer 設計規格：
+  - 新增 `docs/superpowers/specs/2026-06-18-m20-5-orientation-alignment-layer.md`，把下一階段限定為方向層 MVP：body yaw、head gaze、chest / shoulder reference-frame correction。
+  - 明確不做 full SMPL retarget、不重寫 limb retarget、不破壞 `MotionController` / `LookAtController` 責任邊界；Orientation Layer 只能修 root / gaze / chest frame，不得直接覆蓋 Alicia 四肢骨頭 rotation。
+  - 規格定義 orientation contract，包含 `bodyYawDegrees`、`headYawDegrees`、`headPitchDegrees`、`chestYawDegrees`、`shoulderRollDegrees`、confidence 與 `source` attribution，方便後續 fixture-first TDD。
+
 - 建立公司電腦 MotionBERT 本機環境：
   - 以 portable `micromamba` 建立 `conda_vm/motionBERT/env` prefix env，Python 3.10.20，並補上 MotionBERT sidecar 所需的 PyTorch、NumPy、PyYAML、EasyDict 等依賴。
   - 下載官方 Hugging Face `FT_MB_lite_MB_ft_h36m_global_lite/best_epoch.bin` checkpoint 到 MotionBERT 預設路徑，讓 `server.py` 的 real MotionBERT readiness checks 可找到 env、repo、config、checkpoint 與 sidecar。
