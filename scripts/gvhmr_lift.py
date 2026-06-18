@@ -23,13 +23,14 @@ def load_fixture(path, source, static_camera=False):
 
 
 def base_metadata(args):
+    gvhmr_root = Path(args.gvhmr_root).resolve() if args.gvhmr_root else None
     metadata = {
         "videoPath": args.video_path,
         "staticCamera": bool(args.static_camera),
         "providerVersion": PROVIDER_VERSION,
     }
-    if args.gvhmr_root:
-        metadata["gvhmrRoot"] = str(Path(args.gvhmr_root))
+    if gvhmr_root:
+        metadata["gvhmrRoot"] = str(gvhmr_root)
     return metadata
 
 
@@ -49,7 +50,7 @@ def failure(reason, args, extra_metadata=None):
 def resolve_demo_script(gvhmr_root):
     if not gvhmr_root:
         return None
-    return Path(gvhmr_root) / "tools" / "demo" / "demo.py"
+    return Path(gvhmr_root).resolve() / "tools" / "demo" / "demo.py"
 
 
 def build_demo_command(python_exe, demo_script, video_path, static_camera=False):
@@ -76,13 +77,14 @@ def provider_output_for_args(args):
         return failure("missing_video", args, {"missingPath": str(video_path)})
 
     command = build_demo_command(args.python_exe, demo_script, str(video_path), args.static_camera)
-    command_metadata = {"command": command, "cwd": str(Path(args.gvhmr_root))}
+    gvhmr_root = Path(args.gvhmr_root).resolve()
+    command_metadata = {"command": command, "cwd": str(gvhmr_root)}
     if args.dry_run:
         return failure("dry_run", args, command_metadata)
 
     result = subprocess.run(
         command,
-        cwd=str(Path(args.gvhmr_root)),
+        cwd=str(gvhmr_root),
         capture_output=True,
         encoding="utf-8",
         errors="replace",

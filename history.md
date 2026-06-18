@@ -19,6 +19,13 @@
   - 擴充 `scratch/test_world_motion_cli_stubs.mjs`，鎖定 fixture 模式不退化、GVHMR dry-run command 形狀與 `-s` 靜態相機旗標。
   - 以本機 `micromamba` 建立 ignored 的 `conda_vm/gvhmr/env`，目前為 Python 3.10.20 base env；完整 GVHMR requirements / checkpoints 尚未安裝。
 
+- 推進 M20.4 Phase 2B GVHMR 本機 bootstrap：
+  - 新增 `scripts/gvhmr_env_check.py` 與 `scratch/test_gvhmr_env_check.mjs`，可檢查 `conda_vm/gvhmr/env`、GVHMR checkout、demo script、requirements、Python imports 與 checkpoint / SMPL body model 缺口。
+  - 新增 `scripts/gvhmr_requirements_audit.py` 與 `scratch/test_gvhmr_requirements_audit.mjs`，在 pip install 前先掃出 Windows / CUDA 相容性風險。
+  - 已 clone 官方 GVHMR 到 ignored `conda_vm/gvhmr/GVHMR`，目前 commit `6ec3ca3`；`gvhmr_lift.py --dry-run` 已可對官方 sample `docs/example_video/tennis.mp4` 組出絕對路徑 demo command。
+  - 暫停直接安裝官方 `requirements.txt`：其中 `pytorch3d` 指向 `linux_x86_64.whl`，Windows env 不能安裝；`torch==2.3.0+cu121` / `torchvision==0.18.0+cu121` 也不適合公司 RTX 5060 Ti / CUDA 12.8 路線。
+  - 目前 readiness：repo / demo / requirements / Python 3.10 env 已就緒；缺 `torch` / `cv2` imports、GVHMR/HMR2/ViTPose/YOLO checkpoints，以及 SMPL / SMPLX body model 權重。
+
 - 建立公司電腦 MotionBERT 本機環境：
   - 以 portable `micromamba` 建立 `conda_vm/motionBERT/env` prefix env，Python 3.10.20，並補上 MotionBERT sidecar 所需的 PyTorch、NumPy、PyYAML、EasyDict 等依賴。
   - 下載官方 Hugging Face `FT_MB_lite_MB_ft_h36m_global_lite/best_epoch.bin` checkpoint 到 MotionBERT 預設路徑，讓 `server.py` 的 real MotionBERT readiness checks 可找到 env、repo、config、checkpoint 與 sidecar。

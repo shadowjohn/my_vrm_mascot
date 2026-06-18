@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { isAbsolute, join, relative } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
 function run(scriptName, args = []) {
@@ -63,6 +63,27 @@ assert.ok(Array.isArray(dryRun.metadata.command));
 assert.ok(dryRun.metadata.command.some((part) => String(part).replaceAll('\\', '/').endsWith('tools/demo/demo.py')));
 assert.ok(dryRun.metadata.command.includes(`--video=${videoPath}`));
 assert.ok(dryRun.metadata.command.includes('-s'));
+
+const cwdFakeRoot = mkdtempSync(join(process.cwd(), 'scratch', '.tmp-gvhmr-'));
+try {
+  mkdirSync(join(cwdFakeRoot, 'tools', 'demo'), { recursive: true });
+  writeFileSync(join(cwdFakeRoot, 'tools', 'demo', 'demo.py'), 'print("fake gvhmr")\n', 'utf8');
+  const cwdVideoPath = join(cwdFakeRoot, 'sample.mp4');
+  writeFileSync(cwdVideoPath, 'fake-video', 'utf8');
+  run('gvhmr_lift.py', [
+    '--gvhmr-root', relative(process.cwd(), cwdFakeRoot),
+    '--video-path', cwdVideoPath,
+    '--output-json', output,
+    '--dry-run'
+  ]);
+  const relativeDryRun = JSON.parse(readFileSync(output, 'utf8'));
+  assert.ok(isAbsolute(relativeDryRun.metadata.cwd));
+  assert.ok(relativeDryRun.metadata.command.some((part) => (
+    isAbsolute(String(part)) && String(part).replaceAll('\\', '/').endsWith('tools/demo/demo.py')
+  )));
+} finally {
+  rmSync(cwdFakeRoot, { recursive: true, force: true });
+}
 
 run('gvhmr_lift.py', ['--video-path', 'missing.mp4', '--output-json', output]);
 const missing = JSON.parse(readFileSync(output, 'utf8'));
