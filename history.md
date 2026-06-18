@@ -13,6 +13,7 @@
   - 根因是 `AliciaMotionPreviewAdapter.legOffsets()` 的 lower leg lateral rotation 仍沿用全腿 / 大腿方向，遇到膝蓋在外、腳踝回內的姿勢時，小腿會繼續往外甩。
   - lower leg 現在用 `knee -> ankle` segment 的 x 方向決定左右旋轉，缺少 knee landmark 時才 fallback 全腿向量；新增 `bent_knee_shin_trace` regression，鎖定小腿會跟 shin segment 回內。
   - 再收斂腿部 lateral retarget 係數與角度上限，避免寬腳踝 skeleton 在 Alicia preview 中被放大成過度劈腿；`leg_spread_trace` 現在鎖定上腿可見開腿但不可 over-abduct、小腿 lateral rotation 也有上限。
+  - 依實機 preview 視覺再將腿部 lateral stance 係數與 clamp 下修 10%，讓 Alicia 開腳程度更接近裙裝角色可接受範圍。
 
 - 新增 Alicia body-proportion skeleton retarget layer：
   - 新增 `js/AliciaSkeletonRetargeter.js`，把來源影片 / MotionBERT skeleton 視為動作意圖，先正規化成 Alicia-local 身材比例骨架，再交給 `AliciaMotionPreviewAdapter` 產生 preview bones。

@@ -625,14 +625,14 @@ assert.ok(
 );
 assert.ok(
   Math.abs(legSpreadCalls[0].bones.leftUpperLeg[1].rot[2]) > 0.12 &&
-    Math.abs(legSpreadCalls[0].bones.leftUpperLeg[1].rot[2]) < 0.36 &&
+    Math.abs(legSpreadCalls[0].bones.leftUpperLeg[1].rot[2]) < 0.245 &&
     Math.abs(legSpreadCalls[0].bones.rightUpperLeg[1].rot[2]) > 0.12 &&
-    Math.abs(legSpreadCalls[0].bones.rightUpperLeg[1].rot[2]) < 0.36,
+    Math.abs(legSpreadCalls[0].bones.rightUpperLeg[1].rot[2]) < 0.245,
   'wide skeleton ankles should produce a controlled Alicia stance without over-abducting the thighs'
 );
 assert.ok(
-  Math.abs(legSpreadCalls[0].bones.leftLowerLeg[1].rot[2]) < 0.14 &&
-    Math.abs(legSpreadCalls[0].bones.rightLowerLeg[1].rot[2]) < 0.14,
+  Math.abs(legSpreadCalls[0].bones.leftLowerLeg[1].rot[2]) < 0.085 &&
+    Math.abs(legSpreadCalls[0].bones.rightLowerLeg[1].rot[2]) < 0.085,
   'wide skeleton ankles should not over-rotate Alicia lower legs laterally'
 );
 assert.ok(
