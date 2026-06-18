@@ -615,6 +615,67 @@ assert.notDeepEqual(
   legSpreadCalls[0].bones.rightUpperLeg[1].rot,
   'wide skeleton right ankle should expand Alicia right leg instead of staying crossed'
 );
+assert.ok(
+  legSpreadCalls[0].bones.leftUpperLeg[1].rot[2] * legSpreadCalls[0].bones.rightUpperLeg[1].rot[2] < 0,
+  'wide skeleton ankles should drive left and right Alicia legs in opposite lateral directions'
+);
+assert.ok(
+  Math.abs(legSpreadCalls[0].bones.leftUpperLeg[1].rot[2]) > 0.3 &&
+    Math.abs(legSpreadCalls[0].bones.rightUpperLeg[1].rot[2]) > 0.3,
+  'wide skeleton ankles should produce a visibly open Alicia stance'
+);
+assert.ok(
+  legSpreadCalls[0].bones.leftLowerLeg[1].rot[2] * legSpreadCalls[0].bones.rightLowerLeg[1].rot[2] < 0,
+  'wide skeleton ankles should carry some lateral direction into Alicia lower legs'
+);
+
+const mirroredRetargetCalls = [];
+const preMirroredRetargetCalls = [];
+const cameraFacingClip = {
+  ...legSpreadClip,
+  id: 'camera_facing_trace',
+  retargetHints: {
+    ...legSpreadClip.retargetHints,
+    mirrorX: true
+  },
+  previewFrames: legSpreadClip.previewFrames.map((frame) => ({
+    ...frame,
+    landmarks: Object.fromEntries(
+      Object.entries(frame.landmarks).map(([name, point]) => [name, { ...point, x: -point.x }])
+    )
+  }))
+};
+const preMirroredClip = {
+  ...legSpreadClip,
+  id: 'pre_mirrored_trace',
+  retargetHints: {
+    ...legSpreadClip.retargetHints,
+    mirrorX: false
+  }
+};
+new AliciaMotionPreviewAdapter({
+  mascot: {
+    motion: {
+      playCustom(animData) {
+        mirroredRetargetCalls.push(animData);
+      }
+    }
+  }
+}).previewClip(cameraFacingClip);
+new AliciaMotionPreviewAdapter({
+  mascot: {
+    motion: {
+      playCustom(animData) {
+        preMirroredRetargetCalls.push(animData);
+      }
+    }
+  }
+}).previewClip(preMirroredClip);
+assert.deepEqual(
+  mirroredRetargetCalls[0].bones.leftUpperLeg[1].rot,
+  preMirroredRetargetCalls[0].bones.leftUpperLeg[1].rot,
+  'default retarget should mirror camera-facing x coordinates into the same Alicia-facing basis as the overlay'
+);
 
 const badPreview = preview.previewClip({ kind: 'pose_preset' });
 assert.equal(badPreview.ok, false);

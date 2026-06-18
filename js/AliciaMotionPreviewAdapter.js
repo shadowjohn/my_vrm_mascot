@@ -186,7 +186,6 @@ function armOffsets(landmarks, side, scale) {
 }
 
 function legOffsets(landmarks, side, scale) {
-  const sign = side === 'left' ? 1 : -1;
   const hips = getPoint(landmarks, 'hips');
   const knee = getOptionalPoint(landmarks, `${side}Knee`);
   const ankle = getPoint(landmarks, `${side}Ankle`);
@@ -196,7 +195,7 @@ function legOffsets(landmarks, side, scale) {
   const forwardReach = upperLeg.z * 0.65 + fullLeg.z * 0.35;
   const lateralReach = knee ? upperLeg.x * 0.36 + fullLeg.x * 0.64 : fullLeg.x;
   const swing = clamp(-forwardReach * 170 * scale, -46, 46);
-  const sideReach = clamp(lateralReach * 88 * scale, -36, 36);
+  const sideReach = clamp(lateralReach * 145 * scale, -60, 60);
   const kneeFlex = knee
     ? jointFlexionDegrees(hips, knee, ankle)
     : clamp((1.05 - Math.abs(fullLeg.y)) * 42 * scale, 0, 34);
@@ -206,12 +205,12 @@ function legOffsets(landmarks, side, scale) {
     upper: {
       x: clamp(swing, -42, 42),
       y: 0,
-      z: clamp(sign * sideReach, -24, 24)
+      z: sideReach
     },
     lower: {
       x: clamp(kneeFlex * 0.62 + lowerSwing, -10, 58),
       y: 0,
-      z: 0
+      z: clamp(sideReach * 0.32, -18, 18)
     }
   };
 }
@@ -245,8 +244,21 @@ function retargetHints(clip) {
   return {
     strideScale: finiteNumber(hints.strideScale, 1),
     armSwingScale: finiteNumber(hints.armSwingScale, 1),
-    hipBobScale: finiteNumber(hints.hipBobScale, 1)
+    hipBobScale: finiteNumber(hints.hipBobScale, 1),
+    mirrorX: hints.mirrorX === true
   };
+}
+
+function transformRetargetLandmarks(landmarks, hints) {
+  if (!hints.mirrorX) {
+    return landmarks;
+  }
+  return Object.fromEntries(
+    Object.entries(landmarks || {}).map(([name, point]) => [name, {
+      ...point,
+      x: -finiteNumber(point?.x)
+    }])
+  );
 }
 
 function buildPreviewAnimation(clip, mascot) {
@@ -264,12 +276,12 @@ function buildPreviewAnimation(clip, mascot) {
   const loopDurationMs = Math.max(300, Math.round(sourceLoopDurationMs / previewSpeed));
   const baseRotations = getBaseRotations(mascot);
   const hints = retargetHints(clip);
-  const firstHips = getPoint(previewFrames[0].landmarks, 'hips');
+  const firstHips = getPoint(transformRetargetLandmarks(previewFrames[0].landmarks, hints), 'hips');
   const bones = {};
   const hipsPosition = [];
 
   for (const previewFrame of previewFrames) {
-    const landmarks = previewFrame.landmarks;
+    const landmarks = transformRetargetLandmarks(previewFrame.landmarks, hints);
     const timeMs = clamp(Math.round((finiteNumber(previewFrame.timeMs) - loopStartMs) / previewSpeed), 0, loopDurationMs);
     const hips = getPoint(landmarks, 'hips');
     const leftArm = armOffsets(landmarks, 'left', hints.armSwingScale);

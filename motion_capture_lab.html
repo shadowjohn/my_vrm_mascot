@@ -2314,6 +2314,10 @@
         return;
       }
       clip.previewSpeed = Number($('previewSpeedSelect').value) || 1;
+      clip.retargetHints = {
+        ...(clip.retargetHints || {}),
+        mirrorX: !!state.traceOverlay?.sceneAlignmentOptions?.().mirrorX
+      };
       attachPreviewFramesToClip(clip);
       const previewAdapter = state.previewAdapter;
       const result = previewAdapter.previewClip(clip);

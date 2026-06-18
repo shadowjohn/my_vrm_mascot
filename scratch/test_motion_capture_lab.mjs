@@ -228,6 +228,7 @@ assert.match(html, /traceOverlay:\s*new TraceSkeletonOverlay\(\)/);
 assert.match(html, /function updateTraceOverlayForClip\(clip,\s*result\)/);
 assert.match(html, /state\.traceOverlay\.play\(\{[\s\S]*frames:\s*clip\.previewFrames/);
 assert.match(html, /traceOverlayToggle'\)\.addEventListener\('change'/);
+assert.match(html, /mirrorX:\s*!!state\.traceOverlay\?\.sceneAlignmentOptions\?\.\(\)\.mirrorX/);
 assert.match(html, /previewAdapter\.previewClip/);
 assert.match(html, /const clip = exportCurrentClip\(\{\s*silent:\s*true\s*\}\)/);
 assert.match(html, /attachPreviewFramesToClip\(clip\)/);
