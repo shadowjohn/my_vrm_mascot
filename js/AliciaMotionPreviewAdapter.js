@@ -195,6 +195,9 @@ function armOffsets(landmarks, side, scale) {
     ? jointFlexionDegrees(shoulder, elbow, wrist)
     : clamp((shoulder.y - wrist.y) * 80 * scale, 0, 70);
   const lowerForward = clamp(-lowerArm.z * 95 * scale, -34, 34);
+  const forearmSide = side === 'left' ? lowerArm.x : -lowerArm.x;
+  const forearmSideSign = forearmSide < -0.001 ? -1 : 1;
+  const forearmSideRoll = clamp((forearmSide * 58 + forearmSideSign * Math.abs(lowerArm.z) * 36) * scale, -28, 28);
 
   return {
     shoulder: {
@@ -210,7 +213,7 @@ function armOffsets(landmarks, side, scale) {
     lower: {
       x: clamp(lift * 0.18 + lowerForward * 0.35, -30, 30),
       y: bendSign * clamp(elbowFlex * 0.72, 0, 95),
-      z: sign * clamp((Math.abs(lowerArm.x) * 58 + Math.abs(lowerArm.z) * 36) * scale, 0, 28)
+      z: sign * forearmSideRoll
     }
   };
 }

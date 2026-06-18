@@ -497,6 +497,64 @@ assert.ok(
   'bent right hand near head should neutralize the Alicia down-pose side rotation'
 );
 
+const leftForearmDirectionCalls = [];
+const leftForearmDirectionClip = {
+  ...raisedArmClip,
+  id: 'left_forearm_direction_trace',
+  loop: { startMs: 0, endMs: 800, durationMs: 800 },
+  previewFrames: [
+    raisedArmClip.previewFrames[0],
+    {
+      timeMs: 400,
+      landmarks: {
+        hips: { x: 0, y: 1, z: 0 },
+        chest: { x: 0, y: 1.4, z: 0 },
+        leftShoulder: { x: -0.2, y: 1.5, z: 0 },
+        rightShoulder: { x: 0.2, y: 1.5, z: 0 },
+        leftElbow: { x: -0.2, y: 1.42, z: -0.04 },
+        rightElbow: { x: 0.28, y: 1.25, z: 0 },
+        leftWrist: { x: 0.06, y: 1.62, z: -0.16 },
+        rightWrist: { x: 0.33, y: 1.05, z: 0 },
+        leftKnee: { x: -0.08, y: 0.5, z: 0 },
+        rightKnee: { x: 0.08, y: 0.5, z: 0 },
+        leftAnkle: { x: -0.1, y: 0, z: 0 },
+        rightAnkle: { x: 0.1, y: 0, z: 0 }
+      }
+    },
+    {
+      timeMs: 800,
+      landmarks: {
+        hips: { x: 0, y: 1, z: 0 },
+        chest: { x: 0, y: 1.4, z: 0 },
+        leftShoulder: { x: -0.2, y: 1.5, z: 0 },
+        rightShoulder: { x: 0.2, y: 1.5, z: 0 },
+        leftElbow: { x: -0.2, y: 1.42, z: -0.04 },
+        rightElbow: { x: 0.28, y: 1.25, z: 0 },
+        leftWrist: { x: -0.46, y: 1.62, z: -0.16 },
+        rightWrist: { x: 0.33, y: 1.05, z: 0 },
+        leftKnee: { x: -0.08, y: 0.5, z: 0 },
+        rightKnee: { x: 0.08, y: 0.5, z: 0 },
+        leftAnkle: { x: -0.1, y: 0, z: 0 },
+        rightAnkle: { x: 0.1, y: 0, z: 0 }
+      }
+    }
+  ]
+};
+new AliciaMotionPreviewAdapter({
+  mascot: {
+    motion: {
+      playCustom(animData) {
+        leftForearmDirectionCalls.push(animData);
+      }
+    }
+  }
+}).previewClip(leftForearmDirectionClip);
+assert.ok(
+  leftForearmDirectionCalls[0].bones.leftLowerArm[1].rot[2] > 0.02 &&
+    leftForearmDirectionCalls[0].bones.leftLowerArm[2].rot[2] < -0.02,
+  'left lower arm side bend should follow elbow-to-wrist direction instead of using one fixed roll'
+);
+
 const frontHandCalls = [];
 const frontHandClip = {
   ...raisedArmClip,
