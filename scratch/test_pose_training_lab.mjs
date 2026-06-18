@@ -25,6 +25,14 @@ function testLabHtmlContractElements() {
   assert.match(html, /id="boneSelect"/, 'must have boneSelect dropdown');
   assert.match(html, /id="mirrorMode"/, 'must have mirrorMode checkbox');
   assert.match(html, /id="boneSliders"/, 'must have boneSliders container');
+  assert.match(html, /html,\s*body\s*\{[\s\S]*height:\s*100%;[\s\S]*overflow:\s*hidden;/, 'html/body must not create document-level scrolling');
+  assert.match(html, /body\s*\{[\s\S]*height:\s*100vh;[\s\S]*overflow:\s*hidden;/, 'body must lock to the viewport height');
+  assert.match(html, /\.topbar\s*\{[\s\S]*flex:\s*0\s+0\s+auto;/, 'topbar must not steal flexible stage height');
+  assert.match(html, /\.main-layout\s*\{[\s\S]*overflow:\s*hidden;/, 'main layout must keep center stage from growing the document');
+  assert.match(html, /\.viewport-container\s*\{[\s\S]*min-height:\s*0;[\s\S]*overflow:\s*hidden;/, 'center viewport must stay inside the remaining screen height');
+  assert.match(html, /#viewport\s*\{[\s\S]*display:\s*block;[\s\S]*min-height:\s*0;/, 'viewport must fill the center stage without adding scroll height');
+  assert.match(html, /\.sidebar\s*\{[\s\S]*min-height:\s*0;[\s\S]*overflow-y:\s*auto;/, 'left pose library panel must own its scrolling');
+  assert.match(html, /\.control-panel\s*\{[\s\S]*min-height:\s*0;[\s\S]*overflow-y:\s*auto;/, 'right control panel must own its scrolling');
 
   // QA panels check
   assert.match(html, /id="qaBalance"/, 'must have qaBalance range slider');
@@ -47,6 +55,40 @@ function testLabHtmlContractElements() {
   assert.match(html, /id="badgePlaygroundBlink"/, 'must have badgePlaygroundBlink badge');
   assert.match(html, /id="btnTestTouchFace"/, 'must have btnTestTouchFace button');
   assert.match(html, /id="btnStopPlayground"/, 'must have btnStopPlayground button');
+
+  // Motion Quality Tuner check
+  assert.match(html, /Motion Quality Tuner/, 'must have Motion Quality Tuner panel');
+  assert.match(html, /id="motionIntensity"/, 'must have motionIntensity control');
+  assert.match(html, /id="breathingAmplitude"/, 'must have breathingAmplitude control');
+  assert.match(html, /id="weightShiftAmplitude"/, 'must have weightShiftAmplitude control');
+  assert.match(html, /id="shoulderRelax"/, 'must have shoulderRelax control');
+  assert.match(html, /id="headDrift"/, 'must have headDrift control');
+  assert.match(html, /id="gestureEase"/, 'must have gestureEase control');
+  assert.match(html, /id="gestureDuration"/, 'must have gestureDuration control');
+  assert.match(html, /id="idleAsymmetry"/, 'must have idleAsymmetry control');
+  assert.match(html, /getMotionQualitySettings/, 'must collect motion quality settings');
+  assert.match(html, /applyMotionQualityTuner/, 'must apply tuner settings live');
+  assert.match(html, /motionQualityInputs/, 'must bind tuner input events');
+
+  // Viewport bone picking check
+  assert.match(html, /const\s+BONE_PICK_TARGETS\s*=\s*\[/, 'must define viewport bone picking targets');
+  assert.match(html, /bone:\s*['"]hips['"]/, 'bone picking must include hips');
+  assert.match(html, /bone:\s*['"]chest['"]/, 'bone picking must include chest');
+  assert.match(html, /bone:\s*['"]rightHand['"]/, 'bone picking must include hands');
+  assert.match(html, /function\s+projectBonePickTarget\s*\(/, 'must project bone targets into viewport space');
+  assert.match(html, /function\s+findNearestBonePickTarget\s*\(/, 'must find nearest bone pick target');
+  assert.match(html, /function\s+selectBoneFromViewportClick\s*\(/, 'must select a bone from viewport click');
+  assert.match(html, /els\.boneSelect\.value\s*=\s*picked\.bone/, 'viewport click must update boneSelect');
+  assert.match(html, /renderBoneSliders\(\)/, 'viewport click must refresh bone sliders');
+  assert.match(html, /function\s+bindViewportBonePicking\s*\(/, 'must bind viewport bone picking');
+  assert.match(html, /addEventListener\(\s*['"]click['"]\s*,\s*selectBoneFromViewportClick\s*\)/, 'must listen for viewport click events');
+  assert.match(html, /bindViewportBonePicking\(\);/, 'must bind bone picking after mascot load');
+
+  // Pose Lab camera framing check
+  assert.match(html, /function\s+configurePoseLabCamera\s*\(\s*mascotInstance\s*\)/, 'must define Pose Lab camera framing helper');
+  assert.match(html, /camera\.position\.set\(\s*0(?:\.0)?,\s*0\.48,\s*7\.2\s*\)/, 'must start with a lower and farther default camera distance');
+  assert.match(html, /controls\.target\.set\(\s*0(?:\.0)?,\s*-0\.36,\s*0(?:\.0)?\s*\)/, 'must target the full body near the viewport center');
+  assert.match(html, /await\s+mascot\.load\('models\/mascot\.vrm'\);\s*configurePoseLabCamera\(mascot\);/s, 'must apply Pose Lab camera framing after VRM load');
 
   // Auto Director check
   assert.match(html, /id="chkAutoDirector"/, 'must have chkAutoDirector checkbox');

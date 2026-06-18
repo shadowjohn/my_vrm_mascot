@@ -24,17 +24,25 @@
       box-sizing: border-box;
     }
 
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
     body {
       margin: 0;
       background: var(--bg);
       color: var(--text);
       font-family: "Segoe UI", "Noto Sans TC", sans-serif;
+      height: 100vh;
       min-height: 100vh;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
     }
 
     .topbar {
+      flex: 0 0 auto;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -72,10 +80,11 @@
     }
 
     .main-layout {
-      flex: 1;
+      flex: 1 1 auto;
       display: grid;
       grid-template-columns: 280px 1fr 400px;
       min-height: 0;
+      overflow: hidden;
     }
 
     /* Left Sidebar */
@@ -83,6 +92,7 @@
       background: rgba(16, 24, 39, 0.6);
       border-right: 1px solid var(--line);
       padding: 16px;
+      min-height: 0;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -156,12 +166,20 @@
     /* Center Stage */
     .viewport-container {
       position: relative;
+      min-height: 0;
+      overflow: hidden;
       background: radial-gradient(circle at 50% 50%, #111e2f 0%, #07111f 100%);
     }
 
     #viewport {
+      display: block;
       width: 100%;
       height: 100%;
+      min-height: 0;
+    }
+
+    .viewport-container canvas {
+      cursor: crosshair;
     }
 
     .viewport-overlay {
@@ -182,6 +200,7 @@
       background: var(--panel);
       border-left: 1px solid var(--line);
       padding: 20px;
+      min-height: 0;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -629,6 +648,69 @@
         <button id="btnStopPlayground" class="btn btn-danger" style="width: 100%; padding: 8px; font-size: 13.5px;">停止遊樂場預覽 (Stop)</button>
       </section>
 
+      <!-- Motion Quality Tuner -->
+      <section class="panel-section">
+        <h2>Motion Quality Tuner <span id="lblMotionIntensity" class="badge badge-gray">1x</span></h2>
+        <div class="form-group">
+          <label for="motionIntensity">整體動作強度 (motionIntensity)</label>
+          <select id="motionIntensity">
+            <option value="0.5">0.5x quiet</option>
+            <option value="1" selected>1x normal</option>
+            <option value="1.5">1.5x expressive</option>
+            <option value="2">2x stage</option>
+          </select>
+        </div>
+        <div class="score-row">
+          <span>呼吸幅度</span>
+          <div>
+            <input type="range" id="breathingAmplitude" min="0" max="2" step="0.1" value="1">
+            <span id="lblBreathingAmplitude" style="margin-left: 6px; font-family: monospace;">1.0</span>
+          </div>
+        </div>
+        <div class="score-row">
+          <span>重心位移</span>
+          <div>
+            <input type="range" id="weightShiftAmplitude" min="0" max="2" step="0.1" value="1">
+            <span id="lblWeightShiftAmplitude" style="margin-left: 6px; font-family: monospace;">1.0</span>
+          </div>
+        </div>
+        <div class="score-row">
+          <span>肩頸放鬆</span>
+          <div>
+            <input type="range" id="shoulderRelax" min="0" max="2" step="0.1" value="1">
+            <span id="lblShoulderRelax" style="margin-left: 6px; font-family: monospace;">1.0</span>
+          </div>
+        </div>
+        <div class="score-row">
+          <span>頭部漂移</span>
+          <div>
+            <input type="range" id="headDrift" min="0" max="2" step="0.1" value="1">
+            <span id="lblHeadDrift" style="margin-left: 6px; font-family: monospace;">1.0</span>
+          </div>
+        </div>
+        <div class="score-row">
+          <span>手勢 easing</span>
+          <div>
+            <input type="range" id="gestureEase" min="0.5" max="2" step="0.1" value="1">
+            <span id="lblGestureEase" style="margin-left: 6px; font-family: monospace;">1.0</span>
+          </div>
+        </div>
+        <div class="score-row">
+          <span>手勢時長</span>
+          <div>
+            <input type="range" id="gestureDuration" min="0.5" max="2" step="0.1" value="1">
+            <span id="lblGestureDuration" style="margin-left: 6px; font-family: monospace;">1.0</span>
+          </div>
+        </div>
+        <div class="score-row">
+          <span>Idle 不對稱</span>
+          <div>
+            <input type="range" id="idleAsymmetry" min="0" max="2" step="0.1" value="1">
+            <span id="lblIdleAsymmetry" style="margin-left: 6px; font-family: monospace;">1.0</span>
+          </div>
+        </div>
+      </section>
+
       <!-- Static QA checklist -->
       <section class="panel-section">
         <h2>Static QA 姿勢檢核</h2>
@@ -719,6 +801,27 @@
     };
     const MIRROR_INVERT_AXES = new Set(["y", "z"]);
 
+    const BONE_PICK_RADIUS_PX = 42;
+    const BONE_PICK_TARGETS = [
+      { bone: 'hips', label: 'hips / 骨盆', radius: 48 },
+      { bone: 'spine', label: 'spine / 脊椎', radius: 44 },
+      { bone: 'chest', label: 'chest / 胸部', radius: 50 },
+      { bone: 'leftShoulder', label: 'leftShoulder / 左肩膀', radius: 40 },
+      { bone: 'rightShoulder', label: 'rightShoulder / 右肩膀', radius: 40 },
+      { bone: 'leftUpperArm', label: 'leftUpperArm / 左上臂', radius: 38 },
+      { bone: 'rightUpperArm', label: 'rightUpperArm / 右上臂', radius: 38 },
+      { bone: 'leftLowerArm', label: 'leftLowerArm / 左前臂', radius: 38 },
+      { bone: 'rightLowerArm', label: 'rightLowerArm / 右前臂', radius: 38 },
+      { bone: 'leftHand', label: 'leftHand / 左手掌', radius: 40 },
+      { bone: 'rightHand', label: 'rightHand / 右手掌', radius: 40 },
+      { bone: 'leftUpperLeg', label: 'leftUpperLeg / 左大腿', radius: 42 },
+      { bone: 'rightUpperLeg', label: 'rightUpperLeg / 右大腿', radius: 42 },
+      { bone: 'leftLowerLeg', label: 'leftLowerLeg / 左小腿', radius: 38 },
+      { bone: 'rightLowerLeg', label: 'rightLowerLeg / 右小腿', radius: 38 },
+      { bone: 'leftFoot', label: 'leftFoot / 左腳踝', radius: 38 },
+      { bone: 'rightFoot', label: 'rightFoot / 右腳踝', radius: 38 }
+    ];
+
     let mascot = null;
     let poseLibrary = {};
     let activePoseId = null;
@@ -797,20 +900,139 @@
       btnTestTouchFace: document.getElementById('btnTestTouchFace'),
       btnTestStretch: document.getElementById('btnTestStretch'),
       btnStopPlayground: document.getElementById('btnStopPlayground'),
+      motionIntensity: document.getElementById('motionIntensity'),
+      lblMotionIntensity: document.getElementById('lblMotionIntensity'),
+      breathingAmplitude: document.getElementById('breathingAmplitude'),
+      lblBreathingAmplitude: document.getElementById('lblBreathingAmplitude'),
+      weightShiftAmplitude: document.getElementById('weightShiftAmplitude'),
+      lblWeightShiftAmplitude: document.getElementById('lblWeightShiftAmplitude'),
+      shoulderRelax: document.getElementById('shoulderRelax'),
+      lblShoulderRelax: document.getElementById('lblShoulderRelax'),
+      headDrift: document.getElementById('headDrift'),
+      lblHeadDrift: document.getElementById('lblHeadDrift'),
+      gestureEase: document.getElementById('gestureEase'),
+      lblGestureEase: document.getElementById('lblGestureEase'),
+      gestureDuration: document.getElementById('gestureDuration'),
+      lblGestureDuration: document.getElementById('lblGestureDuration'),
+      idleAsymmetry: document.getElementById('idleAsymmetry'),
+      lblIdleAsymmetry: document.getElementById('lblIdleAsymmetry'),
       chkAutoDirector: document.getElementById('chkAutoDirector'),
       txtAutoDirectorStatus: document.getElementById('txtAutoDirectorStatus'),
       txtAutoDirectorEligible: document.getElementById('txtAutoDirectorEligible'),
       txtAutoDirectorLastAction: document.getElementById('txtAutoDirectorLastAction'),
       txtAutoDirectorTouchFaceSec: document.getElementById('txtAutoDirectorTouchFaceSec'),
       txtAutoDirectorStretchSec: document.getElementById('txtAutoDirectorStretchSec'),
-      txtAutoDirectorCooldownSec: document.getElementById('txtAutoDirectorCooldownSec')
+      txtAutoDirectorCooldownSec: document.getElementById('txtAutoDirectorCooldownSec'),
+      motionQualityInputs: [
+        document.getElementById('motionIntensity'),
+        document.getElementById('breathingAmplitude'),
+        document.getElementById('weightShiftAmplitude'),
+        document.getElementById('shoulderRelax'),
+        document.getElementById('headDrift'),
+        document.getElementById('gestureEase'),
+        document.getElementById('gestureDuration'),
+        document.getElementById('idleAsymmetry')
+      ]
     };
+
+    function configurePoseLabCamera(mascotInstance) {
+      const context = mascotInstance?.getSceneContext?.();
+      const camera = context?.camera;
+      const controls = context?.controls;
+      if (!camera) return;
+
+      camera.fov = 32;
+      camera.position.set(0, 0.48, 7.2);
+      camera.updateProjectionMatrix?.();
+
+      if (controls) {
+        controls.target.set(0, -0.36, 0);
+        controls.minDistance = Math.max(controls.minDistance ?? 2.2, 2.2);
+        controls.maxDistance = Math.max(controls.maxDistance ?? 10, 10);
+        controls.update?.();
+      } else {
+        camera.lookAt?.(0, -0.36, 0);
+      }
+    }
+
+    function getBonePickCanvas() {
+      const context = mascot?.getSceneContext?.();
+      return context?.renderer?.domElement || els.viewport.querySelector('canvas');
+    }
+
+    function projectBonePickTarget(target, context, rect) {
+      const camera = context?.camera;
+      const boneNode = mascot?._getBoneNode?.(target.bone);
+      if (!camera || !boneNode || !rect?.width || !rect?.height) return null;
+
+      const worldPosition = new THREE.Vector3();
+      boneNode.getWorldPosition(worldPosition);
+      const projected = worldPosition.clone().project(camera);
+      if (projected.z < -1 || projected.z > 1) return null;
+
+      return {
+        bone: target.bone,
+        label: target.label || target.bone,
+        radius: target.radius || BONE_PICK_RADIUS_PX,
+        x: (projected.x * 0.5 + 0.5) * rect.width,
+        y: (-projected.y * 0.5 + 0.5) * rect.height
+      };
+    }
+
+    function findNearestBonePickTarget(event) {
+      if (!mascot?.isLoaded) return null;
+
+      const context = mascot.getSceneContext?.();
+      const canvas = getBonePickCanvas();
+      if (!context?.camera || !canvas) return null;
+
+      const rect = canvas.getBoundingClientRect();
+      const pointerX = event.clientX - rect.left;
+      const pointerY = event.clientY - rect.top;
+      let nearest = null;
+
+      for (const target of BONE_PICK_TARGETS) {
+        const projected = projectBonePickTarget(target, context, rect);
+        if (!projected) continue;
+
+        const distance = Math.hypot(pointerX - projected.x, pointerY - projected.y);
+        if (distance > projected.radius) continue;
+
+        if (!nearest || distance < nearest.distance) {
+          nearest = { ...projected, distance };
+        }
+      }
+
+      return nearest;
+    }
+
+    function selectBoneFromViewportClick(event) {
+      const picked = findNearestBonePickTarget(event);
+      if (!picked) return false;
+
+      els.boneSelect.value = picked.bone;
+      renderBoneSliders();
+      setStatus(`已選擇骨骼: ${picked.label}`);
+      event.preventDefault();
+      return true;
+    }
+
+    function bindViewportBonePicking() {
+      const canvas = getBonePickCanvas();
+      if (!canvas || canvas.dataset.poseBonePicking === '1') return;
+
+      canvas.dataset.poseBonePicking = '1';
+      canvas.title = '點 Alicia 身體部位即可選擇對應骨骼';
+      canvas.addEventListener('click', selectBoneFromViewportClick);
+    }
 
     // Initialize 3D Mascot
     async function initMascot() {
       try {
         mascot = new VrmMascot(els.viewport, { orbitControls: true, grid: true });
         await mascot.load('models/mascot.vrm');
+        configurePoseLabCamera(mascot);
+        bindViewportBonePicking();
         setStatus('吉祥物載入完成');
         // Initial setup of bone sliders
         renderBoneSliders();
@@ -1155,6 +1377,51 @@
 
     let playgroundActiveLevel = null; // null | 0-4
 
+    function readMotionQualityNumber(el, fallback = 1) {
+      const value = Number(el?.value);
+      return Number.isFinite(value) ? value : fallback;
+    }
+
+    function getMotionQualitySettings() {
+      return {
+        motionIntensity: readMotionQualityNumber(els.motionIntensity, 1),
+        breathingAmplitude: readMotionQualityNumber(els.breathingAmplitude, 1),
+        weightShiftAmplitude: readMotionQualityNumber(els.weightShiftAmplitude, 1),
+        shoulderRelax: readMotionQualityNumber(els.shoulderRelax, 1),
+        headDrift: readMotionQualityNumber(els.headDrift, 1),
+        gestureEase: readMotionQualityNumber(els.gestureEase, 1),
+        gestureDuration: readMotionQualityNumber(els.gestureDuration, 1),
+        idleAsymmetry: readMotionQualityNumber(els.idleAsymmetry, 1)
+      };
+    }
+
+    function updateMotionQualityLabels() {
+      const quality = getMotionQualitySettings();
+      els.lblMotionIntensity.textContent = `${quality.motionIntensity}x`;
+      els.lblBreathingAmplitude.textContent = quality.breathingAmplitude.toFixed(1);
+      els.lblWeightShiftAmplitude.textContent = quality.weightShiftAmplitude.toFixed(1);
+      els.lblShoulderRelax.textContent = quality.shoulderRelax.toFixed(1);
+      els.lblHeadDrift.textContent = quality.headDrift.toFixed(1);
+      els.lblGestureEase.textContent = quality.gestureEase.toFixed(1);
+      els.lblGestureDuration.textContent = quality.gestureDuration.toFixed(1);
+      els.lblIdleAsymmetry.textContent = quality.idleAsymmetry.toFixed(1);
+    }
+
+    function applyMotionQualityTuner() {
+      updateMotionQualityLabels();
+      if (!mascot || !mascot.humanMotion) return;
+
+      const quality = getMotionQualitySettings();
+      const profile = els.humanizationProfile.value || 'alicia';
+      const level = playgroundActiveLevel ?? Number(els.humanizationLevel.value || 2);
+      mascot.humanMotion.configure({ profile, level, ...quality });
+
+      if (playgroundActiveLevel !== null) {
+        mascot.enableHumanization({ profile, level: playgroundActiveLevel, ...quality });
+        setStatus(`Motion Quality Tuner 已套用 (${quality.motionIntensity}x)`);
+      }
+    }
+
     function setPlaygroundLevel(level) {
       if (level === null) {
         playgroundActiveLevel = null;
@@ -1182,7 +1449,7 @@
 
       if (mascot) {
         const profile = els.humanizationProfile.value || 'alicia';
-        mascot.enableHumanization({ profile, level: playgroundActiveLevel });
+        mascot.enableHumanization({ profile, level: playgroundActiveLevel, ...getMotionQualitySettings() });
         setStatus(`已啟用遊樂場預覽 (Level ${playgroundActiveLevel})`);
       }
 
@@ -1347,6 +1614,11 @@
           autoDirector.configure({ enabled, level: playgroundActiveLevel || 0 });
         }
       });
+
+      els.motionQualityInputs.forEach(input => {
+        input.addEventListener('input', applyMotionQualityTuner);
+        input.addEventListener('change', applyMotionQualityTuner);
+      });
     }
 
     // App Initialization
@@ -1357,6 +1629,7 @@
         gestureCooldownSec: 8
       });
       bindUiEvents();
+      updateMotionQualityLabels();
       await initMascot();
       await loadPoseLibrary();
       startPlaygroundStatusLoop();

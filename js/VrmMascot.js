@@ -530,10 +530,18 @@ export class VrmMascot {
    * @param {object} params
    * @param {string} [params.profile="alicia"]
    * @param {number} [params.level=2]
+   * @param {number} [params.motionIntensity=1]
+   * @param {number} [params.breathingAmplitude=1]
+   * @param {number} [params.weightShiftAmplitude=1]
+   * @param {number} [params.shoulderRelax=1]
+   * @param {number} [params.headDrift=1]
+   * @param {number} [params.gestureEase=1]
+   * @param {number} [params.gestureDuration=1]
+   * @param {number} [params.idleAsymmetry=1]
    */
-  enableHumanization({ profile = "alicia", level = 2 } = {}) {
+  enableHumanization({ profile = "alicia", level = 2, ...quality } = {}) {
     this.#motion.setIdleMicroMotionEnabled(false);
-    this.#humanMotion.configure({ profile, level });
+    this.#humanMotion.configure({ profile, level, ...quality });
     this.#humanMotion.setEnabled(true);
   }
 

@@ -7,6 +7,8 @@ globalThis.THREE = {
     Spine: 'spine',
     Chest: 'chest',
     Hips: 'hips',
+    Neck: 'neck',
+    Head: 'head',
     LeftUpperArm: 'leftUpperArm',
     LeftLowerArm: 'leftLowerArm',
     RightUpperArm: 'rightUpperArm',
@@ -154,6 +156,102 @@ async function testLevel4Stretch() {
   assert.notEqual(vrm.bones.chest.rotation.x, 0);
 }
 
+async function testQualityTunerScalesBreathingAndWeightShift() {
+  const normalLayer = new HumanMotionLayer();
+  const normalVrm = createFakeVrm();
+  normalLayer.setVrm(normalVrm);
+  normalLayer.configure({ profile: 'alicia', level: 2 });
+  normalLayer.setEnabled(true);
+  normalLayer.update(0.5, { currentAction: 'idle', isVrmaActive: false });
+
+  const tunedLayer = new HumanMotionLayer();
+  const tunedVrm = createFakeVrm();
+  tunedLayer.setVrm(tunedVrm);
+  tunedLayer.configure({
+    profile: 'alicia',
+    level: 2,
+    motionIntensity: 2,
+    breathingAmplitude: 1.5,
+    weightShiftAmplitude: 1.5
+  });
+  tunedLayer.setEnabled(true);
+  tunedLayer.update(0.5, { currentAction: 'idle', isVrmaActive: false });
+
+  assert.ok(
+    Math.abs(tunedVrm.bones.chest.rotation.x) > Math.abs(normalVrm.bones.chest.rotation.x),
+    'breathingAmplitude and motionIntensity should scale chest breathing'
+  );
+  assert.ok(
+    Math.abs(tunedVrm.bones.hips.position.x) > Math.abs(normalVrm.bones.hips.position.x),
+    'weightShiftAmplitude and motionIntensity should scale hips weight shift'
+  );
+  assert.equal(tunedLayer.debugState.quality.motionIntensity, 2);
+}
+
+async function testIdleAsymmetryAndHeadDrift() {
+  const layer = new HumanMotionLayer();
+  const vrm = createFakeVrm();
+  layer.setVrm(vrm);
+  layer.configure({
+    profile: 'alicia',
+    level: 2,
+    shoulderRelax: 1,
+    headDrift: 1,
+    idleAsymmetry: 1
+  });
+  layer.setEnabled(true);
+
+  layer.update(0.5, { currentAction: 'idle', isVrmaActive: false });
+
+  assert.notEqual(vrm.bones.leftShoulder.rotation.z, vrm.bones.rightShoulder.rotation.z);
+  assert.notEqual(vrm.bones.leftHand.rotation.z, vrm.bones.rightHand.rotation.z);
+  assert.notEqual(vrm.bones.head.rotation.y, 0);
+  assert.notEqual(vrm.bones.hips.rotation.y, 0);
+}
+
+async function testTouchFaceUsesAnticipationActionRecovery() {
+  const layer = new HumanMotionLayer();
+  const vrm = createFakeVrm();
+  layer.setVrm(vrm);
+  layer.configure({
+    profile: 'alicia',
+    level: 3,
+    gestureEase: 1.4,
+    gestureDuration: 2
+  });
+  layer.setEnabled(true);
+
+  layer.triggerGesture('touch_face');
+  layer.update(0.4, { currentAction: 'idle', isVrmaActive: false });
+  assert.equal(layer.debugState.gesturePhase, 'anticipation');
+  assert.equal(layer.debugState.gestureDurationSec, 6);
+
+  const anticipationAmount = Math.abs(vrm.bones.rightUpperArm.rotation.z);
+  layer.update(1.2, { currentAction: 'idle', isVrmaActive: false });
+  assert.equal(layer.debugState.gesturePhase, 'action');
+  assert.ok(Math.abs(vrm.bones.rightUpperArm.rotation.z) > anticipationAmount);
+
+  layer.update(3.0, { currentAction: 'idle', isVrmaActive: false });
+  assert.equal(layer.debugState.gesturePhase, 'recovery');
+}
+
+async function testStretchLinksChestShouldersAndHead() {
+  const layer = new HumanMotionLayer();
+  const vrm = createFakeVrm();
+  layer.setVrm(vrm);
+  layer.configure({ profile: 'alicia', level: 4, gestureDuration: 1 });
+  layer.setEnabled(true);
+
+  layer.triggerGesture('stretch');
+  layer.update(1.2, { currentAction: 'idle', isVrmaActive: false });
+
+  assert.equal(layer.debugState.gesturePhase, 'action');
+  assert.notEqual(vrm.bones.leftShoulder.rotation.z, 0);
+  assert.notEqual(vrm.bones.rightShoulder.rotation.z, 0);
+  assert.notEqual(vrm.bones.chest.rotation.x, 0);
+  assert.notEqual(vrm.bones.head.rotation.x, 0);
+}
+
 // 6. Non-idle actions and VRMA-active state do not apply overlays
 async function testConstraints() {
   const layer = new HumanMotionLayer();
@@ -179,6 +277,10 @@ const tests = [
   testLevel2WeightShift,
   testLevel3TouchFace,
   testLevel4Stretch,
+  testQualityTunerScalesBreathingAndWeightShift,
+  testIdleAsymmetryAndHeadDrift,
+  testTouchFaceUsesAnticipationActionRecovery,
+  testStretchLinksChestShouldersAndHead,
   testConstraints
 ];
 

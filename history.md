@@ -94,6 +94,16 @@
   - 修正 lab source 切換時的 webcam stream cleanup：重新啟動 webcam 或切換到 video file 前會停止既有 `MediaStreamTrack`，避免攝影機在頁面 session 中殘留啟用。
   - 補齊 M20.3 regression tests：資料契約、Skeleton JSON adapter、pose estimator adapter registry、cycle detector、motion clip exporter、preview adapter 與 lab page contract；測試涵蓋 malformed input、missing model fallback、retarget hint fallback、missing frame marker 與 sample -> seed -> export 行為。
 
+- 新增 M20.2 Motion Quality Tuner：
+  - 擴充 `HumanMotionLayer.configure()`，加入 `motionIntensity`、`breathingAmplitude`、`weightShiftAmplitude`、`shoulderRelax`、`headDrift`、`gestureEase`、`gestureDuration`、`idleAsymmetry` 等可選參數，預設倍率維持 1，未啟用 humanization 時不改 production default。
+  - 強化 idle overlay：Level 1 呼吸連動 spine/chest/hips/shoulders，Level 2 加入重心轉移、head/neck drift 與左右肩/手腕/hips 的不對稱微動，避免站姿完全鏡像死僵。
+  - 重做 `touch_face` 與 `stretch` 手勢 envelope，改成 anticipation / action / recovery 三段式，並讓 stretch 串起胸口、肩膀與頭部連動。
+  - 在 `pose_training_lab.html` 新增 Motion Quality Tuner panel，可即時調整 motion intensity、呼吸、重心、肩頸、頭部、手勢 easing/時長與 idle asymmetry；Stop Playground 仍走 `disableHumanization()` 回復原 idle 管線。
+  - 修正 `pose_training_lab.html` 初始 preview camera framing：Lab 載入 VRM 後會覆寫成更低、更遠的全身視角，避免沿用 core 預設近距離相機時只看到頭頂，並讓 Alicia 盡量落在畫面中央。
+  - 修正 Pose Training Lab layout：鎖定 `html/body` 為 viewport 高度並關閉 document-level scroll，讓左右面板各自滾動，中間 WebGL stage 不再被右側內容撐高而誤判人物位置。
+  - 新增 Pose Training Lab Click-to-Select Bone：在 Lab canvas 點擊 Alicia 身體部位時，會將對應骨骼 world position 投影為熱區並自動切換右側 `boneSelect` 與骨骼 slider；此功能只作用於 Lab，不修改 `VrmMascot` core public API。
+  - 擴充 `scratch/test_human_motion_layer.mjs` 與 `scratch/test_pose_training_lab.mjs`，驗證調參倍率、idle 不對稱、gesture phase、stretch 連動與 lab UI contract。
+
 - 新增 M21 Scene Object Interaction Demo Adapter：
   - 新增 `js/SceneObjectAdapter.js`，提供 `registerObject()`、`listObjects()`、`getObject()` 與 `perform()`，支援 deterministic listing、duplicate guard、replace、unknown object / unknown verb 安全回傳，以及 callback dispatcher。
   - 升級 `demo.php` 的 Alicia Scene Playground，註冊 `cake`、`release_box`、`warning_probe` 三個 3D prop 物件，並加入 DOM-only `asset_manifest_panel` 與 `terminal_panel`，先在 demo 層驗證 object + verb 語意模型。
