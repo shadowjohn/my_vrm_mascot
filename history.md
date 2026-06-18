@@ -68,6 +68,11 @@
   - `AliciaMotionPreviewAdapter.previewPoseAtTimeMs()` 新增 `orientationTransform`，先生成原本 limb pose，再只修 chest / spine reference frame 與 `LookAtController.setPreviewGaze()`；測試鎖住 Orientation Layer 不直接改 Alicia 四肢骨頭 rotation。
   - Motion Capture Lab 新增 Orientation Layer / Body Yaw / Head Gaze / Chest Align read-only diagnostics，Pose Copier scrub/play sync 會同步估測並顯示方向層狀態。
 
+- 新增 M20.6 Contact & Foot Lock Layer 設計規格：
+  - 新增 `docs/superpowers/specs/2026-06-18-m20-6-contact-foot-lock-layer.md`，把下一階段限定為 soft foot lock MVP：footContact trace、planted foot lock、root translation smoothing、stride phase diagnostics。
+  - 明確不做 full SMPL retarget、不做 full IK、不用 contact layer 直接覆蓋 Alicia 大腿 / 小腿 rotation；MVP 優先用 root / hips compensation 減少腳滑。
+  - 規格定義 contact contract，包含 `contact`、per-foot confidence、`plantedFoot`、raw/smoothed root translation、root drift、stride phase 與 source attribution，並保留 GVHMR 缺失時的 skeleton fallback。
+
 - 建立公司電腦 MotionBERT 本機環境：
   - 以 portable `micromamba` 建立 `conda_vm/motionBERT/env` prefix env，Python 3.10.20，並補上 MotionBERT sidecar 所需的 PyTorch、NumPy、PyYAML、EasyDict 等依賴。
   - 下載官方 Hugging Face `FT_MB_lite_MB_ft_h36m_global_lite/best_epoch.bin` checkpoint 到 MotionBERT 預設路徑，讓 `server.py` 的 real MotionBERT readiness checks 可找到 env、repo、config、checkpoint 與 sidecar。
