@@ -45,6 +45,13 @@
   - `stop_server.bat` 現在與 `run_server.bat` 一樣優先使用 `conda_vm/server/env/python.exe`，缺 env 時提示先跑 `conda_vm/server_build_conda_env.bat` 並 fallback 系統 Python。
   - 擴充 `scratch/test_conda_env_build_assets.mjs` 並新增 `scratch/test_stop_server_script.mjs`，鎖定 run/stop 都使用 server env，且 stop script 可安全 dry-run。
 
+- 完成 Windows / CUDA 12.8 / RTX 5060 Ti 的 PyTorch3D source build 實測：
+  - 先查 upstream 狀態：`facebookresearch/pytorch3d#1689` 的 Windows `long -> int64_t` 修補在目前 main 已不需要；`#1970` 仍是 CUDA 12.8 / RTX 50 系列編譯風險；`#2037` 是 modern packaging 修補但不是本次 CUDA crash 主因；第三方 MiroPsota index 有 `pt2.11.0cu128` wheel，但本次優先走本機 source build。
+  - `conda_vm/gvhmr/env` 以 `torch==2.11.0+cu128`、CUDA 12.8、RTX 5060 Ti `sm_120`，從 `facebookresearch/pytorch3d` main commit `7f8a8a1` 成功編出並安裝 `pytorch3d 0.7.9`。
+  - 踩雷紀錄：VS2026 / MSVC `14.51.36231` 會讓 `nvcc` 在 `cudafe++` 階段以 `0xC0000005 ACCESS_VIOLATION` 失敗；改用 VS2022 Community / MSVC `14.44.35207` 後可通過 67 個 extension object、link 與 install。
+  - 成功參數：`DISTUTILS_USE_SDK=1`、`CUDA_HOME=C:\cuda\12.8`、`CUDA_PATH=C:\cuda\12.8`、`FORCE_CUDA=1`、`TORCH_CUDA_ARCH_LIST=12.0`、`NVCC_FLAGS=-allow-unsupported-compiler`、`MAX_JOBS=4`。
+  - 驗證通過：`pytorch3d._C.cp310-win_amd64.pyd` 可 import，CUDA `pytorch3d.ops.knn_points()` 在 5060 Ti 上回傳 finite tensor；`scripts/gvhmr_env_check.py` 的 `torch` / `cv2` / `pytorch3d` / `hmr4d` imports 已全綠，剩 GVHMR/HMR2/ViTPose/YOLO checkpoints 與 SMPL/SMPLX body model 權重未補。
+
 - 建立公司電腦 MotionBERT 本機環境：
   - 以 portable `micromamba` 建立 `conda_vm/motionBERT/env` prefix env，Python 3.10.20，並補上 MotionBERT sidecar 所需的 PyTorch、NumPy、PyYAML、EasyDict 等依賴。
   - 下載官方 Hugging Face `FT_MB_lite_MB_ft_h36m_global_lite/best_epoch.bin` checkpoint 到 MotionBERT 預設路徑，讓 `server.py` 的 real MotionBERT readiness checks 可找到 env、repo、config、checkpoint 與 sidecar。

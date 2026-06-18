@@ -18,6 +18,9 @@ opencv-python==4.11.0.86
 ffmpeg-python==0.2.0
 scikit-image==0.24.0
 termcolor==3.3.0
+fvcore==0.1.5.post20221221
+iopath==0.1.10
+ninja==1.13.0
 einops==0.8.2
 imageio==2.34.1
 av==13.0.0
@@ -31,5 +34,7 @@ ultralytics==8.2.42
 cython_bbox==0.1.5
 lapx==0.9.4
 
-# Native Windows blocker:
+# Native Windows note:
 # pytorch3d @ https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py310_cu121_pyt230/pytorch3d-0.7.6-cp310-cp310-linux_x86_64.whl
+# Use source build on RTX 50 / CUDA 12.8 machines. Prefer VS2022 MSVC 14.44
+# over VS2026 MSVC 14.51, which can crash nvcc cudafe++ with 0xC0000005.
