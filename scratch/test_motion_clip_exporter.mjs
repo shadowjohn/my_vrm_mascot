@@ -555,6 +555,45 @@ assert.ok(
   'left lower arm side bend should follow elbow-to-wrist direction instead of using one fixed roll'
 );
 
+const sideReachCalls = [];
+const sideReachClip = {
+  ...raisedArmClip,
+  id: 'side_reach_lower_arm_trace',
+  previewFrames: [
+    raisedArmClip.previewFrames[0],
+    {
+      timeMs: 400,
+      landmarks: {
+        hips: { x: 0, y: 1, z: 0 },
+        chest: { x: 0, y: 1.42, z: 0 },
+        leftShoulder: { x: 0.15, y: 1.39, z: -0.04 },
+        rightShoulder: { x: -0.2, y: 1.5, z: 0 },
+        leftElbow: { x: 0.33, y: 1.18, z: -0.05 },
+        rightElbow: { x: -0.28, y: 1.24, z: 0 },
+        leftWrist: { x: 0.54, y: 1.13, z: -0.07 },
+        rightWrist: { x: -0.34, y: 1.05, z: 0 },
+        leftKnee: { x: -0.08, y: 0.5, z: 0 },
+        rightKnee: { x: 0.08, y: 0.5, z: 0 },
+        leftAnkle: { x: -0.1, y: 0, z: 0 },
+        rightAnkle: { x: 0.1, y: 0, z: 0 }
+      }
+    }
+  ]
+};
+new AliciaMotionPreviewAdapter({
+  mascot: {
+    motion: {
+      playCustom(animData) {
+        sideReachCalls.push(animData);
+      }
+    }
+  }
+}).previewClip(sideReachClip);
+assert.ok(
+  Math.abs(sideReachCalls[0].bones.leftLowerArm[1].rot[1]) < 0.23,
+  'low side reach should keep Alicia forearm mostly extended instead of folding sharply downward'
+);
+
 const frontHandCalls = [];
 const frontHandClip = {
   ...raisedArmClip,

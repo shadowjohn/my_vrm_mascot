@@ -194,6 +194,12 @@ function armOffsets(landmarks, side, scale) {
   const elbowFlex = elbow
     ? jointFlexionDegrees(shoulder, elbow, wrist)
     : clamp((shoulder.y - wrist.y) * 80 * scale, 0, 70);
+  const sideReachContinues = Math.sign(upperArm.x) === Math.sign(lowerArm.x);
+  const sideReachAmount = sideReachContinues
+    ? clamp((Math.abs(upperArm.x) + Math.abs(lowerArm.x) - 0.22) / 0.22, 0, 1)
+    : 0;
+  const lowSideReachStraighten = clamp((handDrop - 0.12) / 0.2, 0, 1) * sideReachAmount;
+  const effectiveElbowFlex = elbowFlex * (1 - lowSideReachStraighten * 0.72);
   const lowerForward = clamp(-lowerArm.z * 95 * scale, -34, 34);
   const forearmSide = side === 'left' ? lowerArm.x : -lowerArm.x;
   const forearmSideSign = forearmSide < -0.001 ? -1 : 1;
@@ -212,7 +218,7 @@ function armOffsets(landmarks, side, scale) {
     },
     lower: {
       x: clamp(lift * 0.18 + lowerForward * 0.35, -30, 30),
-      y: bendSign * clamp(elbowFlex * 0.72, 0, 95),
+      y: bendSign * clamp(effectiveElbowFlex * 0.72, 0, 95),
       z: sign * forearmSideRoll
     }
   };
