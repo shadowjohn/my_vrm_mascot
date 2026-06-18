@@ -25,6 +25,8 @@ const fused = fuseAliciaWorldMotion(pose, {
 
 assert.notEqual(fused, pose);
 assert.deepEqual(fused.bones.leftUpperArm, pose.bones.leftUpperArm);
+assert.notDeepEqual(fused.bones.hips[0].rot, pose.bones.hips[0].rot);
+assert.ok(Math.abs(fused.body_orientation.worldYawDegrees + 45) < 0.001);
 assert.equal(fused.world_motion.source, 'fixture');
 assert.equal(fused.world_motion.applied, true);
 assert.equal(fused.world_motion.footContact.left, true);

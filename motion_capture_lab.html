@@ -953,6 +953,11 @@
       height: 42px;
     }
 
+    #btnRunGvhmrWorldMotion {
+      grid-column: 1 / -1;
+      min-height: 40px;
+    }
+
     .preview-mode-control {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1378,6 +1383,7 @@
           <option value="1.5">1.5x</option>
         </select>
         <button id="btnRefreshWalkPreview" class="icon-button ghost-button" type="button" title="Refresh walk preview">↻</button>
+        <button id="btnRunGvhmrWorldMotion" class="secondary" type="button">Run GVHMR World Motion</button>
         <label for="traceOverlayToggle" class="overlay-toggle">
           <span>Skeleton Overlay</span>
           <input id="traceOverlayToggle" type="checkbox" checked>
@@ -1394,6 +1400,9 @@
           <div class="summary-row"><span>Pose Mode</span><output id="walkSummaryPoseMode">--</output></div>
           <div class="summary-row"><span>Depth Source</span><output id="walkSummaryDepthSource">--</output></div>
           <div class="summary-row"><span>MotionBERT</span><output id="walkSummaryMotionBert">--</output></div>
+          <div class="summary-row"><span>GVHMR World Motion</span><output id="gvhmrWorldMotionStatus">ready</output></div>
+          <div class="summary-row"><span>Yaw Confidence</span><output id="gvhmrYawConfidence">--</output></div>
+          <div class="summary-row"><span>Foot Contact</span><output id="gvhmrFootContactTrace">--</output></div>
           <div class="summary-row"><span>Lead Foot</span><output id="walkSummaryLeadFoot">--</output></div>
           <div class="summary-row"><span>Skeleton Overlay</span><output id="walkSummaryTraceOverlay">--</output></div>
           <div class="summary-row"><span>Trace Foot</span><output id="walkSummaryFootDelta">--</output></div>
@@ -1431,6 +1440,7 @@
     import { exportWalkStyle } from './js/WalkStyleExtractor.js';
     import { AliciaMotionPreviewAdapter } from './js/AliciaMotionPreviewAdapter.js';
     import { TraceSkeletonOverlay } from './js/TraceSkeletonOverlay.js';
+    import { fuseAliciaWorldMotion } from './js/AliciaWorldMotionFusion.js';
 
     const $ = (id) => document.getElementById(id);
     const phaseInputId = (phase) => `phase_${phase}`;
@@ -1477,6 +1487,13 @@
       registry: new PoseEstimatorRegistry(),
       sequence: null,
       clip: null,
+      worldMotion: null,
+      gvhmrWorldMotion: {
+        status: 'ready',
+        missing: [],
+        error: '',
+        payload: null
+      },
       mascot: null,
       previewAdapter: new AliciaMotionPreviewAdapter(),
       previewWorkflowMode: 'pose_copier',
@@ -1601,6 +1618,9 @@
       state.videoObjectUrl = objectUrl ? url : null;
       state.currentVideoUrl = serverVideoUrl;
       state.currentVideoLabel = label;
+      state.worldMotion = null;
+      state.gvhmrWorldMotion = { status: 'ready', missing: [], error: '', payload: null };
+      updateGvhmrWorldMotionSummary();
       resetCaptureRange();
       video.src = url;
       video.load();
@@ -1913,6 +1933,150 @@
       $('motionBertDebugOutput').value = JSON.stringify(payload.joints, null, 2);
     }
 
+    function gvhmrWorldMotionFrames(payload = state.worldMotion) {
+      return Array.isArray(payload?.frames) ? payload.frames : [];
+    }
+
+    function nearestGvhmrWorldMotionFrame(payload = state.worldMotion, timeSeconds = getCurrentSkeletonPreviewTimeMs() / 1000) {
+      const frames = gvhmrWorldMotionFrames(payload);
+      if (!frames.length) {
+        return null;
+      }
+      const target = Number.isFinite(Number(timeSeconds)) ? Number(timeSeconds) : frames[0].t;
+      return frames.reduce((nearest, frame) => (
+        Math.abs(Number(frame.t) - target) < Math.abs(Number(nearest.t) - target) ? frame : nearest
+      ), frames[0]);
+    }
+
+    function contactTraceCode(frame) {
+      const left = frame?.footContact?.left === true ? 'L' : '-';
+      const right = frame?.footContact?.right === true ? 'R' : '-';
+      return `${left}${right}`;
+    }
+
+    function summarizeFootContactTrace(payload = state.worldMotion) {
+      const frames = gvhmrWorldMotionFrames(payload);
+      if (!frames.length) {
+        return '--';
+      }
+      const leftCount = frames.filter((frame) => frame?.footContact?.left === true).length;
+      const rightCount = frames.filter((frame) => frame?.footContact?.right === true).length;
+      const trace = frames.slice(0, 16).map(contactTraceCode).join(' ');
+      return `${frames.length}f L${leftCount} R${rightCount} ${trace}`;
+    }
+
+    function updateGvhmrWorldMotionSummary(summary = state.gvhmrWorldMotion) {
+      const payload = summary?.payload || state.worldMotion;
+      const frames = gvhmrWorldMotionFrames(payload);
+      const missing = summary?.missing || [];
+      const status = summary?.status || 'ready';
+      let label = status;
+      if (status === 'ok') {
+        label = `ok (${frames.length} frames)`;
+      } else if (status === 'missing assets') {
+        label = `missing assets (${missing.length})`;
+      } else if (status === 'failed' && summary?.error) {
+        label = `failed: ${summary.error}`;
+      }
+      setText('gvhmrWorldMotionStatus', label);
+
+      const frame = nearestGvhmrWorldMotionFrame(payload);
+      setText(
+        'gvhmrYawConfidence',
+        frame ? `yaw ${formatMetric(frame.bodyYawDegrees, 1)} deg / conf ${formatMetric(frame.confidence)}` : '--'
+      );
+      setText('gvhmrFootContactTrace', summarizeFootContactTrace(payload));
+    }
+
+    async function runGvhmrWorldMotion() {
+      if (!state.currentVideoUrl) {
+        state.gvhmrWorldMotion = {
+          status: 'failed',
+          missing: [],
+          error: 'local video required',
+          payload: null
+        };
+        updateGvhmrWorldMotionSummary();
+        setStatus('GVHMR needs a local YouTube capture video before world motion can run.', 'error');
+        return null;
+      }
+
+      const button = $('btnRunGvhmrWorldMotion');
+      const originalLabel = button.textContent;
+      button.disabled = true;
+      button.textContent = 'GVHMR running...';
+      state.gvhmrWorldMotion = { status: 'running', missing: [], error: '', payload: null };
+      updateGvhmrWorldMotionSummary();
+
+      try {
+        const response = await fetch('api/capture/video/world-motion', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            videoUrl: state.currentVideoUrl,
+            staticCamera: true
+          })
+        });
+        const body = await response.json();
+        if (!response.ok) {
+          throw new Error(body.error || body.reason || `HTTP ${response.status}`);
+        }
+
+        if (body.reason === 'missing_assets' || body.assetStatus?.ok === false) {
+          state.worldMotion = null;
+          state.gvhmrWorldMotion = {
+            status: 'missing assets',
+            missing: body.missing || body.assetStatus?.missing || [],
+            error: '',
+            payload: null
+          };
+          updateGvhmrWorldMotionSummary();
+          setStatus(`GVHMR missing assets: ${state.gvhmrWorldMotion.missing.join(', ')}`, 'error');
+          return body;
+        }
+
+        if (body.ok && body.worldMotion?.ok) {
+          state.worldMotion = body.worldMotion;
+          state.gvhmrWorldMotion = {
+            status: 'ok',
+            missing: [],
+            error: '',
+            payload: body.worldMotion
+          };
+          updateGvhmrWorldMotionSummary();
+          syncPreviewToVideoTime({ force: true });
+          setStatus(`GVHMR world motion loaded: ${gvhmrWorldMotionFrames(body.worldMotion).length} frames.`);
+          return body;
+        }
+
+        const reason = body.reason || body.worldMotion?.reason || 'failed';
+        state.worldMotion = body.worldMotion || null;
+        state.gvhmrWorldMotion = {
+          status: 'failed',
+          missing: [],
+          error: reason,
+          payload: body.worldMotion || null
+        };
+        updateGvhmrWorldMotionSummary();
+        setStatus(`GVHMR world motion failed: ${reason}`, 'error');
+        return body;
+      } catch (error) {
+        state.worldMotion = null;
+        state.gvhmrWorldMotion = {
+          status: 'failed',
+          missing: [],
+          error: error.message,
+          payload: null
+        };
+        updateGvhmrWorldMotionSummary();
+        setStatus(`GVHMR world motion failed: ${error.message}`, 'error');
+        return null;
+      } finally {
+        button.disabled = false;
+        button.textContent = originalLabel;
+      }
+    }
+
     function setPreviewWorkflowMode(mode) {
       state.previewWorkflowMode = mode === 'walk_extractor' ? 'walk_extractor' : 'pose_copier';
       const isPoseCopier = state.previewWorkflowMode === 'pose_copier';
@@ -1958,13 +2122,22 @@
       const result = state.previewAdapter.previewPoseAtTimeMs(timeMs, state.sequence.frames, {
         id: 'video_pose_copier_frame',
         kind: 'pose_copier_v1',
-        retargetHints: poseSyncRetargetHints()
+        retargetHints: poseSyncRetargetHints(),
+        transformAnimation: (animation) => fuseAliciaWorldMotion(animation, state.worldMotion, {
+          timeSeconds: roundedTimeMs / 1000,
+          rootScale: 0.08,
+          yawSmoothing: 1
+        })
       });
       if (result.ok) {
         state.poseSync.lastVideoTimeMs = roundedTimeMs;
         state.poseSync.lastFrameTimeMs = result.frameTimeMs;
-        setText('poseSyncStatus', `Video ${formatRangeTime(roundedTimeMs)} -> skeleton ${formatRangeTime(result.frameTimeMs)}`);
+        const worldSuffix = result.worldMotion?.applied
+          ? `, GVHMR yaw ${formatMetric(result.worldMotion.bodyYawDegrees, 1)} deg`
+          : '';
+        setText('poseSyncStatus', `Video ${formatRangeTime(roundedTimeMs)} -> skeleton ${formatRangeTime(result.frameTimeMs)}${worldSuffix}`);
         setText('walkSummaryPreviewSource', `Pose copier frame (${formatRangeTime(result.frameTimeMs)})`);
+        updateGvhmrWorldMotionSummary();
       } else {
         setText('poseSyncStatus', `Pose sync unavailable: ${result.reason}`);
       }
@@ -2908,6 +3081,7 @@
     $('btnPreviewWalkCycle').addEventListener('click', previewWalkCycle);
     $('btnPoseCopierMode').addEventListener('click', () => setPreviewWorkflowMode('pose_copier'));
     $('btnWalkExtractorMode').addEventListener('click', () => setPreviewWorkflowMode('walk_extractor'));
+    $('btnRunGvhmrWorldMotion').addEventListener('click', runGvhmrWorldMotion);
     $('previewSpeedSelect').addEventListener('change', () => {
       if (state.clip && state.mascot && !$('btnPreviewWalkCycle').disabled) {
         previewWalkCycle();
@@ -2919,6 +3093,7 @@
     syncCaptureRangeControls();
     updateVideoInfo();
     updateWalkStylePanels(null);
+    updateGvhmrWorldMotionSummary();
     setPreviewWorkflowMode('pose_copier');
     drawSkeletonCanvas();
     bootAliciaPreview();

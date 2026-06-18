@@ -531,7 +531,14 @@ export class AliciaMotionPreviewAdapter {
       id: options.id || 'pose_copier_frame',
       retargetHints: options.retargetHints || {}
     };
-    const animation = buildPoseAnimation(frame, frames, clip, this.mascot);
+    let animation = buildPoseAnimation(frame, frames, clip, this.mascot);
+    if (typeof options.transformAnimation === 'function') {
+      animation = options.transformAnimation(animation, {
+        frame,
+        frames,
+        requestedTimeMs
+      }) || animation;
+    }
     this.mascot.motion.holdCustomPose(animation, { timeMs: 0 });
     return {
       ok: true,
@@ -540,7 +547,8 @@ export class AliciaMotionPreviewAdapter {
       requestedTimeMs,
       frameIndex: frame.frameIndex ?? null,
       retargetMode: animation.retarget_mode,
-      bodyOrientation: animation.body_orientation
+      bodyOrientation: animation.body_orientation,
+      worldMotion: animation.world_motion || null
     };
   }
 }

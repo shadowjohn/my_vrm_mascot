@@ -15,6 +15,7 @@ mimetypes.add_type('text/html', '.php')
 app = Flask(__name__, static_folder='.', static_url_path='')
 
 BASE_DIR = Path(__file__).resolve().parent
+SERVER_DIR = BASE_DIR
 DEFAULT_MOTION_PROFILE_STORE_PATH = BASE_DIR / "examples" / "m6_7_vrma_samples" / "review" / "motion_profiles.json"
 DEFAULT_MOTION_MINING_LOG_STORE_PATH = BASE_DIR / "examples" / "m6_7_vrma_samples" / "review" / "mining_log.json"
 VRMA_SAMPLE_DIR = BASE_DIR / "examples" / "m6_7_vrma_samples"
@@ -24,6 +25,7 @@ YOUTUBE_CAPTURE_TIMEOUT_SEC = 180
 VIDEO_SKELETON_DEFAULT_FPS = 8
 VIDEO_SKELETON_MAX_FRAMES = 240
 MOTIONBERT_TIMEOUT_SEC = 240
+GVHMR_TIMEOUT_SEC = 600
 MOTIONBERT_DEFAULT_CONFIG = "configs/pose3d/MB_ft_h36m_global_lite.yaml"
 MOTIONBERT_DEFAULT_CHECKPOINT = "checkpoint/pose3d/FT_MB_lite_MB_ft_h36m_global_lite/best_epoch.bin"
 MOTION_PROFILE_CATEGORIES = {
@@ -382,6 +384,171 @@ def _motionbert_runtime_env():
     ]
     env["PATH"] = os.pathsep.join(part for part in path_parts if part)
     return env
+
+
+def _gvhmr_workspace_dir():
+    configured = os.environ.get("GVHMR_WORKSPACE_DIR")
+    return Path(configured) if configured else BASE_DIR / "conda_vm" / "gvhmr"
+
+
+def _gvhmr_root_dir():
+    configured = os.environ.get("GVHMR_ROOT_DIR")
+    return Path(configured) if configured else _gvhmr_workspace_dir() / "GVHMR"
+
+
+def _gvhmr_env_dir():
+    configured = os.environ.get("GVHMR_ENV_DIR")
+    return Path(configured) if configured else _gvhmr_workspace_dir() / "env"
+
+
+def _gvhmr_python_path():
+    configured = os.environ.get("GVHMR_PYTHON")
+    if configured:
+        return Path(configured)
+    env_dir = _gvhmr_env_dir()
+    if os.name == "nt":
+        return env_dir / "python.exe"
+    return env_dir / "bin" / "python"
+
+
+def _gvhmr_asset_check_sidecar_path():
+    configured = os.environ.get("GVHMR_ASSET_CHECK_SIDECAR")
+    return Path(configured) if configured else SERVER_DIR / "scripts" / "gvhmr_asset_check.py"
+
+
+def _gvhmr_lift_sidecar_path():
+    configured = os.environ.get("GVHMR_LIFT_SIDECAR")
+    return Path(configured) if configured else SERVER_DIR / "scripts" / "gvhmr_lift.py"
+
+
+def _gvhmr_runtime_env():
+    env = os.environ.copy()
+    env_dir = _gvhmr_env_dir()
+    path_parts = [
+        str(env_dir),
+        str(env_dir / "Library" / "bin"),
+        str(env_dir / "Scripts"),
+        env.get("PATH", ""),
+    ]
+    env["PATH"] = os.pathsep.join(part for part in path_parts if part)
+    return env
+
+
+def _run_gvhmr_asset_check():
+    sidecar = _gvhmr_asset_check_sidecar_path()
+    if not sidecar.is_file():
+        return {
+            "ok": False,
+            "missing": [sidecar.name],
+            "error": f"GVHMR asset check sidecar not found: {sidecar}",
+        }
+
+    try:
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(sidecar),
+                "--gvhmr-root",
+                str(_gvhmr_root_dir()),
+            ],
+            cwd=str(SERVER_DIR),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=30,
+            check=False,
+        )
+    except subprocess.TimeoutExpired:
+        return {
+            "ok": False,
+            "missing": ["asset_check_timeout"],
+            "error": "GVHMR asset check timeout",
+        }
+    if result.returncode != 0:
+        return {
+            "ok": False,
+            "missing": ["asset_check_failed"],
+            "error": (result.stderr or result.stdout or "").strip()[-1200:],
+        }
+
+    try:
+        report = json.loads(result.stdout.strip() or "{}")
+    except json.JSONDecodeError as exc:
+        return {
+            "ok": False,
+            "missing": ["asset_check_invalid_json"],
+            "error": str(exc),
+        }
+
+    if not isinstance(report, dict):
+        return {
+            "ok": False,
+            "missing": ["asset_check_invalid_json"],
+            "error": "GVHMR asset check did not return a JSON object",
+        }
+    report["ok"] = bool(report.get("ok"))
+    report["missing"] = list(report.get("missing") or [])
+    return report
+
+
+def _run_gvhmr_world_motion(video_path, static_camera=True):
+    python_path = _gvhmr_python_path()
+    sidecar = _gvhmr_lift_sidecar_path()
+    if not python_path.is_file():
+        raise RuntimeError(f"GVHMR python env not found: {python_path}")
+    if not sidecar.is_file():
+        raise RuntimeError(f"GVHMR lift sidecar not found: {sidecar}")
+
+    started_at = time.time()
+    with tempfile.TemporaryDirectory(prefix="gvhmr_lift_") as tmp_dir:
+        output_path = Path(tmp_dir) / "world_motion.json"
+        command = [
+            str(python_path),
+            str(sidecar),
+            "--video-path",
+            str(video_path),
+            "--gvhmr-root",
+            str(_gvhmr_root_dir()),
+            "--python-exe",
+            str(python_path),
+            "--output-json",
+            str(output_path),
+        ]
+        if static_camera:
+            command.append("--static-camera")
+
+        try:
+            result = subprocess.run(
+                command,
+                cwd=str(SERVER_DIR),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=GVHMR_TIMEOUT_SEC,
+                env=_gvhmr_runtime_env(),
+                check=False,
+            )
+        except subprocess.TimeoutExpired as exc:
+            raise RuntimeError(f"GVHMR world motion timeout ({GVHMR_TIMEOUT_SEC}s)") from exc
+
+        if result.returncode != 0:
+            detail = (result.stderr or result.stdout or "").strip()
+            raise RuntimeError(f"GVHMR world motion failed: {detail[-1200:]}")
+        if not output_path.is_file():
+            raise RuntimeError("GVHMR world motion failed: output JSON missing")
+
+        with output_path.open("r", encoding="utf-8") as f:
+            payload = json.load(f)
+
+    if not isinstance(payload, dict):
+        raise RuntimeError("GVHMR world motion output invalid")
+    payload.setdefault("metadata", {})
+    payload["metadata"]["runtimeMs"] = round((time.time() - started_at) * 1000)
+    return payload
 
 
 def _assert_motionbert_runtime_ready():
@@ -995,6 +1162,40 @@ def capture_video_skeleton():
         return jsonify({"ok": False, "error": str(exc)}), 503
 
     return jsonify(result)
+
+
+@app.route('/api/capture/video/world-motion', methods=['POST'])
+def capture_video_world_motion():
+    data = request.get_json() or {}
+    try:
+        video_path = _resolve_local_video_url(data.get("videoUrl"))
+        asset_status = _run_gvhmr_asset_check()
+        if not asset_status.get("ok"):
+            return jsonify({
+                "ok": False,
+                "reason": "missing_assets",
+                "missing": list(asset_status.get("missing") or []),
+                "assetStatus": asset_status,
+            })
+
+        world_motion = _run_gvhmr_world_motion(
+            video_path,
+            static_camera=data.get("staticCamera") is not False,
+        )
+    except ValueError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+    except FileNotFoundError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 404
+    except RuntimeError as exc:
+        return jsonify({"ok": False, "reason": "failed", "error": str(exc)}), 503
+
+    ok = isinstance(world_motion, dict) and world_motion.get("ok") is True
+    return jsonify({
+        "ok": ok,
+        "reason": world_motion.get("reason") if isinstance(world_motion, dict) else "invalid_world_motion",
+        "assetStatus": asset_status,
+        "worldMotion": world_motion,
+    })
 
 
 @app.route('/api/vrma-samples', methods=['GET'])

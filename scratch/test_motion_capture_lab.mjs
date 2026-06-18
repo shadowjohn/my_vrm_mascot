@@ -14,6 +14,7 @@ const requiredIds = [
   'captureYoutubeUrlInput',
   'btnCaptureYoutube',
   'btnExtractVideoSkeleton',
+  'btnRunGvhmrWorldMotion',
   'captureRangeLabel',
   'captureRangeStartSlider',
   'captureRangeEndSlider',
@@ -51,6 +52,9 @@ const requiredIds = [
   'btnPoseCopierMode',
   'btnWalkExtractorMode',
   'poseSyncStatus',
+  'gvhmrWorldMotionStatus',
+  'gvhmrYawConfidence',
+  'gvhmrFootContactTrace',
   'btnSeedCyclePhases',
   'phase_contact_left',
   'phase_down_left',
@@ -120,6 +124,7 @@ assert.match(html, /<option value="youtube">YouTube URL<\/option>/);
 assert.match(html, /id="captureYoutubeUrlInput"/);
 assert.match(html, /id="btnCaptureYoutube"/);
 assert.match(html, /id="btnExtractVideoSkeleton"/);
+assert.match(html, /id="btnRunGvhmrWorldMotion"/);
 assert.match(html, /id="captureRangeStartSlider"[^>]*type="range"/);
 assert.match(html, /id="captureRangeEndSlider"[^>]*type="range"/);
 assert.match(html, /id="captureRangeStartMs"[^>]*type="number"/);
@@ -152,11 +157,15 @@ assert.match(html, /Depth Source/);
 assert.match(html, /MotionBERT/);
 assert.match(html, /Lead Foot/);
 assert.match(html, /Skeleton Overlay/);
+assert.match(html, /GVHMR World Motion/);
+assert.match(html, /Yaw Confidence/);
+assert.match(html, /Foot Contact/);
 assert.match(html, /Trace Foot/);
 assert.match(html, /grid-template-columns:\s*minmax\(320px,\s*0\.9fr\)\s+minmax\(380px,\s*1\.1fr\)\s+minmax\(420px,\s*1\.2fr\)/);
 assert.match(html, /#skeletonPreviewCanvas\s*\{[\s\S]*min-height:\s*280px/);
 assert.match(html, /fetch\('api\/capture\/youtube'/);
 assert.match(html, /fetch\('api\/capture\/video\/skeleton'/);
+assert.match(html, /fetch\('api\/capture\/video\/world-motion'/);
 assert.match(html, /JSON\.stringify\(\{\s*url\s*\}\)/);
 assert.match(html, /captureRange:\s*\{\s*startMs:\s*0,\s*endMs:\s*0,\s*durationMs:\s*0\s*\}/);
 assert.match(html, /function syncCaptureRangeControls\(\)/);
@@ -208,6 +217,8 @@ assert.match(html, /function projectSkeleton3dPoint\(point,\s*bounds,\s*canvas\)
 assert.match(html, /function drawSkeletonCanvas2d\(ctx,\s*canvas,\s*frame\)/);
 assert.match(html, /function drawSkeletonCanvas3d\(ctx,\s*canvas,\s*frame\)/);
 assert.match(html, /function updateMotionBertDebugPanel\(style\)/);
+assert.match(html, /function runGvhmrWorldMotion\(\)/);
+assert.match(html, /function updateGvhmrWorldMotionSummary/);
 assert.match(html, /function skeletonMotionBertDebugPayload\(style\)/);
 assert.match(html, /function setPreviewWorkflowMode\(mode\)/);
 assert.match(html, /function syncAliciaPoseToVideoTime\(\{\s*force/);
@@ -234,6 +245,7 @@ assert.match(html, /btnSkeletonMode2d'\)\.addEventListener\('click'/);
 assert.match(html, /btnSkeletonMode3d'\)\.addEventListener\('click'/);
 assert.match(html, /btnPoseCopierMode'\)\.addEventListener\('click',\s*\(\) => setPreviewWorkflowMode\('pose_copier'\)\)/);
 assert.match(html, /btnWalkExtractorMode'\)\.addEventListener\('click',\s*\(\) => setPreviewWorkflowMode\('walk_extractor'\)\)/);
+assert.match(html, /btnRunGvhmrWorldMotion'\)\.addEventListener\('click',\s*runGvhmrWorldMotion\)/);
 assert.match(html, /skeleton3dYaw'\)\.addEventListener\('input'/);
 assert.match(html, /skeleton3dPitch'\)\.addEventListener\('input'/);
 assert.match(html, /skeletonPreviewCanvas'\)\.addEventListener\('pointerdown'/);
