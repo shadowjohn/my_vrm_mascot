@@ -1439,30 +1439,49 @@ def capture_image_pose():
     image_path = work_dir / f"source{suffix}"
     video_path = work_dir / f"{job_id}.mp4"
     started_at = time.time()
+    steps = []
+
+    def finish_step(label, step_started_at):
+        steps.append({
+            "label": label,
+            "runtimeMs": round((time.time() - step_started_at) * 1000),
+        })
 
     try:
         work_dir.mkdir(parents=True, exist_ok=True)
+        step_started_at = time.time()
         image_file.save(image_path)
-        _write_still_video_from_image(image_path, video_path)
+        finish_step("儲存來源圖片", step_started_at)
 
+        step_started_at = time.time()
+        _write_still_video_from_image(image_path, video_path)
+        finish_step("轉成 still mp4", step_started_at)
+
+        step_started_at = time.time()
         asset_status = _run_gvhmr_asset_check()
+        finish_step("檢查 GVHMR 模型資產", step_started_at)
         if not asset_status.get("ok"):
             return jsonify({
                 "ok": False,
                 "reason": "missing_assets",
                 "missing": list(asset_status.get("missing") or []),
                 "assetStatus": asset_status,
+                "steps": steps,
             }), 503
 
+        step_started_at = time.time()
         world_motion = _run_gvhmr_world_motion(video_path, static_camera=True)
+        finish_step("執行 GVHMR World Motion", step_started_at)
         if not isinstance(world_motion, dict) or world_motion.get("ok") is not True:
             return jsonify({
                 "ok": False,
                 "reason": world_motion.get("reason") if isinstance(world_motion, dict) else "invalid_world_motion",
                 "worldMotion": world_motion,
                 "assetStatus": asset_status,
+                "steps": steps,
             }), 503
 
+        step_started_at = time.time()
         output_dir = _gvhmr_demo_output_dir_for_video(video_path)
         output_dir.mkdir(parents=True, exist_ok=True)
         skeleton_path = output_dir / "alicia_intermediate_landmarks.json"
@@ -1477,7 +1496,11 @@ def capture_image_pose():
             "stillVideoUrl": _local_file_url(video_path),
         }
         skeleton_path.write_text(json.dumps(world_motion, ensure_ascii=False, indent=2), encoding="utf-8", newline="\n")
+        finish_step("寫入中介骨架 JSON", step_started_at)
+
+        step_started_at = time.time()
         _run_alicia_blender_bake(skeleton_path, motion_path)
+        finish_step("Blender IK bake Alicia pose", step_started_at)
 
         return jsonify({
             "ok": True,
@@ -1489,11 +1512,12 @@ def capture_image_pose():
             "motionUrl": _local_file_url(motion_path),
             "assetStatus": asset_status,
             "frameCount": len(world_motion.get("frames") or []),
+            "steps": steps,
         })
     except RuntimeError as exc:
-        return jsonify({"ok": False, "reason": "failed", "error": str(exc)}), 503
+        return jsonify({"ok": False, "reason": "failed", "error": str(exc), "steps": steps}), 503
     except Exception as exc:
-        return jsonify({"ok": False, "reason": "failed", "error": str(exc)}), 500
+        return jsonify({"ok": False, "reason": "failed", "error": str(exc), "steps": steps}), 500
 
 
 @app.route('/api/capture/video/skeleton', methods=['POST'])

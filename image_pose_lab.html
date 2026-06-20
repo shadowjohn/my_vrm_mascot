@@ -109,6 +109,52 @@
       gap: 10px;
       margin-top: 12px;
     }
+    .progress-panel {
+      border: 1px solid #315041;
+      border-radius: 6px;
+      background: #0b150f;
+      padding: 10px;
+    }
+    .progress-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+      color: #d4e7d7;
+      font-size: 13px;
+    }
+    .progress-track {
+      height: 10px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #28382f;
+    }
+    #progressBar {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #77cf6f, #ffe27a);
+      transition: width 0.25s ease;
+    }
+    #runProgress.running #progressBar {
+      background-size: 200% 100%;
+      animation: progressPulse 1.2s linear infinite;
+    }
+    #progressLog {
+      display: grid;
+      gap: 4px;
+      margin-top: 10px;
+      max-height: 170px;
+      overflow: auto;
+      color: #aebdaf;
+      font: 12px/1.5 ui-monospace, Consolas, monospace;
+    }
+    .log-line.done { color: #9bed91; }
+    .log-line.error { color: #ff9a83; }
+    @keyframes progressPulse {
+      from { background-position: 0 0; }
+      to { background-position: 200% 0; }
+    }
     a.download {
       display: none;
       text-align: center;
@@ -157,6 +203,16 @@
       </div>
       <div class="actions">
         <button id="runButton" type="button" disabled>產生 Alicia 姿勢</button>
+        <div id="runProgress" class="progress-panel" hidden>
+          <div class="progress-head">
+            <span id="progressLabel">等待執行</span>
+            <span id="progressPercent">0%</span>
+          </div>
+          <div class="progress-track">
+            <div id="progressBar"></div>
+          </div>
+          <div id="progressLog"></div>
+        </div>
         <a id="downloadLink" class="download" download="alicia_image_pose.json">下載 Alicia pose JSON</a>
       </div>
     </section>
@@ -186,7 +242,8 @@
       imageUrl: '',
       mascot: null,
       motion: null,
-      skeleton: null
+      skeleton: null,
+      progressTimer: null
     };
 
     const SKELETON_LINKS = [
@@ -202,6 +259,70 @@
       $('status').textContent = text;
     }
 
+    function formatRuntime(ms) {
+      const value = Number(ms) || 0;
+      return value >= 1000 ? `${(value / 1000).toFixed(1)}s` : `${Math.round(value)}ms`;
+    }
+
+    function setProgress(percent, label) {
+      const value = Math.max(0, Math.min(100, Math.round(percent)));
+      $('runProgress').hidden = false;
+      $('progressBar').style.width = `${value}%`;
+      $('progressPercent').textContent = `${value}%`;
+      $('progressLabel').textContent = label;
+    }
+
+    function addProgressLog(text, className = '') {
+      const line = document.createElement('div');
+      line.className = `log-line ${className}`.trim();
+      line.textContent = text;
+      $('progressLog').appendChild(line);
+      $('progressLog').scrollTop = $('progressLog').scrollHeight;
+    }
+
+    function startProgressLog() {
+      if (state.progressTimer) clearInterval(state.progressTimer);
+      $('runProgress').hidden = false;
+      $('runProgress').classList.add('running');
+      $('progressLog').textContent = '';
+      setProgress(5, '準備上傳圖片');
+      addProgressLog('1. 已建立任務，準備上傳圖片');
+      addProgressLog('2. 後端會依序執行：儲存圖片 -> still mp4 -> GVHMR -> Blender bake');
+      const startedAt = performance.now();
+      state.progressTimer = setInterval(() => {
+        const elapsedSec = (performance.now() - startedAt) / 1000;
+        const percent = Math.min(92, 12 + elapsedSec * 0.9);
+        const label = elapsedSec < 10
+          ? '轉換 still mp4 / 檢查環境'
+          : elapsedSec < 70
+            ? 'GVHMR World Motion 執行中'
+            : 'Blender IK bake 或結果整理中';
+        setProgress(percent, label);
+      }, 1000);
+    }
+
+    function finishProgressLog(result) {
+      if (state.progressTimer) clearInterval(state.progressTimer);
+      state.progressTimer = null;
+      $('runProgress').classList.remove('running');
+      for (const [index, step] of (result.steps || []).entries()) {
+        addProgressLog(`${index + 1}. ${step.label}：${formatRuntime(step.runtimeMs)}`, 'done');
+      }
+      setProgress(100, '完成');
+      addProgressLog(`完成：${result.frameCount || 0} frames / ${formatRuntime(result.runtimeMs)}`, 'done');
+    }
+
+    function failProgressLog(error) {
+      if (state.progressTimer) clearInterval(state.progressTimer);
+      state.progressTimer = null;
+      $('runProgress').classList.remove('running');
+      for (const [index, step] of (error.steps || []).entries()) {
+        addProgressLog(`${index + 1}. ${step.label}：${formatRuntime(step.runtimeMs)}`, 'done');
+      }
+      setProgress(100, '失敗');
+      addProgressLog(`失敗：${error.message}`, 'error');
+    }
+
     function setImage(file) {
       if (!file) return;
       if (state.imageUrl) URL.revokeObjectURL(state.imageUrl);
@@ -212,6 +333,7 @@
       $('emptyImage').style.display = 'none';
       $('runButton').disabled = false;
       $('downloadLink').style.display = 'none';
+      $('runProgress').hidden = true;
       setStatus(`已載入圖片：${file.name || 'clipboard.png'}`);
     }
 
@@ -323,6 +445,7 @@
         jobId: result.jobId,
         frameCount: result.frameCount,
         runtimeMs: result.runtimeMs,
+        steps: result.steps || [],
         imageUrl: result.imageUrl,
         motionUrl: result.motionUrl,
         skeletonUrl: result.skeletonUrl,
@@ -353,18 +476,23 @@
       if (!state.file) return;
       $('runButton').disabled = true;
       setStatus('GVHMR / Blender 執行中，這步可能需要一段時間...');
+      startProgressLog();
       const form = new FormData();
       form.append('image', state.file, state.file.name || 'clipboard.png');
       try {
         const response = await fetch('/api/capture/image/pose', { method: 'POST', body: form });
         const result = await response.json();
         if (!response.ok || !result.ok) {
-          throw new Error(result.error || result.reason || 'image pose failed');
+          const error = new Error(result.error || result.reason || 'image pose failed');
+          error.steps = result.steps || [];
+          throw error;
         }
         await loadResult(result);
+        finishProgressLog(result);
         setStatus(`完成：${result.frameCount} frames / ${(result.runtimeMs / 1000).toFixed(1)}s`);
       } catch (error) {
         console.error(error);
+        failProgressLog(error);
         setStatus(`失敗：${error.message}`);
       } finally {
         $('runButton').disabled = false;
