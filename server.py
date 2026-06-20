@@ -1612,29 +1612,49 @@ def capture_video_skeleton():
 @app.route('/api/capture/video/world-motion', methods=['POST'])
 def capture_video_world_motion():
     data = request.get_json() or {}
+    started_at = time.time()
+    steps = []
+
+    def finish_step(label, step_started_at):
+        steps.append({
+            "label": label,
+            "runtimeMs": round((time.time() - step_started_at) * 1000),
+        })
+
     try:
+        step_started_at = time.time()
         video_path = _resolve_local_video_url(data.get("videoUrl"))
         start_ms, end_ms = _normalize_video_capture_range(data)
+        finish_step("解析影片與擷取範圍", step_started_at)
+
+        step_started_at = time.time()
         asset_status = _run_gvhmr_asset_check()
+        finish_step("檢查 GVHMR 模型資產", step_started_at)
         if not asset_status.get("ok"):
             return jsonify({
                 "ok": False,
                 "reason": "missing_assets",
                 "missing": list(asset_status.get("missing") or []),
                 "assetStatus": asset_status,
+                "steps": steps,
             })
 
+        step_started_at = time.time()
         world_motion = _run_gvhmr_world_motion(
             video_path,
             static_camera=data.get("staticCamera") is not False,
         )
+        finish_step("執行 GVHMR World Motion", step_started_at)
+
+        step_started_at = time.time()
         world_motion = _filter_world_motion_capture_range(world_motion, start_ms, end_ms)
+        finish_step("套用擷取範圍", step_started_at)
     except ValueError as exc:
-        return jsonify({"ok": False, "error": str(exc)}), 400
+        return jsonify({"ok": False, "error": str(exc), "steps": steps}), 400
     except FileNotFoundError as exc:
-        return jsonify({"ok": False, "error": str(exc)}), 404
+        return jsonify({"ok": False, "error": str(exc), "steps": steps}), 404
     except RuntimeError as exc:
-        return jsonify({"ok": False, "reason": "failed", "error": str(exc)}), 503
+        return jsonify({"ok": False, "reason": "failed", "error": str(exc), "steps": steps}), 503
 
     ok = isinstance(world_motion, dict) and world_motion.get("ok") is True
     return jsonify({
@@ -1642,6 +1662,8 @@ def capture_video_world_motion():
         "reason": world_motion.get("reason") if isinstance(world_motion, dict) else "invalid_world_motion",
         "assetStatus": asset_status,
         "worldMotion": world_motion,
+        "runtimeMs": round((time.time() - started_at) * 1000),
+        "steps": steps,
     })
 
 

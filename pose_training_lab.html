@@ -173,6 +173,66 @@
       accent-color: var(--accent);
     }
 
+    .progress-panel {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #0b150f;
+      padding: 10px;
+    }
+
+    .progress-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .progress-track {
+      height: 10px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #28382f;
+    }
+
+    #gvhmrProgressBar {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--warn));
+      transition: width 0.25s ease;
+    }
+
+    #gvhmrProgress.running #gvhmrProgressBar {
+      background-size: 200% 100%;
+      animation: progressPulse 1.2s linear infinite;
+    }
+
+    #gvhmrProgressLog {
+      display: grid;
+      gap: 4px;
+      margin-top: 10px;
+      max-height: 170px;
+      overflow: auto;
+      color: var(--muted);
+      font: 12px/1.5 ui-monospace, Consolas, monospace;
+    }
+
+    .log-line.done {
+      color: var(--accent);
+    }
+
+    .log-line.error {
+      color: var(--danger);
+    }
+
+    @keyframes progressPulse {
+      from { background-position: 0 0; }
+      to { background-position: 200% 0; }
+    }
+
     button {
       min-height: 38px;
       border: 1px solid rgba(158, 228, 147, 0.44);
@@ -405,6 +465,16 @@
           <button id="btnTrainingSetEnd" type="button" class="secondary">設為結束</button>
         </div>
         <button id="btnTrainingRunGvhmr" type="button" class="full">執行 GVHMR 動作重建</button>
+        <div id="gvhmrProgress" class="progress-panel" hidden>
+          <div class="progress-head">
+            <span id="gvhmrProgressLabel">等待執行</span>
+            <span id="gvhmrProgressPercent">0%</span>
+          </div>
+          <div class="progress-track">
+            <div id="gvhmrProgressBar"></div>
+          </div>
+          <div id="gvhmrProgressLog"></div>
+        </div>
       </div>
 
       <div class="group">
@@ -615,12 +685,77 @@
       objectUrl: null,
       jsonRefreshTimer: 0,
       boneOffsetApplyRaf: 0,
-      bonePickerBound: false
+      bonePickerBound: false,
+      gvhmrProgressTimer: 0
     };
 
     function setStatus(message, tone = 'ok') {
       $('trainingStatus').textContent = message;
       $('trainingStatus').style.color = tone === 'error' ? 'var(--danger)' : 'var(--accent)';
+    }
+
+    function formatRuntime(ms) {
+      const value = finiteNumber(ms);
+      return value >= 1000 ? `${(value / 1000).toFixed(1)} 秒` : `${Math.round(value)} ms`;
+    }
+
+    function setGvhmrProgress(percent, label) {
+      const value = clamp(Math.round(finiteNumber(percent)), 0, 100);
+      $('gvhmrProgress').hidden = false;
+      $('gvhmrProgressBar').style.width = `${value}%`;
+      $('gvhmrProgressPercent').textContent = `${value}%`;
+      $('gvhmrProgressLabel').textContent = label;
+    }
+
+    function addGvhmrProgressLog(text, className = '') {
+      const line = document.createElement('div');
+      line.className = `log-line ${className}`.trim();
+      line.textContent = text;
+      $('gvhmrProgressLog').appendChild(line);
+      $('gvhmrProgressLog').scrollTop = $('gvhmrProgressLog').scrollHeight;
+    }
+
+    function startGvhmrProgressLog(captureRange) {
+      if (state.gvhmrProgressTimer) clearInterval(state.gvhmrProgressTimer);
+      $('gvhmrProgress').hidden = false;
+      $('gvhmrProgress').classList.add('running');
+      $('gvhmrProgressLog').textContent = '';
+      setGvhmrProgress(5, '準備送出 GVHMR 任務');
+      addGvhmrProgressLog(`擷取範圍：${formatSeconds(captureRange.startMs)} - ${formatSeconds(captureRange.endMs)}`);
+      addGvhmrProgressLog(`來源影片：${state.currentVideoUrl || '--'}`);
+      const startedAt = performance.now();
+      state.gvhmrProgressTimer = setInterval(() => {
+        const elapsedSec = (performance.now() - startedAt) / 1000;
+        const percent = Math.min(94, 8 + elapsedSec * 0.85);
+        const label = elapsedSec < 8
+          ? '解析影片 / 檢查 GVHMR 資產'
+          : elapsedSec < 90
+            ? 'GVHMR World Motion 執行中'
+            : '整理輸出與套用擷取範圍';
+        setGvhmrProgress(percent, label);
+      }, 1000);
+    }
+
+    function finishGvhmrProgressLog(body) {
+      if (state.gvhmrProgressTimer) clearInterval(state.gvhmrProgressTimer);
+      state.gvhmrProgressTimer = 0;
+      $('gvhmrProgress').classList.remove('running');
+      for (const [index, step] of (body.steps || []).entries()) {
+        addGvhmrProgressLog(`${index + 1}. ${step.label}：${formatRuntime(step.runtimeMs)}`, 'done');
+      }
+      setGvhmrProgress(100, '完成');
+      addGvhmrProgressLog(`完成：${state.frames.length} 個影格 / ${formatRuntime(body.runtimeMs)}`, 'done');
+    }
+
+    function failGvhmrProgressLog(error) {
+      if (state.gvhmrProgressTimer) clearInterval(state.gvhmrProgressTimer);
+      state.gvhmrProgressTimer = 0;
+      $('gvhmrProgress').classList.remove('running');
+      for (const [index, step] of (error.steps || []).entries()) {
+        addGvhmrProgressLog(`${index + 1}. ${step.label}：${formatRuntime(step.runtimeMs)}`, 'done');
+      }
+      setGvhmrProgress(100, '失敗');
+      addGvhmrProgressLog(`失敗：${error.message}`, 'error');
     }
 
     function finiteNumber(value, fallback = 0) {
@@ -1489,6 +1624,11 @@
       state.currentVideoUrl = source.url;
       $('trainingVideoPreview').src = source.url;
       $('trainingVideoPreview').load();
+      $('gvhmrProgress').hidden = true;
+      $('gvhmrProgressLog').textContent = '';
+      $('gvhmrProgressBar').style.width = '0%';
+      $('gvhmrProgressPercent').textContent = '0%';
+      $('gvhmrProgressLabel').textContent = '等待執行';
       refreshTrainingJson();
     }
 
@@ -1564,6 +1704,7 @@
       button.disabled = true;
       button.textContent = 'GVHMR 執行中...';
       setStatus(`正在執行 GVHMR：${formatSeconds(captureRange.startMs)} - ${formatSeconds(captureRange.endMs)}。`);
+      startGvhmrProgressLog(captureRange);
       try {
         const response = await fetch('api/capture/video/world-motion', {
           method: 'POST',
@@ -1579,7 +1720,9 @@
         if (!response.ok || !body?.ok || !body?.worldMotion?.ok) {
           const missing = body?.missing || body?.assetStatus?.missing || [];
           const suffix = missing.length ? ` 缺少：${missing.join(', ')}` : '';
-          throw new Error(body?.error || body?.reason || body?.worldMotion?.reason || `HTTP ${response.status}${suffix}`);
+          const error = new Error(body?.error || body?.reason || body?.worldMotion?.reason || `HTTP ${response.status}${suffix}`);
+          error.steps = body?.steps || [];
+          throw error;
         }
 
         state.worldMotion = body.worldMotion;
@@ -1587,8 +1730,10 @@
         updateFrameSlider(0);
         applyTrainingCalibration();
         refreshTrainingJson();
+        finishGvhmrProgressLog(body);
         setStatus(`GVHMR 已載入 ${state.frames.length} 個選取範圍內的影格。`);
       } catch (error) {
+        failGvhmrProgressLog(error);
         setStatus(`GVHMR 失敗：${error.message}`, 'error');
       } finally {
         button.disabled = false;
