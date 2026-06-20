@@ -23,8 +23,10 @@ function getBoneNames() {
     LeftHand: 'leftHand', RightHand: 'rightHand',
     LeftUpperLeg: 'leftUpperLeg', LeftLowerLeg: 'leftLowerLeg',
     LeftFoot: 'leftFoot',
+    LeftToes: 'leftToes',
     RightUpperLeg: 'rightUpperLeg', RightLowerLeg: 'rightLowerLeg',
     RightFoot: 'rightFoot',
+    RightToes: 'rightToes',
     LeftShoulder: 'leftShoulder', RightShoulder: 'rightShoulder',
   };
 }
@@ -267,9 +269,11 @@ export class MotionController {
       leftUpperLeg:   h.getBoneNode(bn.LeftUpperLeg),
       leftLowerLeg:   h.getBoneNode(bn.LeftLowerLeg || 'leftLowerLeg'),
       leftFoot:       h.getBoneNode(bn.LeftFoot || 'leftFoot'),
+      leftToes:       h.getBoneNode(bn.LeftToes || 'leftToes'),
       rightUpperLeg:  h.getBoneNode(bn.RightUpperLeg),
       rightLowerLeg:  h.getBoneNode(bn.RightLowerLeg || 'rightLowerLeg'),
       rightFoot:      h.getBoneNode(bn.RightFoot || 'rightFoot'),
+      rightToes:      h.getBoneNode(bn.RightToes || 'rightToes'),
       leftShoulder:   h.getBoneNode(bn.LeftShoulder),
       rightShoulder:  h.getBoneNode(bn.RightShoulder),
     };

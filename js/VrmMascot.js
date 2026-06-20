@@ -276,6 +276,8 @@ export function createSuggestedActions(options = {}) {
   });
 }
 
+let _tempWorldPos = null;
+
 export class VrmMascot {
   // DOM
   #container = null;
@@ -1442,7 +1444,23 @@ export class VrmMascot {
       });                              // 2.5 擬人化行為層
       this.#expression.update(dt);     // 3. 表情：眨眼 / BlendShape
       this._vrmUpdate(dt);             // 4. VRM 內部：springBone（lookAt 已關）
-      this.#lookAtCtrl.update(dt);     // 5. 注視：頭/頸旋轉（在 vrm.update 之後，不會被覆蓋）
+      const basePoseRotations = this.#motion.getPosePreset()?.basePose?.rotation || {};
+      this.#lookAtCtrl.update(dt, {
+        headOffset: basePoseRotations.head,
+        neckOffset: basePoseRotations.neck
+      });     // 5. 注視：頭/頸旋轉（在 vrm.update 之後，不會被覆蓋）
+
+      // 使相機跟隨臀部關節移動
+      if (this.#orbitControls && this.#currentVRM) {
+        if (!_tempWorldPos) {
+          _tempWorldPos = new THREE.Vector3();
+        }
+        const hipsNode = this._getBoneNode('hips');
+        if (hipsNode) {
+          hipsNode.getWorldPosition(_tempWorldPos);
+          this.#orbitControls.target.copy(_tempWorldPos);
+        }
+      }
 
       // 軌道控制阻尼更新
       this.#orbitControls?.update();

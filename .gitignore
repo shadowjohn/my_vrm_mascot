@@ -18,9 +18,13 @@ build/
 
 # Local-only 3D/motion assets. Keep manifests and derived JSON in git instead.
 local_assets/
+.superpowers/
+models/
 conda_vm/*
 !conda_vm/
 !conda_vm/*_build_conda_env.bat
+!conda_vm/*_easy_build_pytorch3d.bat
+!conda_vm/*_prepare_assets.bat
 !conda_vm/*_requirements.txt
 *.vrma
 *.vrm

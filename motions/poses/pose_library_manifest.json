@@ -18,6 +18,23 @@
         "noArmCrossBody": true
       }
     },
+    "93": {
+      "id": "93",
+      "category": "standing",
+      "label": "93幀",
+      "model": "AliciaSolid",
+      "path": "motions/poses/standing/93.json",
+      "humanization": {
+        "profile": "alicia",
+        "level": 2
+      },
+      "qa": {
+        "balance": 5,
+        "silhouette": 5,
+        "noTpose": true,
+        "noArmCrossBody": true
+      }
+    },
     "stand_relaxed_001": {
       "id": "stand_relaxed_001",
       "category": "standing",

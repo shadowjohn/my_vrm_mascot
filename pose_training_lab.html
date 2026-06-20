@@ -3,1637 +3,1687 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Alicia Pose Training Lab — 姿勢訓練室</title>
+  <title>Alicia GVHMR 姿勢校正台</title>
+  <link rel="icon" href="data:,">
   <style>
     :root {
       color-scheme: dark;
-      --bg: #07111f;
-      --panel: #101827;
-      --panel-strong: #162033;
-      --text: #e6edf7;
-      --muted: #9fb0c8;
-      --line: rgba(148, 163, 184, 0.22);
-      --accent: #2dd4bf;
-      --accent-strong: #67e8f9;
-      --accent-2: #8b5cf6;
-      --danger: #fca5a5;
-      --ok: #86efac;
+      --bg: #080f0d;
+      --panel: #121f19;
+      --panel-2: #182821;
+      --line: rgba(157, 175, 159, 0.26);
+      --text: #eff7ee;
+      --muted: #9daf9f;
+      --accent: #9ee493;
+      --accent-2: #f0c86a;
+      --danger: #ff8d7a;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
-    html, body {
-      height: 100%;
-      overflow: hidden;
-    }
-
+    html,
     body {
+      height: 100%;
       margin: 0;
+      overflow: hidden;
       background: var(--bg);
       color: var(--text);
       font-family: "Segoe UI", "Noto Sans TC", sans-serif;
-      height: 100vh;
-      min-height: 100vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
+      letter-spacing: 0;
     }
 
-    .topbar {
-      flex: 0 0 auto;
+    body {
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 20px;
-      background: linear-gradient(180deg, rgba(16, 24, 39, 0.95), rgba(16, 24, 39, 0.8));
+      gap: 18px;
+      padding: 14px 18px;
+      background: rgba(7, 13, 11, 0.96);
       border-bottom: 1px solid var(--line);
-      backdrop-filter: blur(10px);
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .brand h1 {
+    h1 {
       margin: 0;
-      font-size: 20px;
+      font-size: 22px;
       line-height: 1.1;
     }
 
-    .brand p {
-      margin: 2px 0 0;
+    .subtitle {
+      margin-top: 4px;
       color: var(--muted);
-      font-size: 12px;
-    }
-
-    .status-badge {
       font-size: 13px;
-      color: var(--accent-strong);
-      border: 1px solid rgba(103, 232, 249, 0.3);
-      padding: 4px 10px;
-      border-radius: 6px;
-      background: rgba(103, 232, 249, 0.08);
     }
 
-    .main-layout {
-      flex: 1 1 auto;
-      display: grid;
-      grid-template-columns: 280px 1fr 400px;
+    #trainingStatus {
+      max-width: 58vw;
+      color: var(--accent);
+      font-size: 13px;
+      text-align: right;
+    }
+
+    main {
       min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(330px, 0.82fr) minmax(520px, 1.3fr) minmax(360px, 0.88fr);
+      gap: 10px;
+      padding: 10px;
       overflow: hidden;
     }
 
-    /* Left Sidebar */
-    .sidebar {
-      background: rgba(16, 24, 39, 0.6);
-      border-right: 1px solid var(--line);
-      padding: 16px;
+    .panel {
       min-height: 0;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .section-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 8px;
-    }
-
-    .category-group {
+      overflow: auto;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: rgba(15, 23, 42, 0.4);
-      margin-bottom: 8px;
-      overflow: hidden;
+      background: linear-gradient(180deg, rgba(18, 31, 25, 0.96), rgba(13, 22, 18, 0.96));
+      padding: 14px;
     }
 
-    .category-header {
-      padding: 10px 12px;
-      background: rgba(22, 32, 51, 0.8);
-      font-weight: 600;
-      font-size: 14px;
-      cursor: pointer;
+    .panel-title {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      user-select: none;
+      gap: 10px;
+      margin-bottom: 14px;
     }
 
-    .category-header:hover {
-      background: rgba(45, 212, 191, 0.1);
+    .step {
+      display: inline-flex;
+      width: 30px;
+      height: 30px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #102012;
+      font-weight: 800;
     }
 
-    .category-list {
-      padding: 6px 0;
-      list-style: none;
+    h2,
+    h3 {
       margin: 0;
-      display: flex;
-      flex-direction: column;
+      line-height: 1.2;
     }
 
-    .pose-item {
-      padding: 8px 16px;
-      font-size: 13.5px;
-      cursor: pointer;
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      transition: background 0.15s;
-    }
-
-    .pose-item:hover {
-      background: rgba(103, 232, 249, 0.1);
-      color: var(--accent-strong);
-    }
-
-    .pose-item.active {
-      background: rgba(45, 212, 191, 0.2);
+    h2 {
       color: var(--accent);
-      font-weight: 600;
-      border-left: 3px solid var(--accent);
+      font-size: 17px;
     }
 
-    /* Center Stage */
-    .viewport-container {
-      position: relative;
-      min-height: 0;
-      overflow: hidden;
-      background: radial-gradient(circle at 50% 50%, #111e2f 0%, #07111f 100%);
-    }
-
-    #viewport {
-      display: block;
-      width: 100%;
-      height: 100%;
-      min-height: 0;
-    }
-
-    .viewport-container canvas {
-      cursor: crosshair;
-    }
-
-    .viewport-overlay {
-      position: absolute;
-      bottom: 16px;
-      left: 16px;
-      pointer-events: none;
-      background: rgba(5, 10, 18, 0.75);
-      padding: 8px 12px;
-      border-radius: 6px;
-      border: 1px solid var(--line);
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    /* Right Panel */
-    .control-panel {
-      background: var(--panel);
-      border-left: 1px solid var(--line);
-      padding: 20px;
-      min-height: 0;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .panel-section {
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 16px;
-      background: rgba(15, 23, 42, 0.3);
-    }
-
-    .panel-section h2 {
-      margin: 0 0 14px;
-      font-size: 15px;
-      color: var(--accent-strong);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--line);
-      padding-bottom: 6px;
-    }
-
-    .form-group {
-      margin-bottom: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-
-    .form-group label {
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 600;
-    }
-
-    .form-group input, .form-group select {
-      background: var(--panel-strong);
-      border: 1px solid var(--line);
+    h3 {
       color: var(--text);
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 13.5px;
-      width: 100%;
+      font-size: 14px;
+      margin-bottom: 10px;
     }
 
-    .form-group input:focus, .form-group select:focus {
-      outline: none;
-      border-color: var(--accent);
+    .group {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 16px;
     }
 
-    .form-group input:disabled {
+    label {
+      display: grid;
+      gap: 6px;
       color: var(--muted);
-      background: rgba(15, 23, 42, 0.6);
-      cursor: not-allowed;
-    }
-
-    /* Bone Slider Rows */
-    .slider-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 8px;
-    }
-
-    .slider-row span.axis {
+      font-size: 12px;
       font-weight: 700;
-      color: var(--accent);
-      min-width: 12px;
-      font-size: 13px;
     }
 
-    .slider-row input[type="range"] {
-      flex: 1;
+    input,
+    select,
+    textarea,
+    button {
+      font: inherit;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      min-height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #17241e;
+      color: var(--text);
+      padding: 8px 10px;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: rgba(158, 228, 147, 0.78);
+      box-shadow: 0 0 0 2px rgba(158, 228, 147, 0.12);
+    }
+
+    input[type="range"] {
+      min-height: auto;
+      padding: 0;
       accent-color: var(--accent);
     }
 
-    .slider-row span.val {
-      min-width: 48px;
-      text-align: right;
-      font-size: 12.5px;
-      font-family: monospace;
+    input[type="checkbox"] {
+      width: 18px;
+      min-height: 18px;
+      accent-color: var(--accent);
     }
 
-    /* QA Checklists */
-    .checkbox-row {
+    button {
+      min-height: 38px;
+      border: 1px solid rgba(158, 228, 147, 0.44);
+      border-radius: 6px;
+      background: #234c2a;
+      color: var(--text);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    button:hover {
+      border-color: var(--accent);
+      background: #2d6534;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.58;
+    }
+
+    .secondary {
+      background: #4c3f17;
+      border-color: rgba(240, 200, 106, 0.42);
+    }
+
+    .secondary:hover {
+      background: #62501b;
+      border-color: var(--accent-2);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    video {
+      width: 100%;
+      max-height: 34vh;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #050807;
+    }
+
+    .range-label,
+    .readout {
+      color: var(--accent-2);
+      font-family: Consolas, monospace;
+      font-size: 12px;
+      text-align: right;
+    }
+
+    .range-stack {
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(8, 15, 13, 0.48);
+    }
+
+    .preview-wrap {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-height: 0;
+    }
+
+    #aliciaPreview {
+      min-height: 0;
+      height: min(68vh, 720px);
+      border: 1px solid rgba(90, 110, 151, 0.78);
+      border-radius: 8px;
+      background: #101827;
+      overflow: hidden;
+    }
+
+    .preview-controls {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 8px;
+      margin-top: 10px;
+      align-items: center;
+    }
+
+    .switch-row {
       display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-height: 38px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: rgba(8, 15, 13, 0.35);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .slider-row {
+      display: grid;
+      grid-template-columns: 24px 1fr 54px;
       align-items: center;
       gap: 8px;
       margin-bottom: 8px;
-      font-size: 13.5px;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .checkbox-row input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      accent-color: var(--accent);
-    }
-
-    .score-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 13.5px;
-      margin-bottom: 8px;
-    }
-
-    .score-row input[type="range"] {
-      width: 120px;
-      accent-color: var(--accent);
-    }
-
-    /* Badges & Placeholders */
-    .badge {
-      font-size: 11px;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-weight: 600;
-    }
-
-    .badge-ok {
-      background: rgba(134, 239, 172, 0.15);
-      color: var(--ok);
-      border: 1px solid rgba(134, 239, 172, 0.3);
-    }
-
-    .badge-gray {
-      background: rgba(159, 176, 200, 0.15);
       color: var(--muted);
-      border: 1px solid rgba(159, 176, 200, 0.3);
+      font-size: 12px;
+      font-weight: 800;
     }
 
-    /* Buttons */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 10px 16px;
-      font-size: 14px;
-      font-weight: 600;
-      border-radius: 6px;
-      cursor: pointer;
-      border: 1px solid var(--line);
-      background: rgba(22, 32, 51, 0.8);
-      color: var(--text);
-      transition: all 0.15s;
-      width: 100%;
+    .slider-row output {
+      color: var(--accent-2);
+      font-family: Consolas, monospace;
+      text-align: right;
     }
 
-    .btn:hover {
-      background: rgba(45, 212, 191, 0.1);
-      border-color: var(--accent);
-    }
-
-    .btn-primary {
-      background: linear-gradient(180deg, var(--accent), #14b8a6);
-      color: #042f2e;
-      border-color: var(--accent);
-    }
-
-    .btn-primary:hover {
-      background: linear-gradient(180deg, var(--accent-strong), var(--accent));
-      box-shadow: 0 0 12px rgba(45, 212, 191, 0.3);
-    }
-
-    .actions-grid {
+    .metric {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .future-placeholder {
-      font-size: 12px;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(157, 175, 159, 0.14);
       color: var(--muted);
-      background: rgba(15, 23, 42, 0.5);
-      border: 1px dashed var(--line);
-      padding: 10px;
-      border-radius: 6px;
-      line-height: 1.4;
-      margin-top: 8px;
+      font-size: 13px;
     }
 
-    /* Utilities */
-    .collapse-content {
-      display: none;
+    .metric strong {
+      color: var(--text);
+      font-family: Consolas, monospace;
+      font-weight: 700;
     }
 
-    .collapse-content.show {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .chevron::after {
-      content: "▼";
-      font-size: 9px;
-      color: var(--muted);
-      margin-left: 8px;
-    }
-
-    .collapsed .chevron::after {
-      content: "▶";
-    }
-
-    .reset-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 8px;
-    }
-
-    .reset-bar button {
-      width: auto;
-      padding: 6px 12px;
+    textarea {
+      min-height: 200px;
+      resize: vertical;
+      font-family: Consolas, monospace;
       font-size: 12px;
+      line-height: 1.45;
+      white-space: pre;
     }
 
-    /* Playground Styles */
-    .btn-group-row button.active {
-      background: var(--accent);
-      color: #042f2e;
-      border-color: var(--accent);
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      margin: 0;
     }
-    .badge-active {
-      background: rgba(45, 212, 191, 0.2);
-      color: var(--accent-strong);
-      border: 1px solid rgba(45, 212, 191, 0.4);
-    }
-    .btn-danger {
-      background: rgba(239, 68, 68, 0.1);
-      color: #f87171;
-      border-color: rgba(239, 68, 68, 0.3);
-    }
-    .btn-danger:hover {
-      background: rgba(239, 68, 68, 0.2);
-      border-color: #ef4444;
+
+    @media (max-width: 1200px) {
+      main {
+        grid-template-columns: 360px minmax(520px, 1fr);
+      }
+
+      .json-panel {
+        grid-column: 1 / -1;
+      }
     }
   </style>
-  <!-- Three.js and VRM Vendor libs -->
   <script src="vendor/three.min.js"></script>
   <script src="vendor/GLTFLoader.js"></script>
   <script src="vendor/OrbitControls.js"></script>
   <script src="vendor/three-vrm.min.js"></script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <h1>Alicia Pose Training Lab</h1>
-      <p>姿勢訓練與靜態評分 <span>v1.0</span></p>
+  <header>
+    <div>
+      <h1>Alicia GVHMR 姿勢校正台</h1>
+      <div class="subtitle">GVHMR 骨架 - Alicia 對齊 - 可重用修正參數</div>
     </div>
-    <div id="labStatus" class="status-badge">預載模型中...</div>
+    <div id="trainingStatus" role="status">就緒。先載入 YouTube 影片。</div>
   </header>
 
-  <main class="main-layout">
-    <!-- Left Sidebar: Pose Library -->
-    <aside class="sidebar">
-      <div class="section-title">姿勢資料庫</div>
-      <button id="btnCreateNew" class="btn" style="margin-bottom: 12px;">+ 新增姿勢</button>
-      <div id="categoryContainer">
-        <!-- Rendered dynamically -->
+  <main>
+    <section class="panel">
+      <div class="panel-title">
+        <span class="step">1</span>
+        <h2>影片與 GVHMR</h2>
       </div>
-    </aside>
 
-    <!-- Center Stage: Viewport -->
-    <section class="viewport-container">
-      <div id="viewport"></div>
-      <div class="viewport-overlay">
-        <span>滑鼠拖曳：旋轉視角 | 滾輪：縮放 | 右鍵拖曳：平移</span>
+      <div class="group">
+        <label for="trainingYoutubeUrl">
+          YouTube 網址
+          <input id="trainingYoutubeUrl" type="url" inputmode="url" placeholder="https://www.youtube.com/watch?v=...">
+        </label>
+        <button id="btnTrainingLoadYoutube" type="button">載入 YouTube 影片</button>
+      </div>
+
+      <div class="group">
+        <h3>影片預覽</h3>
+        <video id="trainingVideoPreview" controls muted playsinline></video>
+      </div>
+
+      <div class="range-stack">
+        <div class="row">
+          <h3>擷取範圍</h3>
+          <output id="trainingCaptureRangeLabel" class="range-label">0.00 秒 - 0.00 秒</output>
+        </div>
+        <input id="trainingCaptureStartSlider" type="range" min="0" max="0" value="0" step="100" aria-label="擷取開始">
+        <input id="trainingCaptureEndSlider" type="range" min="0" max="0" value="0" step="100" aria-label="擷取結束">
+        <div class="row">
+          <label for="trainingCaptureStartMs">
+            開始 ms
+            <input id="trainingCaptureStartMs" type="number" min="0" value="0" step="100">
+          </label>
+          <label for="trainingCaptureEndMs">
+            結束 ms
+            <input id="trainingCaptureEndMs" type="number" min="0" value="0" step="100">
+          </label>
+        </div>
+        <div class="actions">
+          <button id="btnTrainingSetStart" type="button" class="secondary">設為開始</button>
+          <button id="btnTrainingSetEnd" type="button" class="secondary">設為結束</button>
+        </div>
+        <button id="btnTrainingRunGvhmr" type="button" class="full">執行 GVHMR 動作重建</button>
+      </div>
+
+      <div class="group">
+        <h3>影格</h3>
+        <label for="gvhmrFrameSlider">
+          對齊影格
+          <input id="gvhmrFrameSlider" type="range" min="0" max="0" value="0" step="1">
+        </label>
+        <output id="gvhmrFrameLabel" class="readout">0 / 0 - 0.00 秒</output>
+        <button id="btnTrainingApplyCalibration" type="button" class="secondary">套用修正</button>
       </div>
     </section>
 
-    <!-- Right Panel: Editor -->
-    <aside class="control-panel">
-      <!-- Pose Metadata -->
-      <section class="panel-section">
-        <h2>基本欄位</h2>
-        <div class="form-group">
-          <label for="poseId">姿勢 ID (Slug)</label>
-          <input type="text" id="poseId" placeholder="例如: stand_relaxed_002" required>
-        </div>
-        <div class="form-group">
-          <label for="poseLabel">中文名稱 (Label)</label>
-          <input type="text" id="poseLabel" placeholder="例如: 自然放鬆站姿" required>
-        </div>
-        <div class="form-group">
-          <label for="poseCategory">分類 (Category)</label>
-          <select id="poseCategory">
-            <option value="standing">standing - 站立</option>
-            <option value="walking">walking - 走路</option>
-            <option value="crouching">crouching - 蹲下</option>
-            <option value="stretch">stretch - 伸展</option>
-            <option value="touch_face">touch_face - 摸臉/手勢</option>
-            <option value="breathing">breathing - 呼吸調息</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="poseModel">適用模型</label>
-          <input type="text" id="poseModel" value="AliciaSolid">
-        </div>
-      </section>
-
-      <!-- Skeleton Sliders -->
-      <section class="panel-section">
-        <h2>骨骼角度微調</h2>
-        <div class="form-group">
-          <label for="boneSelect">選擇骨骼 (Bone)</label>
-          <select id="boneSelect">
-            <option value="hips">hips (骨盆/位置+旋轉)</option>
-            <option value="spine">spine (脊椎)</option>
-            <option value="chest">chest (胸部)</option>
-            <option value="leftShoulder">leftShoulder (左肩膀)</option>
-            <option value="rightShoulder">rightShoulder (右肩膀)</option>
-            <option value="leftUpperArm">leftUpperArm (左上臂)</option>
-            <option value="rightUpperArm">rightUpperArm (右上臂)</option>
-            <option value="leftLowerArm">leftLowerArm (左前臂)</option>
-            <option value="rightLowerArm">rightLowerArm (右前臂)</option>
-            <option value="leftHand">leftHand (左手掌)</option>
-            <option value="rightHand">rightHand (右手掌)</option>
-            <option value="leftUpperLeg">leftUpperLeg (左大腿)</option>
-            <option value="rightUpperLeg">rightUpperLeg (右大腿)</option>
-            <option value="leftLowerLeg">leftLowerLeg (左小腿)</option>
-            <option value="rightLowerLeg">rightLowerLeg (右小腿)</option>
-            <option value="leftFoot">leftFoot (左腳踝)</option>
-            <option value="rightFoot">rightFoot (右腳踝)</option>
-          </select>
-        </div>
-
-        <label class="checkbox-row" style="margin-bottom: 14px;">
-          <input type="checkbox" id="mirrorMode" checked>
-          <span>鏡像模式 (Mirror Mode)</span>
-        </label>
-
-        <!-- Slider list -->
-        <div id="boneSliders">
-          <!-- Rendered dynamically based on select -->
-        </div>
-
-        <div class="reset-bar">
-          <button id="btnResetBone" class="btn">重設此骨骼</button>
-          <button id="btnResetAll" class="btn">還原預設姿勢</button>
-        </div>
-      </section>
-
-      <!-- Humanization Settings -->
-      <section class="panel-section">
-        <h2>擬人化層級 <span id="lblHumanizationLevel" class="badge badge-gray">Level 2</span></h2>
-        <div class="form-group">
-          <label for="humanizationProfile">擬人化設定檔 (Profile)</label>
-          <select id="humanizationProfile">
-            <option value="alicia">alicia (預設)</option>
-            <option value="default">default (基本)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="humanizationLevel">行為複雜度 (Level)</label>
-          <select id="humanizationLevel">
-            <option value="0">0 robot (靜態/無擬人)</option>
-            <option value="1">1 assistant (呼吸 + 眨眼)</option>
-            <option value="2" selected>2 alicia (呼吸 + 眨眼 + 重心位移 + 肩頸微動)</option>
-            <option value="3">3 streamer (Level 2 + 摸臉摸髮/短手勢)</option>
-            <option value="4">4 scene_actor (Level 3 + 場景意識 + 伸展)</option>
-          </select>
-        </div>
-      </section>
-
-      <!-- Human Motion Playground -->
-      <section class="panel-section">
-        <h2>擬人化行為遊樂場 (Playground)</h2>
-        <div class="form-group">
-          <label>模擬擬人化層級 (Level 0-4)</label>
-          <div class="btn-group-row" style="display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px;">
-            <button id="btnPlaygroundL0" class="btn btn-level" style="width: auto; padding: 6px 10px; font-size: 12px;" data-level="0">L0</button>
-            <button id="btnPlaygroundL1" class="btn btn-level" style="width: auto; padding: 6px 10px; font-size: 12px;" data-level="1">L1</button>
-            <button id="btnPlaygroundL2" class="btn btn-level" style="width: auto; padding: 6px 10px; font-size: 12px;" data-level="2">L2</button>
-            <button id="btnPlaygroundL3" class="btn btn-level" style="width: auto; padding: 6px 10px; font-size: 12px;" data-level="3">L3</button>
-            <button id="btnPlaygroundL4" class="btn btn-level" style="width: auto; padding: 6px 10px; font-size: 12px;" data-level="4">L4</button>
-          </div>
-        </div>
-
-        <div style="margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px;">
-          <div class="score-row" style="margin-bottom: 0;">
-            <span>眼睛眨眼 (Blink)</span>
-            <span id="badgePlaygroundBlink" class="badge badge-gray">Inactive</span>
-          </div>
-          <div class="score-row" style="margin-bottom: 0;">
-            <span>呼吸微動 (Breathing)</span>
-            <span id="badgePlaygroundBreathing" class="badge badge-gray">Inactive</span>
-          </div>
-          <div class="score-row" style="margin-bottom: 0;">
-            <span>重心位移 (Weight Shift)</span>
-            <span id="badgePlaygroundWeightShift" class="badge badge-gray">Inactive</span>
-          </div>
-          <div class="score-row" style="margin-bottom: 0;">
-            <span>摸臉測試 (Touch Face)</span>
-            <span id="badgePlaygroundTouchFace" class="badge badge-gray">Inactive</span>
-          </div>
-          <div class="score-row" style="margin-bottom: 0;">
-            <span>伸展測試 (Stretch)</span>
-            <span id="badgePlaygroundStretch" class="badge badge-gray">Inactive</span>
-          </div>
-        </div>
-
-        <!-- Auto Director Toggle -->
-        <div style="margin-bottom: 8px;">
-          <label class="checkbox-row" style="margin-bottom: 4px;">
-            <input type="checkbox" id="chkAutoDirector">
-            <span>啟動自動導演 (Auto Director)</span>
-          </label>
-        </div>
-
-        <!-- Auto Director HUD Status -->
-        <div id="autoDirectorHud" style="margin-bottom: 12px; font-size: 12px; border: 1px solid var(--line); padding: 8px; border-radius: 6px; background: rgba(15, 23, 42, 0.4); display: flex; flex-direction: column; gap: 4px;">
-          <div style="display: flex; justify-content: space-between;">
-            <span style="color: var(--muted);">狀態:</span>
-            <span id="txtAutoDirectorStatus" style="font-weight: bold; color: var(--muted);">已關閉</span>
-          </div>
-          <div style="display: flex; justify-content: space-between;">
-            <span style="color: var(--muted);">觸發資格:</span>
-            <span id="txtAutoDirectorEligible" style="font-weight: bold; color: #f87171;">Blocked</span>
-          </div>
-          <div style="display: flex; justify-content: space-between;">
-            <span style="color: var(--muted);">上次動作:</span>
-            <span id="txtAutoDirectorLastAction" style="font-family: monospace;">none</span>
-          </div>
-          <div style="display: flex; justify-content: space-between;">
-            <span style="color: var(--muted);">摸臉倒數 (Touch Face):</span>
-            <span id="txtAutoDirectorTouchFaceSec" style="font-family: monospace;">--</span>
-          </div>
-          <div style="display: flex; justify-content: space-between;">
-            <span style="color: var(--muted);">伸展倒數 (Stretch):</span>
-            <span id="txtAutoDirectorStretchSec" style="font-family: monospace;">--</span>
-          </div>
-          <div style="display: flex; justify-content: space-between;">
-            <span style="color: var(--muted);">冷卻倒數 (Cooldown):</span>
-            <span id="txtAutoDirectorCooldownSec" style="font-family: monospace;">--</span>
-          </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-          <button id="btnTestTouchFace" class="btn" style="padding: 6px 8px; font-size: 12.5px;">觸摸臉部</button>
-          <button id="btnTestStretch" class="btn" style="padding: 6px 8px; font-size: 12.5px;">身體伸展</button>
-        </div>
-        <button id="btnStopPlayground" class="btn btn-danger" style="width: 100%; padding: 8px; font-size: 13.5px;">停止遊樂場預覽 (Stop)</button>
-      </section>
-
-      <!-- Motion Quality Tuner -->
-      <section class="panel-section">
-        <h2>Motion Quality Tuner <span id="lblMotionIntensity" class="badge badge-gray">1x</span></h2>
-        <div class="form-group">
-          <label for="motionIntensity">整體動作強度 (motionIntensity)</label>
-          <select id="motionIntensity">
-            <option value="0.5">0.5x quiet</option>
-            <option value="1" selected>1x normal</option>
-            <option value="1.5">1.5x expressive</option>
-            <option value="2">2x stage</option>
-          </select>
-        </div>
-        <div class="score-row">
-          <span>呼吸幅度</span>
-          <div>
-            <input type="range" id="breathingAmplitude" min="0" max="2" step="0.1" value="1">
-            <span id="lblBreathingAmplitude" style="margin-left: 6px; font-family: monospace;">1.0</span>
-          </div>
-        </div>
-        <div class="score-row">
-          <span>重心位移</span>
-          <div>
-            <input type="range" id="weightShiftAmplitude" min="0" max="2" step="0.1" value="1">
-            <span id="lblWeightShiftAmplitude" style="margin-left: 6px; font-family: monospace;">1.0</span>
-          </div>
-        </div>
-        <div class="score-row">
-          <span>肩頸放鬆</span>
-          <div>
-            <input type="range" id="shoulderRelax" min="0" max="2" step="0.1" value="1">
-            <span id="lblShoulderRelax" style="margin-left: 6px; font-family: monospace;">1.0</span>
-          </div>
-        </div>
-        <div class="score-row">
-          <span>頭部漂移</span>
-          <div>
-            <input type="range" id="headDrift" min="0" max="2" step="0.1" value="1">
-            <span id="lblHeadDrift" style="margin-left: 6px; font-family: monospace;">1.0</span>
-          </div>
-        </div>
-        <div class="score-row">
-          <span>手勢 easing</span>
-          <div>
-            <input type="range" id="gestureEase" min="0.5" max="2" step="0.1" value="1">
-            <span id="lblGestureEase" style="margin-left: 6px; font-family: monospace;">1.0</span>
-          </div>
-        </div>
-        <div class="score-row">
-          <span>手勢時長</span>
-          <div>
-            <input type="range" id="gestureDuration" min="0.5" max="2" step="0.1" value="1">
-            <span id="lblGestureDuration" style="margin-left: 6px; font-family: monospace;">1.0</span>
-          </div>
-        </div>
-        <div class="score-row">
-          <span>Idle 不對稱</span>
-          <div>
-            <input type="range" id="idleAsymmetry" min="0" max="2" step="0.1" value="1">
-            <span id="lblIdleAsymmetry" style="margin-left: 6px; font-family: monospace;">1.0</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Static QA checklist -->
-      <section class="panel-section">
-        <h2>Static QA 姿勢檢核</h2>
-        <div class="score-row">
-          <span>重心平衡度 (Balance)</span>
-          <div>
-            <input type="range" id="qaBalance" min="1" max="5" value="5">
-            <span id="lblQaBalance" style="margin-left: 6px; font-family: monospace;">5</span>
-          </div>
-        </div>
-        <div class="score-row">
-          <span>剪影辨識度 (Silhouette)</span>
-          <div>
-            <input type="range" id="qaSilhouette" min="1" max="5" value="5">
-            <span id="lblQaSilhouette" style="margin-left: 6px; font-family: monospace;">5</span>
-          </div>
-        </div>
-        <label class="checkbox-row">
-          <input type="checkbox" id="qaNoTpose" checked>
-          <span>排除原始 T-Pose (noTpose)</span>
-        </label>
-        <label class="checkbox-row">
-          <input type="checkbox" id="qaNoArmCross" checked>
-          <span>避免雙手嚴重穿體 (noArmCrossBody)</span>
-        </label>
-      </section>
-
-      <!-- Runtime QA (placeholder) -->
-      <section class="panel-section">
-        <h2>Runtime QA 動態相容性</h2>
-        <div class="score-row">
-          <span>轉場流暢度 (Transition Score)</span>
-          <span style="font-family: monospace; font-weight: bold;">0</span>
-        </div>
-        <label class="checkbox-row" style="opacity: 0.6; pointer-events: none;">
-          <input type="checkbox" id="rtIdleCompat" checked disabled>
-          <span>Idle 動態相容性 (idleCompatibility)</span>
-        </label>
-        <label class="checkbox-row" style="opacity: 0.6; pointer-events: none;">
-          <input type="checkbox" id="rtClipCompat" checked disabled>
-          <span>短動作相容性 (clipCompatibility)</span>
-        </label>
-        <label class="checkbox-row" style="opacity: 0.6; pointer-events: none;">
-          <input type="checkbox" id="rtVrmaCompat" checked disabled>
-          <span>VRMA 混動相容性 (vrmaCompatibility)</span>
-        </label>
-        <div class="future-placeholder">
-          ⚠️ M20.1 僅作欄位規劃與呈現。動態相容性測量值將於 M20.2 實作對接。
-        </div>
-      </section>
-
-      <!-- Actions -->
-      <div style="margin-top: 10px;">
-        <button id="btnSavePose" class="btn btn-primary" style="height: 48px; font-size: 15px;">儲存姿勢資料 (Save Pose)</button>
+    <section class="panel preview-wrap">
+      <div class="panel-title">
+        <span class="step">2</span>
+        <h2>對齊預覽</h2>
       </div>
-    </aside>
+      <div id="aliciaPreview"></div>
+      <div class="preview-controls">
+        <label class="switch-row" for="trainingOverlayEnabled">
+          顯示骨架
+          <input id="trainingOverlayEnabled" type="checkbox" checked>
+        </label>
+        <label class="switch-row" for="trainingMirrorX">
+          X 軸鏡像
+          <input id="trainingMirrorX" type="checkbox">
+        </label>
+      </div>
+    </section>
+
+    <section class="panel json-panel">
+      <div class="panel-title">
+        <span class="step">3</span>
+        <h2>GVHMR → Alicia 修正參數</h2>
+      </div>
+
+      <div class="group">
+        <h3>預設參數</h3>
+        <div class="actions">
+          <button id="btnTrainingSaveDefaultProfile" type="button">存成預設</button>
+          <button id="btnTrainingLoadDefaultProfile" type="button" class="secondary">載入預設</button>
+          <button id="btnTrainingClearDefaultProfile" type="button" class="secondary full">清除預設</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <h3>全域對齊</h3>
+        <div class="slider-row">
+          <span>縮</span>
+          <input id="trainingScale" type="range" min="0.3" max="2.5" value="1" step="0.01">
+          <output id="trainingScaleValue">1.00</output>
+        </div>
+        <div class="slider-row">
+          <span>X</span>
+          <input id="trainingOffsetX" type="range" min="-2" max="2" value="0" step="0.01">
+          <output id="trainingOffsetXValue">0.00</output>
+        </div>
+        <div class="slider-row">
+          <span>Y</span>
+          <input id="trainingOffsetY" type="range" min="-2" max="2" value="0" step="0.01">
+          <output id="trainingOffsetYValue">0.00</output>
+        </div>
+        <div class="slider-row">
+          <span>Z</span>
+          <input id="trainingOffsetZ" type="range" min="-2" max="2" value="0" step="0.01">
+          <output id="trainingOffsetZValue">0.00</output>
+        </div>
+        <div class="slider-row">
+          <span>朝向</span>
+          <input id="trainingYaw" type="range" min="-180" max="180" value="0" step="1">
+          <output id="trainingYawValue">0°</output>
+        </div>
+        <label for="trainingTimeOffsetMs">
+          時間偏移 ms
+          <input id="trainingTimeOffsetMs" type="number" value="0" step="10">
+        </label>
+      </div>
+
+      <div class="group">
+        <h3>骨頭偏移</h3>
+        <label for="trainingBoneSelect">
+          骨頭
+          <select id="trainingBoneSelect"></select>
+        </label>
+        <div id="trainingBoneOffsetSliders"></div>
+      </div>
+
+      <div class="group">
+        <h3>姿勢校正軌</h3>
+        <div id="trainingCalibrationFrameStatus" class="hint">目前影格：--</div>
+        <div class="actions">
+          <button id="btnTrainingInferCalibration" type="button">自動姿勢推論</button>
+          <button id="btnTrainingCaptureKeyframe" type="button" class="secondary">儲存目前影格校正</button>
+        </div>
+        <div id="trainingCalibrationTrackList" class="group"></div>
+      </div>
+
+      <div class="group">
+        <h3>摘要</h3>
+        <div class="metric"><span>來源</span><strong id="trainingSourceSummary">--</strong></div>
+        <div class="metric"><span>GVHMR 影格</span><strong id="trainingFrameSummary">0</strong></div>
+        <div class="metric"><span>對齊影格</span><strong id="trainingKeyframeSummary">0</strong></div>
+        <div class="metric"><span>預設參數</span><strong id="trainingProfileSummary">未儲存</strong></div>
+      </div>
+
+      <div class="group">
+        <h3>校正 JSON</h3>
+        <div class="actions">
+          <button id="btnTrainingDownloadJson" type="button">匯出 JSON</button>
+          <button id="btnTrainingLoadJson" type="button" class="secondary">匯入 JSON</button>
+        </div>
+        <input id="trainingJsonInput" type="file" accept=".json,application/json" hidden>
+        <textarea id="trainingJsonOutput" spellcheck="false" readonly placeholder="校正 JSON 會顯示在這裡。"></textarea>
+        <p class="hint">保存 GVHMR → Alicia 的全域校正、骨頭偏移、對齊影格與本次動作重建資料。</p>
+      </div>
+    </section>
   </main>
 
   <script type="module">
     import { VrmMascot } from './js/VrmMascot.js';
-    import { AutoDirectorLite } from './js/AutoDirectorLite.js';
+    import { AliciaMotionPreviewAdapter } from './js/AliciaMotionPreviewAdapter.js';
 
-    const CATEGORIES = ["standing", "walking", "crouching", "stretch", "touch_face", "breathing"];
-    const CATEGORY_NAMES = {
-      standing: "standing - 站立",
-      walking: "walking - 走路",
-      crouching: "crouching - 蹲下",
-      stretch: "stretch - 伸展",
-      touch_face: "touch_face - 預防摸臉",
-      breathing: "breathing - 呼吸調息"
+    const $ = (id) => document.getElementById(id);
+    const DEFAULT_VRM_MODEL_URL = 'models/mascot.vrm';
+    const DEFAULT_PROFILE_STORAGE_KEY = 'alicia.gvhmr.defaultProfile.v1';
+    const ALICIA_GROUND_Y = -0.95;
+    const DEG = Math.PI / 180;
+
+    const SKELETON_JOINTS = Object.freeze([
+      'head',
+      'neck',
+      'chest',
+      'hips',
+      'leftShoulder',
+      'leftElbow',
+      'leftWrist',
+      'rightShoulder',
+      'rightElbow',
+      'rightWrist',
+      'leftKnee',
+      'leftAnkle',
+      'leftFoot',
+      'rightKnee',
+      'rightAnkle',
+      'rightFoot'
+    ]);
+
+    const SKELETON_BONES = Object.freeze([
+      ['head', 'chest'],
+      ['leftShoulder', 'chest'],
+      ['rightShoulder', 'chest'],
+      ['chest', 'hips'],
+      ['leftShoulder', 'leftElbow'],
+      ['leftElbow', 'leftWrist'],
+      ['rightShoulder', 'rightElbow'],
+      ['rightElbow', 'rightWrist'],
+      ['hips', 'leftKnee'],
+      ['leftKnee', 'leftAnkle'],
+      ['leftAnkle', 'leftFoot'],
+      ['hips', 'rightKnee'],
+      ['rightKnee', 'rightAnkle'],
+      ['rightAnkle', 'rightFoot']
+    ]);
+
+    const BONE_OFFSET_AXES = Object.freeze(['x', 'y', 'z']);
+    const BONE_PICK_ITEMS = Object.freeze([
+      { value: 'head', label: '頭部' },
+      { value: 'neck', label: '頸部' },
+      { value: 'upperChest', label: '上胸' },
+      { value: 'chest', label: '胸部' },
+      { value: 'spine', label: '脊椎' },
+      { value: 'hips', label: '臀部' },
+      { value: 'leftShoulder', label: '左肩' },
+      { value: 'leftUpperArm', label: '左上臂' },
+      { value: 'leftLowerArm', label: '左前臂' },
+      { value: 'leftHand', label: '左手' },
+      { value: 'rightShoulder', label: '右肩' },
+      { value: 'rightUpperArm', label: '右上臂' },
+      { value: 'rightLowerArm', label: '右前臂' },
+      { value: 'rightHand', label: '右手' },
+      { value: 'leftUpperLeg', label: '左大腿' },
+      { value: 'leftLowerLeg', label: '左小腿' },
+      { value: 'leftFoot', label: '左腳' },
+      { value: 'leftToes', label: '左腳趾' },
+      { value: 'rightUpperLeg', label: '右大腿' },
+      { value: 'rightLowerLeg', label: '右小腿' },
+      { value: 'rightFoot', label: '右腳' },
+      { value: 'rightToes', label: '右腳趾' }
+    ]);
+    const BONE_PICK_NAMES = Object.freeze(BONE_PICK_ITEMS.map((item) => item.value));
+    const BONE_LABELS = Object.freeze(Object.fromEntries(BONE_PICK_ITEMS.map((item) => [item.value, item.label])));
+    const CALIBRATION_NUMERIC_FIELDS = Object.freeze(['scale', 'offsetX', 'offsetY', 'offsetZ', 'yawDegrees', 'timeOffsetMs']);
+
+    const state = {
+      source: null,
+      currentVideoUrl: '',
+      captureRange: { startMs: 0, endMs: 0, durationMs: 0 },
+      worldMotion: null,
+      frames: [],
+      keyframes: [],
+      boneOffsets: {},
+      mascot: null,
+      previewAdapter: null,
+      skeletonGroup: null,
+      jointMeshes: {},
+      boneLine: null,
+      objectUrl: null,
+      jsonRefreshTimer: 0,
+      boneOffsetApplyRaf: 0,
+      bonePickerBound: false
     };
 
-    const MIRROR_PAIRS = {
-      leftShoulder: "rightShoulder",
-      rightShoulder: "leftShoulder",
-      leftUpperArm: "rightUpperArm",
-      rightUpperArm: "leftUpperArm",
-      leftLowerArm: "rightLowerArm",
-      rightLowerArm: "leftLowerArm",
-      leftHand: "rightHand",
-      rightHand: "leftHand",
-      leftUpperLeg: "rightUpperLeg",
-      rightUpperLeg: "leftUpperLeg",
-      leftLowerLeg: "rightLowerLeg",
-      rightLowerLeg: "leftLowerLeg",
-      leftFoot: "rightFoot",
-      rightFoot: "leftFoot"
-    };
-    const MIRROR_INVERT_AXES = new Set(["y", "z"]);
+    function setStatus(message, tone = 'ok') {
+      $('trainingStatus').textContent = message;
+      $('trainingStatus').style.color = tone === 'error' ? 'var(--danger)' : 'var(--accent)';
+    }
 
-    const BONE_PICK_RADIUS_PX = 42;
-    const BONE_PICK_TARGETS = [
-      { bone: 'hips', label: 'hips / 骨盆', radius: 48 },
-      { bone: 'spine', label: 'spine / 脊椎', radius: 44 },
-      { bone: 'chest', label: 'chest / 胸部', radius: 50 },
-      { bone: 'leftShoulder', label: 'leftShoulder / 左肩膀', radius: 40 },
-      { bone: 'rightShoulder', label: 'rightShoulder / 右肩膀', radius: 40 },
-      { bone: 'leftUpperArm', label: 'leftUpperArm / 左上臂', radius: 38 },
-      { bone: 'rightUpperArm', label: 'rightUpperArm / 右上臂', radius: 38 },
-      { bone: 'leftLowerArm', label: 'leftLowerArm / 左前臂', radius: 38 },
-      { bone: 'rightLowerArm', label: 'rightLowerArm / 右前臂', radius: 38 },
-      { bone: 'leftHand', label: 'leftHand / 左手掌', radius: 40 },
-      { bone: 'rightHand', label: 'rightHand / 右手掌', radius: 40 },
-      { bone: 'leftUpperLeg', label: 'leftUpperLeg / 左大腿', radius: 42 },
-      { bone: 'rightUpperLeg', label: 'rightUpperLeg / 右大腿', radius: 42 },
-      { bone: 'leftLowerLeg', label: 'leftLowerLeg / 左小腿', radius: 38 },
-      { bone: 'rightLowerLeg', label: 'rightLowerLeg / 右小腿', radius: 38 },
-      { bone: 'leftFoot', label: 'leftFoot / 左腳踝', radius: 38 },
-      { bone: 'rightFoot', label: 'rightFoot / 右腳踝', radius: 38 }
-    ];
+    function finiteNumber(value, fallback = 0) {
+      const number = Number(value);
+      return Number.isFinite(number) ? number : fallback;
+    }
 
-    let mascot = null;
-    let poseLibrary = {};
-    let activePoseId = null;
-    let autoDirector = null;
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
 
-    // Default pose preset structure
-    let currentPose = {
-      schemaVersion: 1,
-      id: "",
-      category: "standing",
-      label: "",
-      model: "AliciaSolid",
-      basePose: {
-        rotation: {},
-        position: {}
-      },
-      humanization: {
-        profile: "alicia",
-        level: 2
-      },
-      qa: {
-        balance: 5,
-        silhouette: 5,
-        noTpose: true,
-        noArmCrossBody: true
-      },
-      runtimeQa: {
-        transitionScore: 0,
-        idleCompatibility: true,
-        clipCompatibility: true,
-        vrmaCompatibility: true
-      },
-      source: {
-        type: "manual",
-        tool: "pose_training_lab"
+    function formatSeconds(ms) {
+      return `${(finiteNumber(ms) / 1000).toFixed(2)} 秒`;
+    }
+
+    function round3(value) {
+      return Number(finiteNumber(value).toFixed(3));
+    }
+
+    function cloneJson(value) {
+      return JSON.parse(JSON.stringify(value));
+    }
+
+    function readStoredDefaultProfile() {
+      try {
+        const raw = localStorage.getItem(DEFAULT_PROFILE_STORAGE_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch {
+        return null;
       }
-    };
+    }
 
-    // DOM Elements
-    const els = {
-      viewport: document.getElementById('viewport'),
-      labStatus: document.getElementById('labStatus'),
-      categoryContainer: document.getElementById('categoryContainer'),
-      btnCreateNew: document.getElementById('btnCreateNew'),
-      btnSavePose: document.getElementById('btnSavePose'),
-      btnResetBone: document.getElementById('btnResetBone'),
-      btnResetAll: document.getElementById('btnResetAll'),
-      poseId: document.getElementById('poseId'),
-      poseLabel: document.getElementById('poseLabel'),
-      poseCategory: document.getElementById('poseCategory'),
-      poseModel: document.getElementById('poseModel'),
-      boneSelect: document.getElementById('boneSelect'),
-      mirrorMode: document.getElementById('mirrorMode'),
-      boneSliders: document.getElementById('boneSliders'),
-      humanizationProfile: document.getElementById('humanizationProfile'),
-      humanizationLevel: document.getElementById('humanizationLevel'),
-      lblHumanizationLevel: document.getElementById('lblHumanizationLevel'),
-      qaBalance: document.getElementById('qaBalance'),
-      lblQaBalance: document.getElementById('lblQaBalance'),
-      qaSilhouette: document.getElementById('qaSilhouette'),
-      lblQaSilhouette: document.getElementById('lblQaSilhouette'),
-      qaNoTpose: document.getElementById('qaNoTpose'),
-      qaNoArmCross: document.getElementById('qaNoArmCross'),
-      playgroundLevels: [
-        document.getElementById('btnPlaygroundL0'),
-        document.getElementById('btnPlaygroundL1'),
-        document.getElementById('btnPlaygroundL2'),
-        document.getElementById('btnPlaygroundL3'),
-        document.getElementById('btnPlaygroundL4')
-      ],
-      badgePlaygroundBlink: document.getElementById('badgePlaygroundBlink'),
-      badgePlaygroundBreathing: document.getElementById('badgePlaygroundBreathing'),
-      badgePlaygroundWeightShift: document.getElementById('badgePlaygroundWeightShift'),
-      badgePlaygroundTouchFace: document.getElementById('badgePlaygroundTouchFace'),
-      badgePlaygroundStretch: document.getElementById('badgePlaygroundStretch'),
-      btnTestTouchFace: document.getElementById('btnTestTouchFace'),
-      btnTestStretch: document.getElementById('btnTestStretch'),
-      btnStopPlayground: document.getElementById('btnStopPlayground'),
-      motionIntensity: document.getElementById('motionIntensity'),
-      lblMotionIntensity: document.getElementById('lblMotionIntensity'),
-      breathingAmplitude: document.getElementById('breathingAmplitude'),
-      lblBreathingAmplitude: document.getElementById('lblBreathingAmplitude'),
-      weightShiftAmplitude: document.getElementById('weightShiftAmplitude'),
-      lblWeightShiftAmplitude: document.getElementById('lblWeightShiftAmplitude'),
-      shoulderRelax: document.getElementById('shoulderRelax'),
-      lblShoulderRelax: document.getElementById('lblShoulderRelax'),
-      headDrift: document.getElementById('headDrift'),
-      lblHeadDrift: document.getElementById('lblHeadDrift'),
-      gestureEase: document.getElementById('gestureEase'),
-      lblGestureEase: document.getElementById('lblGestureEase'),
-      gestureDuration: document.getElementById('gestureDuration'),
-      lblGestureDuration: document.getElementById('lblGestureDuration'),
-      idleAsymmetry: document.getElementById('idleAsymmetry'),
-      lblIdleAsymmetry: document.getElementById('lblIdleAsymmetry'),
-      chkAutoDirector: document.getElementById('chkAutoDirector'),
-      txtAutoDirectorStatus: document.getElementById('txtAutoDirectorStatus'),
-      txtAutoDirectorEligible: document.getElementById('txtAutoDirectorEligible'),
-      txtAutoDirectorLastAction: document.getElementById('txtAutoDirectorLastAction'),
-      txtAutoDirectorTouchFaceSec: document.getElementById('txtAutoDirectorTouchFaceSec'),
-      txtAutoDirectorStretchSec: document.getElementById('txtAutoDirectorStretchSec'),
-      txtAutoDirectorCooldownSec: document.getElementById('txtAutoDirectorCooldownSec'),
-      motionQualityInputs: [
-        document.getElementById('motionIntensity'),
-        document.getElementById('breathingAmplitude'),
-        document.getElementById('weightShiftAmplitude'),
-        document.getElementById('shoulderRelax'),
-        document.getElementById('headDrift'),
-        document.getElementById('gestureEase'),
-        document.getElementById('gestureDuration'),
-        document.getElementById('idleAsymmetry')
-      ]
-    };
+    function updateDefaultProfileSummary() {
+      const profile = readStoredDefaultProfile();
+      $('trainingProfileSummary').textContent = profile?.updatedAt
+        ? `已儲存 ${profile.updatedAt.slice(0, 19).replace('T', ' ')}`
+        : '未儲存';
+    }
 
-    function configurePoseLabCamera(mascotInstance) {
+    function currentVideoTimeMs() {
+      return Math.max(0, finiteNumber($('trainingVideoPreview').currentTime) * 1000);
+    }
+
+    function readCaptureRange() {
+      return {
+        startMs: finiteNumber($('trainingCaptureStartMs').value),
+        endMs: finiteNumber($('trainingCaptureEndMs').value),
+        durationMs: Math.max(0, finiteNumber($('trainingCaptureEndMs').value) - finiteNumber($('trainingCaptureStartMs').value))
+      };
+    }
+
+    function setCaptureRange(startMs, endMs) {
+      const durationMs = Math.max(0, state.captureRange.durationMs || endMs || 0);
+      const start = clamp(finiteNumber(startMs), 0, durationMs);
+      const end = clamp(Math.max(start + 100, finiteNumber(endMs, durationMs)), 0, durationMs);
+      state.captureRange = { startMs: start, endMs: end, durationMs };
+      $('trainingCaptureStartSlider').max = String(durationMs);
+      $('trainingCaptureEndSlider').max = String(durationMs);
+      $('trainingCaptureStartSlider').value = String(start);
+      $('trainingCaptureEndSlider').value = String(end);
+      $('trainingCaptureStartMs').value = String(Math.round(start));
+      $('trainingCaptureEndMs').value = String(Math.round(end));
+      $('trainingCaptureRangeLabel').textContent = `${formatSeconds(start)} - ${formatSeconds(end)}`;
+      scheduleTrainingJsonRefresh();
+      return state.captureRange;
+    }
+
+    function updateCaptureRangeFromVideo() {
+      const durationMs = Math.max(0, finiteNumber($('trainingVideoPreview').duration) * 1000);
+      state.captureRange.durationMs = durationMs;
+      setCaptureRange(0, durationMs);
+    }
+
+    function seekVideoToMs(ms) {
+      const video = $('trainingVideoPreview');
+      if (Number.isFinite(video.duration)) {
+        video.currentTime = clamp(finiteNumber(ms) / 1000, 0, video.duration);
+      }
+    }
+
+    function readCalibration() {
+      return {
+        scale: finiteNumber($('trainingScale').value, 1),
+        offsetX: finiteNumber($('trainingOffsetX').value),
+        offsetY: finiteNumber($('trainingOffsetY').value),
+        offsetZ: finiteNumber($('trainingOffsetZ').value),
+        yawDegrees: finiteNumber($('trainingYaw').value),
+        mirrorX: $('trainingMirrorX').checked,
+        timeOffsetMs: finiteNumber($('trainingTimeOffsetMs').value)
+      };
+    }
+
+    function writeCalibration(calibration = {}) {
+      const values = {
+        scale: finiteNumber(calibration.scale, 1),
+        offsetX: finiteNumber(calibration.offsetX),
+        offsetY: finiteNumber(calibration.offsetY),
+        offsetZ: finiteNumber(calibration.offsetZ),
+        yawDegrees: finiteNumber(calibration.yawDegrees ?? calibration.yaw),
+        mirrorX: calibration.mirrorX === true,
+        timeOffsetMs: finiteNumber(calibration.timeOffsetMs)
+      };
+      $('trainingScale').value = String(values.scale);
+      $('trainingOffsetX').value = String(values.offsetX);
+      $('trainingOffsetY').value = String(values.offsetY);
+      $('trainingOffsetZ').value = String(values.offsetZ);
+      $('trainingYaw').value = String(values.yawDegrees);
+      $('trainingMirrorX').checked = values.mirrorX;
+      $('trainingTimeOffsetMs').value = String(values.timeOffsetMs);
+      updateCalibrationLabels();
+      return values;
+    }
+
+    function updateCalibrationLabels() {
+      const c = readCalibration();
+      $('trainingScaleValue').textContent = c.scale.toFixed(2);
+      $('trainingOffsetXValue').textContent = c.offsetX.toFixed(2);
+      $('trainingOffsetYValue').textContent = c.offsetY.toFixed(2);
+      $('trainingOffsetZValue').textContent = c.offsetZ.toFixed(2);
+      $('trainingYawValue').textContent = `${Math.round(c.yawDegrees)}°`;
+    }
+
+    function worldMotionFrames(payload = state.worldMotion) {
+      return Array.isArray(payload?.frames) ? payload.frames : [];
+    }
+
+    function trainingFramesFromWorldMotion(payload, captureRange = state.captureRange) {
+      const frames = worldMotionFrames(payload)
+        .filter((frame) => frame?.landmarks)
+        .map((frame, index) => ({
+          timeMs: Math.round(Math.max(0, finiteNumber(frame.t)) * 1000),
+          frameIndex: frame.frameIndex ?? index,
+          sourceFrame: frame,
+          landmarks: cloneJson(frame.landmarks)
+        }));
+      if (!frames.length) {
+        return [];
+      }
+      const startMs = finiteNumber(captureRange.startMs, frames[0].timeMs);
+      const endMs = finiteNumber(captureRange.endMs, frames.at(-1).timeMs);
+      const ranged = frames.filter((frame) => frame.timeMs >= startMs && frame.timeMs <= endMs);
+      return ranged.length ? ranged : frames;
+    }
+
+    function nearestFrameAtMs(timeMs) {
+      if (!state.frames.length) {
+        return null;
+      }
+      const target = finiteNumber(timeMs);
+      return state.frames.reduce((nearest, frame) => (
+        Math.abs(frame.timeMs - target) < Math.abs(nearest.timeMs - target) ? frame : nearest
+      ), state.frames[0]);
+    }
+
+    function frameBySlider() {
+      return state.frames[finiteNumber($('gvhmrFrameSlider').value)] || state.frames[0] || null;
+    }
+
+    function updateFrameSlider(index = 0) {
+      const max = Math.max(0, state.frames.length - 1);
+      const safeIndex = clamp(Math.round(finiteNumber(index)), 0, max);
+      $('gvhmrFrameSlider').max = String(max);
+      $('gvhmrFrameSlider').value = String(safeIndex);
+      const frame = state.frames[safeIndex];
+      $('gvhmrFrameLabel').textContent = frame
+        ? `${safeIndex} / ${max} - ${formatSeconds(frame.timeMs)}`
+        : '0 / 0 - 0.00 秒';
+      $('trainingFrameSummary').textContent = String(state.frames.length);
+      renderCalibrationTrack();
+    }
+
+    function buildGvhmrSkeletonOverlay() {
+      if (state.skeletonGroup) {
+        return state.skeletonGroup;
+      }
+      const group = new THREE.Group();
+      group.name = 'poseTrainingGvhmrSkeleton';
+
+      const jointGeo = new THREE.SphereGeometry(0.022, 12, 12);
+      const jointMat = new THREE.MeshBasicMaterial({
+        color: 0xf0c86a,
+        depthTest: false,
+        transparent: true,
+        opacity: 0.96
+      });
+      for (const jointName of SKELETON_JOINTS) {
+        const mesh = new THREE.Mesh(jointGeo, jointMat);
+        mesh.name = `gvhmr_${jointName}`;
+        mesh.renderOrder = 1000;
+        group.add(mesh);
+        state.jointMeshes[jointName] = mesh;
+      }
+
+      const lineGeo = new THREE.BufferGeometry();
+      lineGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(SKELETON_BONES.length * 6), 3));
+      const lineMat = new THREE.LineBasicMaterial({
+        color: 0xcbd5e1,
+        depthTest: false,
+        transparent: true,
+        opacity: 0.9
+      });
+      state.boneLine = new THREE.LineSegments(lineGeo, lineMat);
+      state.boneLine.renderOrder = 999;
+      group.add(state.boneLine);
+      state.skeletonGroup = group;
+      return group;
+    }
+
+    function configureTrainingCamera(mascotInstance) {
       const context = mascotInstance?.getSceneContext?.();
       const camera = context?.camera;
       const controls = context?.controls;
-      if (!camera) return;
-
-      camera.fov = 32;
-      camera.position.set(0, 0.48, 7.2);
+      if (!camera) {
+        return;
+      }
+      camera.fov = 30;
+      camera.position.set(0, 0.35, 5.6);
       camera.updateProjectionMatrix?.();
-
       if (controls) {
-        controls.target.set(0, -0.36, 0);
+        controls.target.set(0, -0.42, 0);
         controls.minDistance = Math.max(controls.minDistance ?? 2.2, 2.2);
-        controls.maxDistance = Math.max(controls.maxDistance ?? 10, 10);
+        controls.maxDistance = Math.max(controls.maxDistance ?? 9, 9);
         controls.update?.();
       } else {
-        camera.lookAt?.(0, -0.36, 0);
+        camera.lookAt?.(0, -0.42, 0);
       }
     }
 
-    function getBonePickCanvas() {
-      const context = mascot?.getSceneContext?.();
-      return context?.renderer?.domElement || els.viewport.querySelector('canvas');
-    }
-
-    function projectBonePickTarget(target, context, rect) {
-      const camera = context?.camera;
-      const boneNode = mascot?._getBoneNode?.(target.bone);
-      if (!camera || !boneNode || !rect?.width || !rect?.height) return null;
-
-      const worldPosition = new THREE.Vector3();
-      boneNode.getWorldPosition(worldPosition);
-      const projected = worldPosition.clone().project(camera);
-      if (projected.z < -1 || projected.z > 1) return null;
-
-      return {
-        bone: target.bone,
-        label: target.label || target.bone,
-        radius: target.radius || BONE_PICK_RADIUS_PX,
-        x: (projected.x * 0.5 + 0.5) * rect.width,
-        y: (-projected.y * 0.5 + 0.5) * rect.height
-      };
-    }
-
-    function findNearestBonePickTarget(event) {
-      if (!mascot?.isLoaded) return null;
-
-      const context = mascot.getSceneContext?.();
-      const canvas = getBonePickCanvas();
-      if (!context?.camera || !canvas) return null;
-
-      const rect = canvas.getBoundingClientRect();
-      const pointerX = event.clientX - rect.left;
-      const pointerY = event.clientY - rect.top;
-      let nearest = null;
-
-      for (const target of BONE_PICK_TARGETS) {
-        const projected = projectBonePickTarget(target, context, rect);
-        if (!projected) continue;
-
-        const distance = Math.hypot(pointerX - projected.x, pointerY - projected.y);
-        if (distance > projected.radius) continue;
-
-        if (!nearest || distance < nearest.distance) {
-          nearest = { ...projected, distance };
-        }
+    function placeAliciaOnGround(mascotInstance) {
+      const root = mascotInstance?.getSceneContext?.()?.vrmRoot;
+      if (!root) {
+        return;
       }
-
-      return nearest;
+      root.updateMatrixWorld(true);
+      const box = new THREE.Box3().setFromObject(root);
+      if (Number.isFinite(box.min.y)) {
+        root.position.y += ALICIA_GROUND_Y - box.min.y;
+      }
     }
 
-    function selectBoneFromViewportClick(event) {
-      const picked = findNearestBonePickTarget(event);
-      if (!picked) return false;
+    function getHumanoidBoneNode(vrm, boneName) {
+      const h = vrm?.humanoid;
+      if (!h) {
+        return null;
+      }
+      try {
+        return h.getNormalizedBoneNode?.(boneName) ?? h.getBoneNode?.(boneName) ?? null;
+      } catch {
+        return null;
+      }
+    }
 
-      els.boneSelect.value = picked.bone;
-      renderBoneSliders();
-      setStatus(`已選擇骨骼: ${picked.label}`);
-      event.preventDefault();
+    function renderTrainingBoneSelect() {
+      const select = $('trainingBoneSelect');
+      const current = select.value;
+      select.innerHTML = '';
+      BONE_PICK_ITEMS.forEach((item, index) => {
+        const option = document.createElement('option');
+        option.value = item.value;
+        option.textContent = `${index + 1}. ${item.label} ${item.value}`;
+        select.appendChild(option);
+      });
+      if (BONE_PICK_NAMES.includes(current)) {
+        select.value = current;
+      }
+    }
+
+    function selectTrainingBone(boneName) {
+      const select = $('trainingBoneSelect');
+      if (!select || !boneName || ![...select.options].some((option) => option.value === boneName)) {
+        return false;
+      }
+      select.value = boneName;
+      renderBoneOffsetSliders();
+      setStatus(`已切換到 ${BONE_LABELS[boneName] || boneName}。`);
       return true;
     }
 
-    function bindViewportBonePicking() {
-      const canvas = getBonePickCanvas();
-      if (!canvas || canvas.dataset.poseBonePicking === '1') return;
-
-      canvas.dataset.poseBonePicking = '1';
-      canvas.title = '點 Alicia 身體部位即可選擇對應骨骼';
-      canvas.addEventListener('click', selectBoneFromViewportClick);
-    }
-
-    // Initialize 3D Mascot
-    async function initMascot() {
-      try {
-        mascot = new VrmMascot(els.viewport, { orbitControls: true, grid: true });
-        await mascot.load('models/mascot.vrm');
-        configurePoseLabCamera(mascot);
-        bindViewportBonePicking();
-        setStatus('吉祥物載入完成');
-        // Initial setup of bone sliders
-        renderBoneSliders();
-      } catch (err) {
-        console.error("Failed to load VRM model:", err);
-        setStatus('模型載入失敗');
-      }
-    }
-
-    function setStatus(text) {
-      els.labStatus.textContent = text;
-    }
-
-    // Category tree UI
-    function renderCategoryTree() {
-      els.categoryContainer.innerHTML = CATEGORIES.map(cat => {
-        const catPoses = Object.values(poseLibrary).filter(p => p.category === cat);
-        const count = catPoses.length;
-        return `
-          <div class="category-group" id="group_${cat}">
-            <div class="category-header chevron" onclick="document.getElementById('list_${cat}').classList.toggle('show'); document.getElementById('group_${cat}').classList.toggle('collapsed')">
-              <span>${CATEGORY_NAMES[cat] || cat} (${count})</span>
-            </div>
-            <ul id="list_${cat}" class="category-list collapse-content show">
-              ${catPoses.map(pose => `
-                <li class="pose-item ${pose.id === activePoseId ? 'active' : ''}" data-pose-id="${pose.id}">
-                  <span>${pose.label}</span>
-                  <small style="color: var(--muted); font-size:11px;">${pose.id}</small>
-                </li>
-              `).join('')}
-              ${count === 0 ? '<li style="padding: 8px 16px; font-size: 12px; color: var(--muted); font-style: italic;">無姿勢</li>' : ''}
-            </ul>
-          </div>
-        `;
-      }).join('');
-
-      // Add click listeners to pose items
-      document.querySelectorAll('.pose-item').forEach(item => {
-        item.addEventListener('click', () => {
-          const poseId = item.dataset.poseId;
-          loadPoseFromServer(poseId);
-        });
-      });
-    }
-
-    // Fetch library manifest
-    async function loadPoseLibrary() {
-      try {
-        const res = await fetch('/api/pose-library');
-        const data = await res.json();
-        if (data.ok && data.manifest) {
-          poseLibrary = data.manifest.poses || {};
-          renderCategoryTree();
+    function pickNearestAliciaBone(hitPoint) {
+      const context = state.mascot?.getSceneContext?.();
+      const vrm = context?.vrm;
+      const temp = new THREE.Vector3();
+      let best = null;
+      for (const boneName of BONE_PICK_NAMES) {
+        const node = getHumanoidBoneNode(vrm, boneName);
+        if (!node) {
+          continue;
         }
-      } catch (err) {
-        console.error("Failed to load pose library:", err);
-      }
-    }
-
-    // Load full pose JSON from server
-    async function loadPoseFromServer(poseId) {
-      const poseMeta = poseLibrary[poseId];
-      if (!poseMeta || !poseMeta.path) return;
-
-      try {
-        setStatus(`讀取 ${poseId}...`);
-        const res = await fetch(`/${poseMeta.path}`);
-        const pose = await res.json();
-
-        activePoseId = poseId;
-        currentPose = pose;
-
-        // Apply to mascot
-        if (mascot && mascot.motion) {
-          mascot.motion.loadPosePreset(currentPose);
+        node.getWorldPosition(temp);
+        const distance = temp.distanceToSquared(hitPoint);
+        if (!best || distance < best.distance) {
+          best = { boneName, distance };
         }
-
-        // Update UI fields
-        els.poseId.value = pose.id;
-        els.poseId.disabled = true; // Disable ID editing for existing approved poses
-        els.poseLabel.value = pose.label;
-        els.poseCategory.value = pose.category;
-        els.poseModel.value = pose.model || "AliciaSolid";
-
-        els.humanizationProfile.value = pose.humanization?.profile || "alicia";
-        els.humanizationLevel.value = String(pose.humanization?.level ?? 2);
-        updateHumanizationLevelLabel(pose.humanization?.level ?? 2);
-
-        els.qaBalance.value = String(pose.qa?.balance ?? 5);
-        els.lblQaBalance.textContent = pose.qa?.balance ?? 5;
-        els.qaSilhouette.value = String(pose.qa?.silhouette ?? 5);
-        els.lblQaSilhouette.textContent = pose.qa?.silhouette ?? 5;
-        els.qaNoTpose.checked = !!pose.qa?.noTpose;
-        els.qaNoArmCross.checked = !!pose.qa?.noArmCrossBody;
-
-        renderCategoryTree();
-        renderBoneSliders();
-        setStatus(`姿勢 ${pose.label} 載入完成`);
-      } catch (err) {
-        console.error("Failed to load pose:", err);
-        setStatus(`姿勢載入失敗`);
       }
+      return best?.boneName || null;
     }
 
-    function updateHumanizationLevelLabel(level) {
-      const labels = ["0 robot", "1 assistant", "2 alicia", "3 streamer", "4 scene_actor"];
-      els.lblHumanizationLevel.textContent = labels[level] || `Level ${level}`;
-    }
-
-    // Render Bone sliders
-    function renderBoneSliders() {
-      const selectedBone = els.boneSelect.value;
-      const isPosition = selectedBone === 'hips'; // Position editing only for hips
-      const preset = mascot ? mascot.motion.getPosePreset() : currentPose;
-
-      const rotation = preset.basePose?.rotation?.[selectedBone] || { x: 0, y: 0, z: 0 };
-      const position = preset.basePose?.position?.[selectedBone] || { x: 0, y: 0, z: 0 };
-
-      let html = '';
-
-      // If hips, display position controls first
-      if (isPosition) {
-        html += `
-          <div style="font-size:12.5px; font-weight:600; margin-bottom:8px; color:var(--muted);">位置 (Position - 米)</div>
-          ${['x', 'y', 'z'].map(axis => {
-            const val = Number(position[axis] || 0);
-            return `
-              <label class="slider-row">
-                <span class="axis">${axis.toUpperCase()}</span>
-                <input type="range" class="bone-pos-slider" data-axis="${axis}" min="-1" max="1" step="0.001" value="${val}">
-                <span class="val">${val.toFixed(3)}m</span>
-              </label>
-            `;
-          }).join('')}
-          <div style="font-size:12.5px; font-weight:600; margin-top:12px; margin-bottom:8px; color:var(--muted);">旋轉 (Rotation - 度)</div>
-        `;
-      }
-
-      // Display rotation controls
-      html += ['x', 'y', 'z'].map(axis => {
-        const val = Number(rotation[axis] || 0);
-        return `
-          <label class="slider-row">
-            <span class="axis">${axis.toUpperCase()}</span>
-            <input type="range" class="bone-rot-slider" data-axis="${axis}" min="-180" max="180" step="1" value="${val}">
-            <span class="val">${val.toFixed(0)}°</span>
-          </label>
-        `;
-      }).join('');
-
-      els.boneSliders.innerHTML = html;
-
-      // Bind slide events
-      els.boneSliders.querySelectorAll('.bone-rot-slider').forEach(slider => {
-        slider.addEventListener('input', (e) => {
-          const axis = e.target.dataset.axis;
-          const deg = Number(e.target.value);
-          e.target.nextElementSibling.textContent = `${deg.toFixed(0)}°`;
-
-          if (mascot && mascot.motion) {
-            mascot.motion.setBasePoseRotation(selectedBone, axis, deg);
-
-            // Mirror
-            if (els.mirrorMode.checked) {
-              const mirrorBone = MIRROR_PAIRS[selectedBone];
-              if (mirrorBone) {
-                const mirroredVal = MIRROR_INVERT_AXES.has(axis) ? -deg : deg;
-                mascot.motion.setBasePoseRotation(mirrorBone, axis, mirroredVal);
-              }
-            }
-            // Update preset values
-            currentPose.basePose = mascot.motion.getPosePreset().basePose;
-          }
-          setStatus('姿勢已編輯');
-        });
-      });
-
-      els.boneSliders.querySelectorAll('.bone-pos-slider').forEach(slider => {
-        slider.addEventListener('input', (e) => {
-          const axis = e.target.dataset.axis;
-          const m = Number(e.target.value);
-          e.target.nextElementSibling.textContent = `${m.toFixed(3)}m`;
-
-          if (mascot && mascot.motion) {
-            mascot.motion.setBasePosePosition(selectedBone, axis, m);
-            // Update preset values
-            currentPose.basePose = mascot.motion.getPosePreset().basePose;
-          }
-          setStatus('姿勢已編輯');
-        });
-      });
-    }
-
-    // Save Pose entry to server
-    async function savePoseToServer() {
-      const poseId = els.poseId.value.trim();
-      const label = els.poseLabel.value.trim();
-      const category = els.poseCategory.value;
-      const model = els.poseModel.value.trim() || "AliciaSolid";
-
-      if (!poseId || !label) {
-        alert("請填寫姿勢 ID 與中文名稱！");
+    function bindAliciaBonePicker() {
+      if (state.bonePickerBound) {
         return;
       }
-
-      // Sync latest preset from mascot
-      if (mascot && mascot.motion) {
-        currentPose.basePose = mascot.motion.getPosePreset().basePose;
-      }
-
-      currentPose.id = poseId;
-      currentPose.label = label;
-      currentPose.category = category;
-      currentPose.model = model;
-      currentPose.humanization = {
-        profile: els.humanizationProfile.value,
-        level: Number(els.humanizationLevel.value)
-      };
-      currentPose.qa = {
-        balance: Number(els.qaBalance.value),
-        silhouette: Number(els.qaSilhouette.value),
-        noTpose: els.qaNoTpose.checked,
-        noArmCrossBody: els.qaNoArmCross.checked
-      };
-
-      try {
-        setStatus('儲存中...');
-        const res = await fetch('/api/pose-library', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ pose: currentPose })
-        });
-        const data = await res.json();
-
-        if (data.ok) {
-          poseLibrary = data.manifest.poses || {};
-          activePoseId = poseId;
-          els.poseId.disabled = true; // Disable editing ID once saved
-          renderCategoryTree();
-          setStatus(`姿勢 ${label} 儲存完成！`);
-        } else {
-          alert(`儲存失敗: ${data.error}`);
-          setStatus('儲存失敗');
-        }
-      } catch (err) {
-        console.error("Failed to save pose:", err);
-        setStatus('儲存連線失敗');
-      }
-    }
-
-    // Create New Pose
-    function createNewPose() {
-      activePoseId = null;
-      currentPose = {
-        schemaVersion: 1,
-        id: "",
-        category: "standing",
-        label: "",
-        model: "AliciaSolid",
-        basePose: {
-          rotation: {},
-          position: {}
-        },
-        humanization: {
-          profile: "alicia",
-          level: 2
-        },
-        qa: {
-          balance: 5,
-          silhouette: 5,
-          noTpose: true,
-          noArmCrossBody: true
-        },
-        runtimeQa: {
-          transitionScore: 0,
-          idleCompatibility: true,
-          clipCompatibility: true,
-          vrmaCompatibility: true
-        },
-        source: {
-          type: "manual",
-          tool: "pose_training_lab"
-        }
-      };
-
-      // Reset UI fields
-      els.poseId.value = "";
-      els.poseId.disabled = false;
-      els.poseLabel.value = "";
-      els.poseCategory.value = "standing";
-      els.poseModel.value = "AliciaSolid";
-
-      els.humanizationProfile.value = "alicia";
-      els.humanizationLevel.value = "2";
-      updateHumanizationLevelLabel(2);
-
-      els.qaBalance.value = "5";
-      els.lblQaBalance.textContent = "5";
-      els.qaSilhouette.value = "5";
-      els.lblQaSilhouette.textContent = "5";
-      els.qaNoTpose.checked = true;
-      els.qaNoArmCross.checked = true;
-
-      if (mascot && mascot.motion) {
-        mascot.motion.loadPosePreset(currentPose);
-      }
-
-      renderCategoryTree();
-      renderBoneSliders();
-      setStatus('準備建立新姿勢');
-    }
-
-    // Reset current selected bone
-    function resetCurrentBone() {
-      const bone = els.boneSelect.value;
-      if (mascot && mascot.motion) {
-        mascot.motion.setBasePoseRotation(bone, 'x', 0);
-        mascot.motion.setBasePoseRotation(bone, 'y', 0);
-        mascot.motion.setBasePoseRotation(bone, 'z', 0);
-        if (bone === 'hips') {
-          mascot.motion.setBasePosePosition(bone, 'x', 0);
-          mascot.motion.setBasePosePosition(bone, 'y', 0);
-          mascot.motion.setBasePosePosition(bone, 'z', 0);
-        }
-        currentPose.basePose = mascot.motion.getPosePreset().basePose;
-        renderBoneSliders();
-        setStatus(`骨骼 ${bone} 已重設`);
-      }
-    }
-
-    // Reset entire mascot to default pose
-    function resetAllBones() {
-      if (confirm("是否將所有關節還原至模型預設 Natural Pose？")) {
-        if (mascot && mascot.motion) {
-          mascot.motion.loadPosePreset({});
-          currentPose.basePose = mascot.motion.getPosePreset().basePose;
-          renderBoneSliders();
-          setStatus('所有關節已還原');
-        }
-      }
-    }
-
-    let playgroundActiveLevel = null; // null | 0-4
-
-    function readMotionQualityNumber(el, fallback = 1) {
-      const value = Number(el?.value);
-      return Number.isFinite(value) ? value : fallback;
-    }
-
-    function getMotionQualitySettings() {
-      return {
-        motionIntensity: readMotionQualityNumber(els.motionIntensity, 1),
-        breathingAmplitude: readMotionQualityNumber(els.breathingAmplitude, 1),
-        weightShiftAmplitude: readMotionQualityNumber(els.weightShiftAmplitude, 1),
-        shoulderRelax: readMotionQualityNumber(els.shoulderRelax, 1),
-        headDrift: readMotionQualityNumber(els.headDrift, 1),
-        gestureEase: readMotionQualityNumber(els.gestureEase, 1),
-        gestureDuration: readMotionQualityNumber(els.gestureDuration, 1),
-        idleAsymmetry: readMotionQualityNumber(els.idleAsymmetry, 1)
-      };
-    }
-
-    function updateMotionQualityLabels() {
-      const quality = getMotionQualitySettings();
-      els.lblMotionIntensity.textContent = `${quality.motionIntensity}x`;
-      els.lblBreathingAmplitude.textContent = quality.breathingAmplitude.toFixed(1);
-      els.lblWeightShiftAmplitude.textContent = quality.weightShiftAmplitude.toFixed(1);
-      els.lblShoulderRelax.textContent = quality.shoulderRelax.toFixed(1);
-      els.lblHeadDrift.textContent = quality.headDrift.toFixed(1);
-      els.lblGestureEase.textContent = quality.gestureEase.toFixed(1);
-      els.lblGestureDuration.textContent = quality.gestureDuration.toFixed(1);
-      els.lblIdleAsymmetry.textContent = quality.idleAsymmetry.toFixed(1);
-    }
-
-    function applyMotionQualityTuner() {
-      updateMotionQualityLabels();
-      if (!mascot || !mascot.humanMotion) return;
-
-      const quality = getMotionQualitySettings();
-      const profile = els.humanizationProfile.value || 'alicia';
-      const level = playgroundActiveLevel ?? Number(els.humanizationLevel.value || 2);
-      mascot.humanMotion.configure({ profile, level, ...quality });
-
-      if (playgroundActiveLevel !== null) {
-        mascot.enableHumanization({ profile, level: playgroundActiveLevel, ...quality });
-        setStatus(`Motion Quality Tuner 已套用 (${quality.motionIntensity}x)`);
-      }
-    }
-
-    function setPlaygroundLevel(level) {
-      if (level === null) {
-        playgroundActiveLevel = null;
-        els.playgroundLevels.forEach(btn => btn.classList.remove('active'));
-        if (mascot) {
-          mascot.disableHumanization();
-          setStatus('停止遊樂場預覽');
-        }
-        els.chkAutoDirector.checked = false;
-        if (autoDirector) {
-          autoDirector.configure({ enabled: false, level: 0 });
-          autoDirector.reset();
-        }
+      const context = state.mascot?.getSceneContext?.();
+      const canvas = context?.renderer?.domElement;
+      const vrmRoot = context?.vrmRoot;
+      const camera = context?.camera;
+      if (!canvas || !vrmRoot || !camera) {
         return;
       }
-
-      playgroundActiveLevel = Number(level);
-      els.playgroundLevels.forEach((btn, idx) => {
-        if (idx === playgroundActiveLevel) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
-      });
-
-      if (mascot) {
-        const profile = els.humanizationProfile.value || 'alicia';
-        mascot.enableHumanization({ profile, level: playgroundActiveLevel, ...getMotionQualitySettings() });
-        setStatus(`已啟用遊樂場預覽 (Level ${playgroundActiveLevel})`);
-      }
-
-      if (autoDirector) {
-        autoDirector.configure({ enabled: els.chkAutoDirector.checked, level: playgroundActiveLevel });
-      }
-    }
-
-    function testPlaygroundGesture(gestureName) {
-      if (playgroundActiveLevel === null) {
-        alert('請先在遊樂場切換至對應的 level (Level 3 或 Level 4)！');
-        return;
-      }
-      if (gestureName === 'touch_face' && playgroundActiveLevel < 3) {
-        alert('摸臉手勢需要 Level 3 以上才能預覽！');
-        return;
-      }
-      if (gestureName === 'stretch' && playgroundActiveLevel < 4) {
-        alert('伸展手勢需要 Level 4 以上才能預覽！');
-        return;
-      }
-      if (mascot) {
-        mascot.triggerGesture(gestureName);
-        setStatus(`觸發手勢: ${gestureName}`);
-      }
-      if (autoDirector) {
-        autoDirector.notifyManualGesture(gestureName);
-      }
-    }
-
-    function updatePlaygroundStatusBadges() {
-      if (!mascot || !mascot.humanMotion) return;
-
-      const state = mascot.humanMotion.debugState;
-      const enabled = state.enabled;
-
-      const blinkActive = enabled && state.level >= 0;
-      updateBadge(els.badgePlaygroundBlink, blinkActive);
-      updateBadge(els.badgePlaygroundBreathing, enabled && state.level >= 1);
-      updateBadge(els.badgePlaygroundWeightShift, enabled && state.level >= 2);
-      updateBadge(els.badgePlaygroundTouchFace, enabled && state.level >= 3 && state.activeGesture === 'touch_face');
-      updateBadge(els.badgePlaygroundStretch, enabled && state.level >= 4 && state.activeGesture === 'stretch');
-    }
-
-    function updateBadge(badgeEl, isActive) {
-      if (!badgeEl) return;
-      if (isActive) {
-        badgeEl.textContent = "Active";
-        badgeEl.className = "badge badge-active";
-      } else {
-        badgeEl.textContent = "Inactive";
-        badgeEl.className = "badge badge-gray";
-      }
-    }
-
-    function updateAutoDirector(dt) {
-      if (autoDirector && mascot) {
-        autoDirector.update(dt, {
-          playgroundActive: (playgroundActiveLevel !== null),
-          currentAction: mascot.motion.currentAction,
-          isVrmaActive: mascot.motion.isVrmaActive,
-          activeGesture: mascot.humanMotion.debugState.activeGesture,
-          onGesture: (name) => {
-            mascot.triggerGesture(name);
-            setStatus(`自動觸發手勢: ${name}`);
-          }
-        });
-
-        const state = autoDirector.debugState;
-
-        // Update HUD UI readouts
-        els.txtAutoDirectorStatus.textContent = state.enabled ? `已啟用 (Level ${state.level})` : "已關閉";
-        els.txtAutoDirectorStatus.style.color = state.enabled ? "var(--accent-strong)" : "var(--muted)";
-
-        els.txtAutoDirectorEligible.textContent = state.eligible ? "Eligible" : "Blocked";
-        els.txtAutoDirectorEligible.style.color = state.eligible ? "var(--ok)" : "#f87171";
-
-        els.txtAutoDirectorLastAction.textContent = state.lastAction || "none";
-
-        const hasTouchFace = (playgroundActiveLevel !== null) && (playgroundActiveLevel >= 3) && state.enabled;
-        els.txtAutoDirectorTouchFaceSec.textContent = hasTouchFace ? `${state.nextTouchFaceSec.toFixed(1)}s` : "--";
-
-        const hasStretch = (playgroundActiveLevel !== null) && (playgroundActiveLevel >= 4) && state.enabled;
-        els.txtAutoDirectorStretchSec.textContent = hasStretch ? `${state.nextStretchSec.toFixed(1)}s` : "--";
-
-        const hasCooldown = (playgroundActiveLevel !== null) && state.enabled && (state.cooldownRemainingSec > 0);
-        els.txtAutoDirectorCooldownSec.textContent = hasCooldown ? `${state.cooldownRemainingSec.toFixed(1)}s` : "--";
-      } else {
-        els.txtAutoDirectorStatus.textContent = "已關閉";
-        els.txtAutoDirectorStatus.style.color = "var(--muted)";
-        els.txtAutoDirectorEligible.textContent = "Blocked";
-        els.txtAutoDirectorEligible.style.color = "#f87171";
-        els.txtAutoDirectorLastAction.textContent = "none";
-        els.txtAutoDirectorTouchFaceSec.textContent = "--";
-        els.txtAutoDirectorStretchSec.textContent = "--";
-        els.txtAutoDirectorCooldownSec.textContent = "--";
-      }
-    }
-
-    function startPlaygroundStatusLoop() {
-      let lastTime = performance.now();
-      function tick() {
-        const now = performance.now();
-        const dt = (now - lastTime) / 1000.0;
-        lastTime = now;
-
-        updateAutoDirector(dt);
-        updatePlaygroundStatusBadges();
-        requestAnimationFrame(tick);
-      }
-      tick();
-    }
-
-    // Bind UI events
-    function bindUiEvents() {
-      els.btnCreateNew.addEventListener('click', createNewPose);
-      els.btnSavePose.addEventListener('click', savePoseToServer);
-      els.btnResetBone.addEventListener('click', resetCurrentBone);
-      els.btnResetAll.addEventListener('click', resetAllBones);
-      els.boneSelect.addEventListener('change', renderBoneSliders);
-
-      els.humanizationLevel.addEventListener('change', (e) => {
-        const val = Number(e.target.value);
-        updateHumanizationLevelLabel(val);
-      });
-
-      els.qaBalance.addEventListener('input', (e) => {
-        els.lblQaBalance.textContent = e.target.value;
-      });
-      els.qaSilhouette.addEventListener('input', (e) => {
-        els.lblQaSilhouette.textContent = e.target.value;
-      });
-
-      // Playground Events
-      els.playgroundLevels.forEach(btn => {
-        btn.addEventListener('click', () => {
-          const lvl = Number(btn.dataset.level);
-          setPlaygroundLevel(lvl);
-        });
-      });
-
-      els.btnTestTouchFace.addEventListener('click', () => {
-        testPlaygroundGesture('touch_face');
-      });
-
-      els.btnTestStretch.addEventListener('click', () => {
-        testPlaygroundGesture('stretch');
-      });
-
-      els.btnStopPlayground.addEventListener('click', () => {
-        setPlaygroundLevel(null);
-      });
-
-      els.chkAutoDirector.addEventListener('change', (e) => {
-        const enabled = e.target.checked;
-        if (playgroundActiveLevel === null && enabled) {
-          alert('請先切換至 Level 0-4 啟用遊樂場！');
-          e.target.checked = false;
+      const raycaster = new THREE.Raycaster();
+      const pointer = new THREE.Vector2();
+      canvas.style.cursor = 'pointer';
+      canvas.addEventListener('click', (event) => {
+        const rect = canvas.getBoundingClientRect();
+        pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(pointer, camera);
+        const hits = raycaster.intersectObject(vrmRoot, true).filter((hit) => hit.object?.isMesh);
+        if (!hits.length) {
           return;
         }
-        if (autoDirector) {
-          autoDirector.configure({ enabled, level: playgroundActiveLevel || 0 });
+        const boneName = pickNearestAliciaBone(hits[0].point);
+        selectTrainingBone(boneName);
+      });
+      state.bonePickerBound = true;
+    }
+
+    function ensureSkeletonOverlayAttached() {
+      if (!state.mascot) {
+        return;
+      }
+      const group = buildGvhmrSkeletonOverlay();
+      if (!group.parent) {
+        state.mascot.addSceneObject(group);
+      }
+    }
+
+    function removeSkeletonOverlay() {
+      if (state.mascot && state.skeletonGroup?.parent) {
+        state.mascot.removeSceneObject(state.skeletonGroup);
+      }
+    }
+
+    function updateSkeletonOverlayTransform() {
+      const group = state.skeletonGroup;
+      if (!group) {
+        return;
+      }
+      const c = readCalibration();
+      group.visible = $('trainingOverlayEnabled').checked && state.frames.length > 0;
+      const sx = c.mirrorX ? -c.scale : c.scale;
+      group.scale.set(sx, c.scale, c.scale);
+      group.position.set(c.offsetX, c.offsetY, c.offsetZ);
+      group.rotation.y = c.yawDegrees * DEG;
+    }
+
+    function updateSkeletonOverlayFrame(frame = frameBySlider()) {
+      if (!state.mascot || !frame) {
+        return;
+      }
+      ensureSkeletonOverlayAttached();
+      const landmarks = frame.landmarks || {};
+      for (const jointName of SKELETON_JOINTS) {
+        const mesh = state.jointMeshes[jointName];
+        const point = landmarks[jointName];
+        if (!mesh) {
+          continue;
+        }
+        if (!point) {
+          mesh.visible = false;
+          continue;
+        }
+        mesh.visible = true;
+        mesh.position.set(finiteNumber(point.x), finiteNumber(point.y), finiteNumber(point.z));
+      }
+
+      const attr = state.boneLine?.geometry?.getAttribute('position');
+      if (attr) {
+        SKELETON_BONES.forEach(([fromName, toName], index) => {
+          const from = landmarks[fromName] || {};
+          const to = landmarks[toName] || {};
+          attr.setXYZ(index * 2, finiteNumber(from.x), finiteNumber(from.y), finiteNumber(from.z));
+          attr.setXYZ(index * 2 + 1, finiteNumber(to.x), finiteNumber(to.y), finiteNumber(to.z));
+        });
+        attr.needsUpdate = true;
+        state.boneLine.geometry.computeBoundingSphere();
+      }
+      updateSkeletonOverlayTransform();
+    }
+
+    function renderBoneOffsetSliders() {
+      const bone = $('trainingBoneSelect').value;
+      const offsets = state.boneOffsets[bone] || { x: 0, y: 0, z: 0 };
+      $('trainingBoneOffsetSliders').innerHTML = BONE_OFFSET_AXES.map((axis) => `
+        <div class="slider-row">
+          <span>${axis.toUpperCase()}</span>
+          <input class="bone-offset-slider" data-axis="${axis}" type="range" min="-180" max="180" value="${finiteNumber(offsets[axis])}" step="1">
+          <output>${Math.round(finiteNumber(offsets[axis]))}°</output>
+        </div>
+      `).join('');
+
+      $('trainingBoneOffsetSliders').querySelectorAll('.bone-offset-slider').forEach((slider) => {
+        slider.addEventListener('input', () => {
+          const axis = slider.dataset.axis;
+          state.boneOffsets[bone] = {
+            ...(state.boneOffsets[bone] || { x: 0, y: 0, z: 0 }),
+            [axis]: finiteNumber(slider.value)
+          };
+          slider.nextElementSibling.textContent = `${Math.round(finiteNumber(slider.value))}°`;
+          scheduleBoneOffsetApply();
+          scheduleTrainingJsonRefresh();
+        });
+        slider.addEventListener('change', () => applyTrainingCalibration());
+      });
+    }
+
+    function scheduleBoneOffsetApply() {
+      if (state.boneOffsetApplyRaf) {
+        return;
+      }
+      state.boneOffsetApplyRaf = requestAnimationFrame(() => {
+        state.boneOffsetApplyRaf = 0;
+        applyTrainingCalibration({ refreshJson: false });
+      });
+    }
+
+    function loadBoneOffsetsIntoMascot() {
+      if (!state.mascot?.motion) {
+        return;
+      }
+      state.mascot.motion.loadPosePreset({
+        schemaVersion: 1,
+        basePose: {
+          rotation: cloneJson(state.boneOffsets),
+          position: {}
+        },
+        source: {
+          type: 'gvhmr_alicia_profile_v1',
+          tool: 'pose_training_lab'
         }
       });
+    }
 
-      els.motionQualityInputs.forEach(input => {
-        input.addEventListener('input', applyMotionQualityTuner);
-        input.addEventListener('change', applyMotionQualityTuner);
+    function findNearestFrame(timeMs) {
+      if (!state.frames.length) return null;
+      return state.frames.reduce((nearest, frame) => (
+        Math.abs(frame.timeMs - timeMs) < Math.abs(nearest.timeMs - timeMs) ? frame : nearest
+      ), state.frames[0]);
+    }
+
+    function applyTrainingCalibration(options = {}) {
+      const { refreshJson = true, syncBoneOffsets = true } = options;
+      updateCalibrationLabels();
+      updateSkeletonOverlayFrame(frameBySlider());
+      if (syncBoneOffsets) {
+        loadBoneOffsetsIntoMascot();
+      }
+
+      if (!state.previewAdapter || !state.frames.length) {
+        if (refreshJson) {
+          refreshTrainingJson();
+        }
+        return { ok: false, reason: 'missing_preview_or_frames' };
+      }
+
+      const frame = frameBySlider();
+      const c = readCalibration();
+      const targetTimeMs = frame.timeMs + c.timeOffsetMs;
+      const targetFrame = findNearestFrame(targetTimeMs) || frame;
+
+      const result = state.previewAdapter.previewPoseAtTimeMs(targetTimeMs, [targetFrame], {
+        id: 'pose_training_frame',
+        kind: 'pose_copier_v1',
+        retargetHints: {
+          directSkeletonPose: true,
+          mirrorX: c.mirrorX,
+          normalizationYawDegrees: c.yawDegrees
+        }
+      });
+      if (refreshJson) {
+        refreshTrainingJson();
+      }
+      return result;
+    }
+
+    function keyframeMatchesFrame(keyframe, frame) {
+      return Boolean(frame && Math.abs(finiteNumber(keyframe?.timeMs) - finiteNumber(frame.timeMs)) <= 5);
+    }
+
+    function findCalibrationNeighbors(frame = frameBySlider()) {
+      if (!frame || !state.keyframes.length) {
+        return { exact: null, previous: null, next: null };
+      }
+      const timeMs = finiteNumber(frame.timeMs);
+      const sorted = state.keyframes.slice().sort((a, b) => finiteNumber(a.timeMs) - finiteNumber(b.timeMs));
+      const exact = sorted.find((keyframe) => keyframeMatchesFrame(keyframe, frame)) || null;
+      const previous = sorted.filter((keyframe) => finiteNumber(keyframe.timeMs) <= timeMs).at(-1) || null;
+      const next = sorted.find((keyframe) => finiteNumber(keyframe.timeMs) >= timeMs) || null;
+      return { exact, previous, next };
+    }
+
+    function nearestCalibrationKeyframe(frame, previous, next) {
+      if (!previous) return next || null;
+      if (!next) return previous;
+      const timeMs = finiteNumber(frame?.timeMs);
+      return Math.abs(timeMs - finiteNumber(previous.timeMs)) <= Math.abs(finiteNumber(next.timeMs) - timeMs)
+        ? previous
+        : next;
+    }
+
+    function lerpNumber(a, b, ratio) {
+      return finiteNumber(a) + (finiteNumber(b) - finiteNumber(a)) * ratio;
+    }
+
+    function inferCalibrationForFrame(frame = frameBySlider()) {
+      const { exact, previous, next } = findCalibrationNeighbors(frame);
+      if (!frame || (!exact && !previous && !next)) {
+        return { ok: false, reason: 'no_keyframes' };
+      }
+      if (exact) {
+        return {
+          ok: true,
+          mode: 'exact',
+          previous: exact,
+          next: exact,
+          calibration: cloneJson(exact.calibration || {}),
+          boneOffsets: cloneJson(exact.boneOffsets || {})
+        };
+      }
+
+      const nearest = nearestCalibrationKeyframe(frame, previous, next);
+      if (!previous || !next || finiteNumber(previous.timeMs) === finiteNumber(next.timeMs)) {
+        return {
+          ok: true,
+          mode: 'nearest',
+          previous,
+          next,
+          calibration: cloneJson(nearest?.calibration || {}),
+          boneOffsets: cloneJson(nearest?.boneOffsets || {})
+        };
+      }
+
+      const ratio = clamp(
+        (finiteNumber(frame.timeMs) - finiteNumber(previous.timeMs)) /
+          (finiteNumber(next.timeMs) - finiteNumber(previous.timeMs)),
+        0,
+        1
+      );
+      const nearestForBool = nearestCalibrationKeyframe(frame, previous, next);
+      const calibration = {};
+      for (const field of CALIBRATION_NUMERIC_FIELDS) {
+        calibration[field] = lerpNumber(previous.calibration?.[field], next.calibration?.[field], ratio);
+      }
+      calibration.mirrorX = nearestForBool?.calibration?.mirrorX === true;
+
+      const boneOffsets = {};
+      const boneNames = new Set([
+        ...Object.keys(previous.boneOffsets || {}),
+        ...Object.keys(next.boneOffsets || {})
+      ]);
+      for (const boneName of boneNames) {
+        boneOffsets[boneName] = {};
+        for (const axis of BONE_OFFSET_AXES) {
+          boneOffsets[boneName][axis] = lerpNumber(
+            previous.boneOffsets?.[boneName]?.[axis],
+            next.boneOffsets?.[boneName]?.[axis],
+            ratio
+          );
+        }
+      }
+
+      return { ok: true, mode: 'interpolated', previous, next, ratio, calibration, boneOffsets };
+    }
+
+    function applyCalibrationKeyframe(index) {
+      const keyframe = state.keyframes[finiteNumber(index)];
+      if (!keyframe) {
+        return;
+      }
+      state.boneOffsets = cloneJson(keyframe.boneOffsets || {});
+      writeCalibration(keyframe.calibration || {});
+      renderBoneOffsetSliders();
+      applyTrainingCalibration();
+      setStatus(`已套用 ${formatSeconds(keyframe.timeMs)} 的校正。`);
+    }
+
+    function jumpToCalibrationKeyframe(index) {
+      const keyframe = state.keyframes[finiteNumber(index)];
+      const frame = keyframe ? nearestFrameAtMs(keyframe.timeMs) : null;
+      if (!keyframe || !frame) {
+        return;
+      }
+      updateFrameSlider(state.frames.indexOf(frame));
+      seekVideoToMs(frame.timeMs);
+      applyTrainingCalibration({ refreshJson: false, syncBoneOffsets: false });
+      renderCalibrationTrack();
+      setStatus(`已跳到 ${formatSeconds(keyframe.timeMs)}。`);
+    }
+
+    function deleteCalibrationKeyframe(index) {
+      if (!state.keyframes[finiteNumber(index)]) {
+        return;
+      }
+      state.keyframes.splice(finiteNumber(index), 1);
+      renderCalibrationTrack();
+      refreshTrainingJson();
+      setStatus('已刪除校正影格。');
+    }
+
+    function applyInferredCalibration() {
+      const frame = frameBySlider();
+      const inferred = inferCalibrationForFrame(frame);
+      if (!inferred.ok) {
+        setStatus('目前沒有可用的校正影格可以推論。', 'error');
+        return;
+      }
+      state.boneOffsets = cloneJson(inferred.boneOffsets || {});
+      writeCalibration(inferred.calibration || {});
+      renderBoneOffsetSliders();
+      applyTrainingCalibration();
+      renderCalibrationTrack();
+      const source = inferred.mode === 'interpolated'
+        ? `${formatSeconds(inferred.previous.timeMs)} -> ${formatSeconds(inferred.next.timeMs)}`
+        : formatSeconds((inferred.previous || inferred.next)?.timeMs);
+      setStatus(`已用 ${source} 推論目前姿勢。`);
+    }
+
+    function renderCalibrationTrack() {
+      const frame = frameBySlider();
+      const status = $('trainingCalibrationFrameStatus');
+      const list = $('trainingCalibrationTrackList');
+      if (!status || !list) {
+        return;
+      }
+
+      const neighbors = findCalibrationNeighbors(frame);
+      const statusText = frame
+        ? `目前影格：frame ${frame.frameIndex} / ${formatSeconds(frame.timeMs)}`
+        : '目前影格：--';
+      const sourceText = neighbors.exact
+        ? '狀態：已校正'
+        : neighbors.previous && neighbors.next
+          ? `狀態：未校正，可用 frame ${neighbors.previous.frameIndex} -> frame ${neighbors.next.frameIndex} 推論`
+          : (neighbors.previous || neighbors.next)
+            ? `狀態：未校正，可套最近 frame ${(neighbors.previous || neighbors.next).frameIndex}`
+            : '狀態：未校正，尚無校正資料';
+      status.textContent = `${statusText}；${sourceText}`;
+
+      list.innerHTML = '';
+      if (!state.keyframes.length) {
+        const empty = document.createElement('p');
+        empty.className = 'hint';
+        empty.textContent = '尚未儲存校正影格。';
+        list.appendChild(empty);
+        return;
+      }
+
+      state.keyframes.forEach((keyframe, index) => {
+        const row = document.createElement('div');
+        row.className = 'switch-row';
+        const label = document.createElement('span');
+        label.textContent = `${index + 1}. ${formatSeconds(keyframe.timeMs)} / frame ${keyframe.frameIndex ?? '--'} / 已校正`;
+        const actions = document.createElement('span');
+        for (const [action, text] of [['jump', '跳到'], ['apply', '套用'], ['delete', '刪除']]) {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = action === 'delete' ? 'secondary' : '';
+          button.dataset.calibrationAction = action;
+          button.dataset.calibrationIndex = String(index);
+          button.textContent = text;
+          actions.appendChild(button);
+        }
+        row.append(label, actions);
+        list.appendChild(row);
       });
     }
 
-    // App Initialization
+    function captureTrainingKeyframe() {
+      const frame = frameBySlider();
+      if (!frame) {
+        setStatus('請先執行 GVHMR 或載入校正 JSON，再儲存對齊影格。', 'error');
+        return;
+      }
+      const keyframe = {
+        timeMs: frame.timeMs,
+        frameIndex: frame.frameIndex,
+        calibration: readCalibration(),
+        boneOffsets: cloneJson(state.boneOffsets)
+      };
+      const existing = state.keyframes.findIndex((item) => Math.abs(item.timeMs - keyframe.timeMs) <= 5);
+      if (existing >= 0) {
+        state.keyframes[existing] = keyframe;
+      } else {
+        state.keyframes.push(keyframe);
+        state.keyframes.sort((a, b) => a.timeMs - b.timeMs);
+      }
+      $('trainingKeyframeSummary').textContent = String(state.keyframes.length);
+      renderCalibrationTrack();
+      refreshTrainingJson();
+      setStatus(`已儲存 ${formatSeconds(frame.timeMs)} 的對齊影格。`);
+    }
+
+    function buildGvhmrAliciaProfile() {
+      return {
+        kind: 'gvhmr_alicia_profile_v1',
+        schemaVersion: 1,
+        updatedAt: new Date().toISOString(),
+        calibration: readCalibration(),
+        boneOffsets: cloneJson(state.boneOffsets)
+      };
+    }
+
+    function buildPoseTrainingDocument() {
+      const captureRange = readCaptureRange();
+      const profile = buildGvhmrAliciaProfile();
+      return {
+        kind: 'gvhmr_alicia_calibration_session_v1',
+        schemaVersion: 1,
+        id: state.source?.id || 'pose_training_session',
+        createdAt: new Date().toISOString(),
+        source: {
+          type: state.source?.type || 'youtube',
+          youtubeUrl: state.source?.youtubeUrl || $('trainingYoutubeUrl').value.trim(),
+          videoUrl: state.currentVideoUrl || '',
+          title: state.source?.title || '',
+          captureRange
+        },
+        profile,
+        calibration: profile.calibration,
+        boneOffsets: profile.boneOffsets,
+        keyframes: cloneJson(state.keyframes),
+        worldMotion: state.worldMotion || null
+      };
+    }
+
+    function refreshTrainingJson() {
+      clearTimeout(state.jsonRefreshTimer);
+      state.jsonRefreshTimer = 0;
+      $('trainingKeyframeSummary').textContent = String(state.keyframes.length);
+      $('trainingFrameSummary').textContent = String(state.frames.length);
+      $('trainingSourceSummary').textContent = state.source?.title || state.source?.id || '--';
+      updateDefaultProfileSummary();
+
+      const doc = buildPoseTrainingDocument();
+      if (doc.worldMotion && Array.isArray(doc.worldMotion.frames)) {
+        doc.worldMotion = {
+          ...doc.worldMotion,
+          frames: `[${doc.worldMotion.frames.length} frames - hidden for performance]`
+        };
+      }
+      $('trainingJsonOutput').value = JSON.stringify(doc, null, 2);
+    }
+
+    function scheduleTrainingJsonRefresh() {
+      clearTimeout(state.jsonRefreshTimer);
+      // ponytail: 拖 slider 時不要每格 stringify 整份 GVHMR；停一下再刷新 JSON。
+      state.jsonRefreshTimer = setTimeout(refreshTrainingJson, 250);
+    }
+
+    function downloadPoseTrainingJson() {
+      const documentData = buildPoseTrainingDocument();
+      const slug = (documentData.source.title || documentData.id || 'gvhmr_alicia')
+        .replace(/[^\w.-]+/g, '_')
+        .replace(/^_+|_+$/g, '')
+        .slice(0, 80) || 'gvhmr_alicia';
+      const blob = new Blob([JSON.stringify(documentData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${slug}_gvhmr_alicia_calibration.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setStatus(`已匯出 ${a.download}。`);
+    }
+
+    function applyGvhmrAliciaProfile(profile) {
+      if (profile?.kind !== 'gvhmr_alicia_profile_v1') {
+        setStatus('不支援的參數 JSON，預期 kind 為 gvhmr_alicia_profile_v1。', 'error');
+        return false;
+      }
+      state.boneOffsets = profile.boneOffsets || {};
+      writeCalibration(profile.calibration || {});
+      renderBoneOffsetSliders();
+      applyTrainingCalibration();
+      refreshTrainingJson();
+      return true;
+    }
+
+    function saveDefaultGvhmrProfile() {
+      const profile = buildGvhmrAliciaProfile();
+      localStorage.setItem(DEFAULT_PROFILE_STORAGE_KEY, JSON.stringify(profile));
+      updateDefaultProfileSummary();
+      setStatus('已將目前 GVHMR → Alicia 修正參數存成預設。');
+    }
+
+    function loadDefaultGvhmrProfile() {
+      const profile = readStoredDefaultProfile();
+      if (!profile) {
+        setStatus('目前還沒有儲存預設修正參數。', 'error');
+        return;
+      }
+      if (applyGvhmrAliciaProfile(profile)) {
+        setStatus('已載入預設 GVHMR → Alicia 修正參數。');
+      }
+    }
+
+    function clearDefaultGvhmrProfile() {
+      localStorage.removeItem(DEFAULT_PROFILE_STORAGE_KEY);
+      updateDefaultProfileSummary();
+      setStatus('已清除預設 GVHMR → Alicia 修正參數。');
+    }
+
+    function loadPoseTrainingJson(documentData) {
+      if (documentData?.kind === 'gvhmr_alicia_profile_v1') {
+        if (applyGvhmrAliciaProfile(documentData)) {
+          setStatus('已載入 GVHMR → Alicia 參數 JSON。');
+        }
+        return;
+      }
+      if (!['pose_training_v1', 'gvhmr_alicia_calibration_session_v1'].includes(documentData?.kind)) {
+        setStatus('不支援的校正 JSON。', 'error');
+        return;
+      }
+      state.source = documentData.source || null;
+      state.currentVideoUrl = documentData.source?.videoUrl || '';
+      state.worldMotion = documentData.worldMotion || null;
+      state.keyframes = Array.isArray(documentData.keyframes) ? documentData.keyframes : [];
+      const profile = documentData.profile || {};
+      state.boneOffsets = profile.boneOffsets || documentData.boneOffsets || state.keyframes.at(-1)?.boneOffsets || {};
+      writeCalibration(profile.calibration || documentData.calibration || state.keyframes.at(-1)?.calibration || {});
+
+      const range = documentData.source?.captureRange || { startMs: 0, endMs: 0, durationMs: 0 };
+      state.captureRange.durationMs = finiteNumber(range.durationMs, finiteNumber(range.endMs));
+      setCaptureRange(finiteNumber(range.startMs), finiteNumber(range.endMs, state.captureRange.durationMs));
+
+      state.frames = trainingFramesFromWorldMotion(state.worldMotion, readCaptureRange());
+      updateFrameSlider(0);
+      renderBoneOffsetSliders();
+      applyTrainingCalibration();
+      refreshTrainingJson();
+      setStatus(`已載入校正 JSON，共 ${state.frames.length} 個 GVHMR 影格。`);
+    }
+
+    function syncFrameToVideo() {
+      if (!state.frames.length) {
+        return;
+      }
+      const c = readCalibration();
+      const targetMs = currentVideoTimeMs() + c.timeOffsetMs;
+      const nearest = nearestFrameAtMs(targetMs);
+      const index = Math.max(0, state.frames.indexOf(nearest));
+      updateFrameSlider(index);
+      applyTrainingCalibration({ refreshJson: false, syncBoneOffsets: false });
+    }
+
+    async function loadYoutubeSource() {
+      const url = $('trainingYoutubeUrl').value.trim();
+      if (!url) {
+        setStatus('請先貼上 YouTube 網址。', 'error');
+        return;
+      }
+      const button = $('btnTrainingLoadYoutube');
+      const label = button.textContent;
+      button.disabled = true;
+      button.textContent = '載入中...';
+      try {
+        const response = await fetch('api/capture/youtube', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+        const body = await response.json().catch(() => null);
+        if (!response.ok || !body?.ok) {
+          throw new Error(body?.error || `HTTP ${response.status}`);
+        }
+        const source = body.source;
+        state.source = {
+          id: source.id || source.filename || 'youtube_capture',
+          type: 'youtube',
+          youtubeUrl: source.sourceUrl || url,
+          title: source.title || source.filename || 'YouTube 擷取'
+        };
+        state.currentVideoUrl = source.url;
+        $('trainingVideoPreview').src = source.url;
+        $('trainingVideoPreview').load();
+        refreshTrainingJson();
+        setStatus(`已載入 YouTube 影片：${state.source.title}。`);
+      } catch (error) {
+        setStatus(`YouTube 載入失敗：${error.message}`, 'error');
+      } finally {
+        button.disabled = false;
+        button.textContent = label;
+      }
+    }
+
+    async function runGvhmrWorldMotion() {
+      if (!state.currentVideoUrl) {
+        setStatus('請先載入 YouTube 影片，再執行 GVHMR。', 'error');
+        return;
+      }
+      const captureRange = readCaptureRange();
+      const button = $('btnTrainingRunGvhmr');
+      const label = button.textContent;
+      button.disabled = true;
+      button.textContent = 'GVHMR 執行中...';
+      setStatus(`正在執行 GVHMR：${formatSeconds(captureRange.startMs)} - ${formatSeconds(captureRange.endMs)}。`);
+      try {
+        const response = await fetch('api/capture/video/world-motion', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            videoUrl: state.currentVideoUrl,
+            startMs: captureRange.startMs,
+            endMs: captureRange.endMs,
+            staticCamera: true
+          })
+        });
+        const body = await response.json().catch(() => null);
+        if (!response.ok || !body?.ok || !body?.worldMotion?.ok) {
+          const missing = body?.missing || body?.assetStatus?.missing || [];
+          const suffix = missing.length ? ` 缺少：${missing.join(', ')}` : '';
+          throw new Error(body?.error || body?.reason || body?.worldMotion?.reason || `HTTP ${response.status}${suffix}`);
+        }
+
+        state.worldMotion = body.worldMotion;
+        state.frames = trainingFramesFromWorldMotion(state.worldMotion, captureRange);
+        updateFrameSlider(0);
+        applyTrainingCalibration();
+        refreshTrainingJson();
+        setStatus(`GVHMR 已載入 ${state.frames.length} 個選取範圍內的影格。`);
+      } catch (error) {
+        setStatus(`GVHMR 失敗：${error.message}`, 'error');
+      } finally {
+        button.disabled = false;
+        button.textContent = label;
+      }
+    }
+
+    async function bootAliciaPreview() {
+      try {
+        const response = await fetch(DEFAULT_VRM_MODEL_URL, { method: 'HEAD', cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(`${DEFAULT_VRM_MODEL_URL} not found`);
+        }
+        state.mascot = new VrmMascot($('aliciaPreview'), { orbitControls: true, grid: true });
+        state.previewAdapter = new AliciaMotionPreviewAdapter({ mascot: state.mascot });
+        await state.mascot.load(DEFAULT_VRM_MODEL_URL);
+        placeAliciaOnGround(state.mascot);
+        configureTrainingCamera(state.mascot);
+        bindAliciaBonePicker();
+        setStatus('Alicia 預覽已就緒。請載入影片或校正 JSON。');
+      } catch (error) {
+        state.mascot = null;
+        state.previewAdapter = null;
+        setStatus(`Alicia 預覽無法使用：${error.message}`, 'error');
+      }
+    }
+
+    function bindEvents() {
+      $('btnTrainingLoadYoutube').addEventListener('click', loadYoutubeSource);
+      $('btnTrainingRunGvhmr').addEventListener('click', runGvhmrWorldMotion);
+      $('btnTrainingApplyCalibration').addEventListener('click', applyTrainingCalibration);
+      $('btnTrainingCaptureKeyframe').addEventListener('click', captureTrainingKeyframe);
+      $('btnTrainingInferCalibration').addEventListener('click', applyInferredCalibration);
+      $('btnTrainingDownloadJson').addEventListener('click', downloadPoseTrainingJson);
+      $('btnTrainingLoadJson').addEventListener('click', () => $('trainingJsonInput').click());
+      $('btnTrainingSaveDefaultProfile').addEventListener('click', saveDefaultGvhmrProfile);
+      $('btnTrainingLoadDefaultProfile').addEventListener('click', loadDefaultGvhmrProfile);
+      $('btnTrainingClearDefaultProfile').addEventListener('click', clearDefaultGvhmrProfile);
+      $('trainingJsonInput').addEventListener('change', (event) => {
+        const file = event.target.files?.[0];
+        if (!file) {
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            loadPoseTrainingJson(JSON.parse(String(reader.result || '{}')));
+          } catch (error) {
+            setStatus(`校正 JSON 載入失敗：${error.message}`, 'error');
+          }
+        };
+        reader.readAsText(file);
+      });
+
+      $('trainingVideoPreview').addEventListener('loadedmetadata', updateCaptureRangeFromVideo);
+      $('trainingVideoPreview').addEventListener('timeupdate', () => {
+        if (!$('trainingVideoPreview').paused) {
+          syncFrameToVideo();
+        }
+      });
+      $('trainingVideoPreview').addEventListener('seeked', syncFrameToVideo);
+
+      $('trainingCaptureStartSlider').addEventListener('input', (event) => {
+        const range = setCaptureRange(event.target.value, state.captureRange.endMs);
+        seekVideoToMs(range.startMs);
+      });
+      $('trainingCaptureEndSlider').addEventListener('input', (event) => {
+        const range = setCaptureRange(state.captureRange.startMs, event.target.value);
+        seekVideoToMs(range.endMs);
+      });
+      $('trainingCaptureStartMs').addEventListener('change', () => setCaptureRange($('trainingCaptureStartMs').value, state.captureRange.endMs));
+      $('trainingCaptureEndMs').addEventListener('change', () => setCaptureRange(state.captureRange.startMs, $('trainingCaptureEndMs').value));
+      $('btnTrainingSetStart').addEventListener('click', () => setCaptureRange(currentVideoTimeMs(), state.captureRange.endMs));
+      $('btnTrainingSetEnd').addEventListener('click', () => setCaptureRange(state.captureRange.startMs, currentVideoTimeMs()));
+
+      $('gvhmrFrameSlider').addEventListener('input', () => {
+        updateFrameSlider($('gvhmrFrameSlider').value);
+        applyTrainingCalibration({ refreshJson: false, syncBoneOffsets: false });
+        scheduleTrainingJsonRefresh();
+      });
+      $('gvhmrFrameSlider').addEventListener('change', () => {
+        updateFrameSlider($('gvhmrFrameSlider').value);
+        const frame = frameBySlider();
+        if (frame) {
+          seekVideoToMs(frame.timeMs);
+        }
+        applyTrainingCalibration();
+      });
+
+      for (const id of ['trainingScale', 'trainingOffsetX', 'trainingOffsetY', 'trainingOffsetZ', 'trainingYaw']) {
+        $(id).addEventListener('input', () => {
+          applyTrainingCalibration({ refreshJson: false, syncBoneOffsets: false });
+          scheduleTrainingJsonRefresh();
+        });
+        $(id).addEventListener('change', applyTrainingCalibration);
+      }
+      $('trainingTimeOffsetMs').addEventListener('change', () => applyTrainingCalibration());
+      $('trainingOverlayEnabled').addEventListener('change', () => applyTrainingCalibration());
+      $('trainingMirrorX').addEventListener('change', () => applyTrainingCalibration());
+      $('trainingBoneSelect').addEventListener('change', renderBoneOffsetSliders);
+      $('trainingCalibrationTrackList').addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-calibration-action]');
+        if (!button) {
+          return;
+        }
+        const index = finiteNumber(button.dataset.calibrationIndex);
+        if (button.dataset.calibrationAction === 'jump') {
+          jumpToCalibrationKeyframe(index);
+        } else if (button.dataset.calibrationAction === 'apply') {
+          applyCalibrationKeyframe(index);
+        } else if (button.dataset.calibrationAction === 'delete') {
+          deleteCalibrationKeyframe(index);
+        }
+      });
+    }
+
     async function init() {
-      autoDirector = new AutoDirectorLite({
-        touchFaceIntervalSec: 90,
-        stretchIntervalSec: 180,
-        gestureCooldownSec: 8
-      });
-      bindUiEvents();
-      updateMotionQualityLabels();
-      await initMascot();
-      await loadPoseLibrary();
-      startPlaygroundStatusLoop();
+      bindEvents();
+      updateCalibrationLabels();
+      renderTrainingBoneSelect();
+      renderBoneOffsetSliders();
+      setCaptureRange(0, 0);
+      updateDefaultProfileSummary();
+      renderCalibrationTrack();
+      refreshTrainingJson();
+      await bootAliciaPreview();
     }
+
+    window.poseTrainingLab = {
+      state,
+      applyTrainingCalibration,
+      buildPoseTrainingDocument,
+      buildGvhmrAliciaProfile,
+      loadPoseTrainingJson,
+      loadDefaultGvhmrProfile,
+      runGvhmrWorldMotion,
+      inferCalibrationForFrame,
+      syncFrameToVideo
+    };
 
     window.addEventListener('DOMContentLoaded', init);
   </script>

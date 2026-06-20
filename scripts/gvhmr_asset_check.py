@@ -18,6 +18,11 @@ EXPECTED_MODEL_DIRS = [
     "inputs/checkpoints/body_models/smplx",
 ]
 
+EXPECTED_BODY_MODEL_FILES = [
+    "inputs/checkpoints/body_models/smpl/SMPL_NEUTRAL.pkl",
+    "inputs/checkpoints/body_models/smplx/SMPLX_NEUTRAL.npz",
+]
+
 
 def default_gvhmr_root():
     configured = os.environ.get("GVHMR_ROOT_DIR")
@@ -28,17 +33,29 @@ def default_gvhmr_root():
 
 def build_report(gvhmr_root):
     root = Path(gvhmr_root)
-    missing = [
+    missing_checkpoints = [
         checkpoint for checkpoint in EXPECTED_CHECKPOINTS
         if not (root / checkpoint).is_file()
     ]
-    missing.extend(
+    missing_model_dirs = [
         model_dir for model_dir in EXPECTED_MODEL_DIRS
         if not (root / model_dir).is_dir()
-    )
+    ]
+    missing_body_model_files = [
+        model_file for model_file in EXPECTED_BODY_MODEL_FILES
+        if not (root / model_file).is_file()
+    ]
+    missing = [
+        *missing_checkpoints,
+        *missing_model_dirs,
+        *missing_body_model_files,
+    ]
     return {
         "ok": not missing,
         "missing": missing,
+        "missingCheckpoints": missing_checkpoints,
+        "missingModelDirs": missing_model_dirs,
+        "missingBodyModelFiles": missing_body_model_files,
     }
 
 

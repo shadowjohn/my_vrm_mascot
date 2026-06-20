@@ -60,10 +60,58 @@
       letter-spacing: 0;
     }
 
-    .subtitle {
-      margin-top: 5px;
+    .service-status-strip {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      max-width: 720px;
+      margin-top: 7px;
+    }
+
+    .service-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 22px;
+      padding: 3px 8px;
+      border: 1px solid rgba(157, 175, 159, 0.32);
+      border-radius: 999px;
+      background: rgba(29, 36, 33, 0.82);
       color: var(--muted);
-      font-size: 13px;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .service-chip::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+    }
+
+    .service-chip[data-state="checking"] {
+      border-color: rgba(240, 200, 106, 0.42);
+      color: var(--accent-2);
+    }
+
+    .service-chip[data-state="partial"] {
+      border-color: rgba(240, 200, 106, 0.56);
+      color: var(--accent-2);
+    }
+
+    .service-chip[data-state="ready"] {
+      border-color: rgba(158, 228, 147, 0.48);
+      color: var(--accent);
+    }
+
+    .service-chip[data-state="missing"] {
+      border-color: rgba(255, 141, 122, 0.48);
+      color: var(--danger);
     }
 
     #captureStatus {
@@ -77,7 +125,7 @@
       min-width: 0;
       min-height: 0;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 0.78fr) minmax(0, 1.12fr);
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
       gap: 1px;
       background: var(--line);
     }
@@ -472,7 +520,7 @@
 
     @media (max-width: 980px) {
       main {
-        grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.05fr) minmax(0, 0.95fr);
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
       }
 
       section {
@@ -525,6 +573,10 @@
         text-align: left;
       }
 
+      .service-status-strip {
+        max-width: none;
+      }
+
       header {
         align-items: start;
         flex-direction: column;
@@ -543,9 +595,8 @@
       background: rgba(6, 10, 10, 0.94);
     }
 
-    .subtitle {
-      color: #b8c3bd;
-      font-size: 14px;
+    .service-status-strip {
+      max-width: min(720px, 52vw);
     }
 
     .header-actions {
@@ -619,7 +670,7 @@
     }
 
     main {
-      grid-template-columns: minmax(320px, 0.9fr) minmax(380px, 1.1fr) minmax(420px, 1.2fr);
+      grid-template-columns: minmax(320px, 1fr) minmax(420px, 1.2fr);
       gap: 12px;
       padding: 14px 20px 12px;
       background: transparent;
@@ -1136,7 +1187,13 @@
   <header class="app-header">
     <div>
       <h1>Alicia Motion Capture Lab</h1>
-      <p class="subtitle">M20.3 - Walk Style Extractor</p>
+      <div id="serviceStatusStrip" class="service-status-strip" role="status" aria-live="polite" aria-label="Capture service readiness">
+        <span id="serviceStatusYtDlp" class="service-chip" data-service-id="ytdlp" data-state="checking" title="Checking yt-dlp">yt-dlp</span>
+        <span id="serviceStatusSkeleton" class="service-chip" data-service-id="skeleton" data-state="checking" title="Checking skeleton extraction">Skeleton</span>
+        <span id="serviceStatusMotionBert" class="service-chip" data-service-id="motionbert" data-state="checking" title="Checking MotionBERT">MotionBERT</span>
+        <span id="serviceStatusGvhmr" class="service-chip" data-service-id="gvhmr" data-state="partial" title="Checking GVHMR">GVHMR</span>
+        <span id="serviceStatusMicromamba" class="service-chip" data-service-id="micromamba" data-state="checking" title="Checking micromamba">micromamba</span>
+      </div>
     </div>
     <div class="header-actions">
       <p id="captureStatus" role="status">Ready. Load a YouTube video or skeleton sequence.</p>
@@ -1250,7 +1307,7 @@
       </div>
     </section>
 
-    <section class="workflow-panel" aria-label="Walk Cycle Analysis">
+    <section class="workflow-panel" aria-label="Walk Cycle Analysis" style="display: none;">
       <div class="panel-title">
         <span class="step-badge">2</span>
         <h2>Walk Cycle Analysis</h2>
@@ -1384,6 +1441,12 @@
         </select>
         <button id="btnRefreshWalkPreview" class="icon-button ghost-button" type="button" title="Refresh walk preview">↻</button>
         <button id="btnRunGvhmrWorldMotion" class="secondary" type="button">Run GVHMR World Motion</button>
+        <div class="gvhmr-action-group" style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+          <button id="btnDownloadGvhmrJson" class="secondary" type="button" style="display:none; min-height:38px;">Download JSON</button>
+          <button id="btnLoadGvhmrCalib" class="secondary" type="button" style="min-height:38px;">Load Calib</button>
+          <button id="btnResetGvhmrCalib" class="secondary" type="button" style="display:none; min-height:38px;">Reset Calib</button>
+        </div>
+        <input id="gvhmrCalibFileInput" type="file" accept=".json" style="display:none;">
         <label for="traceOverlayToggle" class="overlay-toggle">
           <span>Skeleton Overlay</span>
           <input id="traceOverlayToggle" type="checkbox" checked>
@@ -1401,6 +1464,7 @@
           <div class="summary-row"><span>Depth Source</span><output id="walkSummaryDepthSource">--</output></div>
           <div class="summary-row"><span>MotionBERT</span><output id="walkSummaryMotionBert">--</output></div>
           <div class="summary-row"><span>GVHMR World Motion</span><output id="gvhmrWorldMotionStatus">ready</output></div>
+          <div class="summary-row"><span>GVHMR Calibration</span><output id="gvhmrCalibProfileSummary">default (no offset)</output></div>
           <div class="summary-row"><span>Yaw Confidence</span><output id="gvhmrYawConfidence">--</output></div>
           <div class="summary-row"><span>Foot Contact</span><output id="gvhmrFootContactTrace">--</output></div>
           <div class="summary-row"><span>Orientation Layer</span><output id="orientationLayerStatus">off</output></div>
@@ -1486,6 +1550,13 @@
       'leftAnkle',
       'rightAnkle'
     ]);
+    const CAPTURE_SERVICE_STATUS_TARGETS = Object.freeze([
+      { id: 'ytdlp', elementId: 'serviceStatusYtDlp', label: 'yt-dlp' },
+      { id: 'skeleton', elementId: 'serviceStatusSkeleton', label: 'Skeleton' },
+      { id: 'motionbert', elementId: 'serviceStatusMotionBert', label: 'MotionBERT' },
+      { id: 'gvhmr', elementId: 'serviceStatusGvhmr', label: 'GVHMR' },
+      { id: 'micromamba', elementId: 'serviceStatusMicromamba', label: 'micromamba' }
+    ]);
 
     const state = {
       adapter: new SkeletonSequenceAdapter({ sourceId: 'motion_capture_lab' }),
@@ -1494,6 +1565,7 @@
       sequence: null,
       clip: null,
       worldMotion: null,
+      gvhmrCalibProfile: null,
       gvhmrWorldMotion: {
         status: 'ready',
         missing: [],
@@ -1535,6 +1607,58 @@
     function setStatus(message, tone = 'ok') {
       $('captureStatus').textContent = message;
       $('captureStatus').style.color = tone === 'error' ? 'var(--danger)' : 'var(--accent)';
+    }
+
+    function setServiceStatusChip(target, stateName, detail = '') {
+      const element = $(target.elementId);
+      if (!element) {
+        return;
+      }
+      const normalizedState = ['ready', 'partial', 'missing', 'checking'].includes(stateName) ? stateName : 'missing';
+      element.dataset.state = normalizedState;
+      element.textContent = target.label;
+      const stateLabel = normalizedState === 'ready'
+        ? 'ready'
+        : normalizedState === 'partial'
+          ? 'partial'
+          : normalizedState === 'checking'
+            ? 'checking'
+            : 'missing';
+      const title = detail ? `${target.label}: ${stateLabel}. ${detail}` : `${target.label}: ${stateLabel}`;
+      element.title = title;
+      element.setAttribute('aria-label', title);
+    }
+
+    function setAllServiceStatus(stateName, detail = '') {
+      for (const target of CAPTURE_SERVICE_STATUS_TARGETS) {
+        setServiceStatusChip(target, stateName, detail);
+      }
+    }
+
+    function renderCaptureServiceStatus(report) {
+      const services = new Map((report?.services || []).map((service) => [service.id, service]));
+      for (const target of CAPTURE_SERVICE_STATUS_TARGETS) {
+        const service = services.get(target.id);
+        if (!service) {
+          setServiceStatusChip(target, 'missing', 'No readiness data returned.');
+          continue;
+        }
+        setServiceStatusChip(target, service.status || (service.ok ? 'ready' : 'missing'), service.detail || service.status || '');
+      }
+    }
+
+    async function refreshCaptureServiceStatus() {
+      setAllServiceStatus('checking', 'Checking local capture service dependencies.');
+      try {
+        const response = await fetch('/api/capture/services/status', { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const report = await response.json();
+        renderCaptureServiceStatus(report);
+      } catch (error) {
+        setAllServiceStatus('missing', `Service status API unavailable: ${error.message}`);
+      }
     }
 
     function stopExtractionProgressHeartbeat() {
@@ -1700,6 +1824,11 @@
     function formatMetric(value, digits = 2) {
       const number = Number(value);
       return Number.isFinite(number) ? number.toFixed(digits) : '--';
+    }
+
+    function normalizeDegrees(value) {
+      const degrees = Number(value) || 0;
+      return ((((degrees + 180) % 360) + 360) % 360) - 180;
     }
 
     function formatLoopRange(loop) {
@@ -1878,6 +2007,65 @@
       updateTraceOverlaySummary(summary);
     }
 
+    function gvhmrWorldMotionTraceFrames(payload = state.worldMotion) {
+      return gvhmrWorldMotionFrames(payload)
+        .filter((frame) => frame?.landmarks)
+        .map((frame, index) => ({
+          timeMs: Math.round(Math.max(0, Number(frame.t) || 0) * 1000),
+          frameIndex: frame.frameIndex ?? index,
+          landmarks: clonePreviewLandmarks(frame.landmarks)
+        }));
+    }
+
+    function worldMotionTraceLoop(frames) {
+      if (!Array.isArray(frames) || !frames.length) {
+        return { startMs: 0, endMs: 0, durationMs: 0 };
+      }
+      const startMs = Number(frames[0].timeMs) || 0;
+      const endMs = Number(frames.at(-1).timeMs) || startMs;
+      return {
+        startMs,
+        endMs,
+        durationMs: Math.max(300, endMs - startMs)
+      };
+    }
+
+    function updateTraceOverlayForGvhmrWorldMotion(payload = state.worldMotion) {
+      if (!state.traceOverlay) {
+        updateTraceOverlaySummary(null);
+        return;
+      }
+      state.traceOverlay.setEnabled(traceOverlayIsEnabled());
+      if (!traceOverlayIsEnabled()) {
+        updateTraceOverlaySummary();
+        return;
+      }
+
+      const traceFrames = gvhmrWorldMotionTraceFrames(payload);
+      if (traceFrames.length < 2) {
+        updateTraceOverlaySummary();
+        return;
+      }
+
+      const clip = {
+        id: 'gvhmr_world_motion_trace',
+        source_kind: 'gvhmr_world_motion',
+        poseMode: 'gvhmr_smpl_joints',
+        metadata: {
+          poseMode: 'gvhmr_smpl_joints',
+          depthSource: 'gvhmr_smpl'
+        }
+      };
+      const summary = state.traceOverlay.play({
+        frames: traceFrames,
+        loop: worldMotionTraceLoop(traceFrames),
+        previewSpeed: 1,
+        clip
+      });
+      updateTraceOverlaySummary(summary);
+      setText('walkSummaryPreviewSource', `GVHMR SMPL joints overlay (${traceFrames.length} frames)`);
+    }
+
     function handleTraceOverlayToggle() {
       if (!state.traceOverlay) {
         updateTraceOverlaySummary(null);
@@ -1886,6 +2074,10 @@
       state.traceOverlay.setEnabled(traceOverlayIsEnabled());
       if (!traceOverlayIsEnabled()) {
         updateTraceOverlaySummary();
+        return;
+      }
+      if (gvhmrWorldMotionTraceFrames(state.worldMotion).length >= 2) {
+        updateTraceOverlayForGvhmrWorldMotion();
         return;
       }
       if (state.clip && state.mascot && !$('btnPreviewWalkCycle').disabled) {
@@ -1992,6 +2184,11 @@
         frame ? `yaw ${formatMetric(frame.bodyYawDegrees, 1)} deg / conf ${formatMetric(frame.confidence)}` : '--'
       );
       setText('gvhmrFootContactTrace', summarizeFootContactTrace(payload));
+
+      const downloadBtn = $('btnDownloadGvhmrJson');
+      if (downloadBtn) {
+        downloadBtn.style.display = payload ? '' : 'none';
+      }
     }
 
     function sourceFromSequenceDepth() {
@@ -2115,6 +2312,7 @@
           };
           updateGvhmrWorldMotionSummary();
           syncPreviewToVideoTime({ force: true });
+          updateTraceOverlayForGvhmrWorldMotion(body.worldMotion);
           setStatus(`GVHMR world motion loaded: ${gvhmrWorldMotionFrames(body.worldMotion).length} frames.`);
           return body;
         }
@@ -2147,6 +2345,40 @@
       }
     }
 
+    function downloadGvhmrWorldMotionJson() {
+      if (!state.worldMotion) {
+        setStatus('No GVHMR world motion data to download.', 'error');
+        return;
+      }
+      const videoName = state.currentVideoUrl ? state.currentVideoUrl.split('/').pop().split('.').shift() : 'gvhmr';
+      const filename = `${videoName}_world_motion.json`;
+      const blob = new Blob([JSON.stringify(state.worldMotion, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setStatus(`Downloaded world motion JSON as ${filename}`);
+    }
+
+    function updateGvhmrCalibProfileSummary() {
+      const p = state.gvhmrCalibProfile;
+      const text = p ? `S:${p.scale.toFixed(2)} P:(${p.offsetX.toFixed(2)},${p.offsetY.toFixed(2)},${p.offsetZ.toFixed(2)}) Y:${p.yawDegrees.toFixed(1)}°` : 'default (no offset)';
+      setText('gvhmrCalibProfileSummary', text);
+    }
+
+    function resetGvhmrCalib() {
+      state.gvhmrCalibProfile = null;
+      $('btnResetGvhmrCalib').style.display = 'none';
+      $('gvhmrCalibFileInput').value = '';
+      updateGvhmrCalibProfileSummary();
+      syncPreviewToVideoTime({ force: true });
+      setStatus('GVHMR calibration profile reset to default.');
+    }
+
     function setPreviewWorkflowMode(mode) {
       state.previewWorkflowMode = mode === 'walk_extractor' ? 'walk_extractor' : 'pose_copier';
       const isPoseCopier = state.previewWorkflowMode === 'pose_copier';
@@ -2162,12 +2394,61 @@
       }
     }
 
-    function poseSyncRetargetHints() {
-      return {
+    function aliciaFacingYawFromGvhmrFrame(frame) {
+      return normalizeDegrees((Number(frame?.bodyYawDegrees) || 0) + 180);
+    }
+
+    function poseSyncRetargetHints(poseSource, timeMs) {
+      const hints = {
         strideScale: 1,
         armSwingScale: 1,
         hipBobScale: 1,
         mirrorX: !!state.traceOverlay?.sceneAlignmentOptions?.().mirrorX
+      };
+      if (poseSource?.source === 'gvhmr_smpl_joints') {
+        const worldFrame = nearestGvhmrWorldMotionFrame(state.worldMotion, Math.max(0, Number(timeMs) || 0) / 1000);
+        hints.normalizationYawDegrees = aliciaFacingYawFromGvhmrFrame(worldFrame);
+        hints.directSkeletonPose = true;
+      }
+      return hints;
+    }
+
+    function nearestPoseSourceFrame(frames, timeMs) {
+      const sourceFrames = Array.isArray(frames) ? frames.filter((frame) => frame?.landmarks) : [];
+      if (!sourceFrames.length) {
+        return null;
+      }
+      const targetMs = Number(timeMs) || 0;
+      return sourceFrames.reduce((nearest, frame) => (
+        Math.abs((Number(frame.timeMs) || 0) - targetMs) < Math.abs((Number(nearest.timeMs) || 0) - targetMs)
+          ? frame
+          : nearest
+      ), sourceFrames[0]);
+    }
+
+    function poseCopierSkeletonSource() {
+      const gvhmrFrames = gvhmrWorldMotionTraceFrames(state.worldMotion);
+      if (gvhmrFrames.length >= 2) {
+        return {
+          source: 'gvhmr_smpl_joints',
+          label: 'GVHMR SMPL skeleton',
+          id: 'gvhmr_pose_copier_frame',
+          frames: gvhmrFrames,
+          frameAtTime: (timeMs) => nearestPoseSourceFrame(gvhmrFrames, timeMs)
+        };
+      }
+
+      const sequenceFrames = Array.isArray(state.sequence?.frames) ? state.sequence.frames : [];
+      return {
+        source: 'sequence_skeleton',
+        label: 'Skeleton sequence',
+        id: 'video_pose_copier_frame',
+        frames: sequenceFrames,
+        frameAtTime: (timeMs) => (
+          state.adapter && state.sequence && typeof state.adapter.getFrameAtMs === 'function'
+            ? state.adapter.getFrameAtMs(state.sequence, timeMs)
+            : nearestPoseSourceFrame(sequenceFrames, timeMs)
+        )
       };
     }
 
@@ -2175,8 +2456,9 @@
       if (state.previewWorkflowMode !== 'pose_copier') {
         return { ok: false, reason: 'walk_extractor_mode' };
       }
-      if (!state.sequence?.frames?.length) {
-        setText('poseSyncStatus', 'Load or extract skeleton frames first.');
+      const poseSource = poseCopierSkeletonSource();
+      if (!poseSource.frames.length) {
+        setText('poseSyncStatus', 'Load or extract skeleton frames first, or run GVHMR World Motion.');
         return { ok: false, reason: 'missing_skeleton' };
       }
       if (!state.mascot || !state.previewAdapter) {
@@ -2189,33 +2471,44 @@
         return { ok: true, skipped: true, frameTimeMs: state.poseSync.lastFrameTimeMs };
       }
 
-      const result = state.previewAdapter.previewPoseAtTimeMs(timeMs, state.sequence.frames, {
-        id: 'video_pose_copier_frame',
-        kind: 'pose_copier_v1',
-        retargetHints: poseSyncRetargetHints(),
-        orientationTransform: buildOrientationTransformForFrame(
-          state.adapter.getFrameAtMs(state.sequence, roundedTimeMs),
-          roundedTimeMs
-        ),
-        transformAnimation: (animation) => fuseAliciaWorldMotion(animation, state.worldMotion, {
-          timeSeconds: roundedTimeMs / 1000,
-          rootScale: 0.08,
-          yawSmoothing: 1
-        })
-      });
-      if (result.ok) {
-        state.poseSync.lastVideoTimeMs = roundedTimeMs;
-        state.poseSync.lastFrameTimeMs = result.frameTimeMs;
-        const worldSuffix = result.worldMotion?.applied
-          ? `, GVHMR yaw ${formatMetric(result.worldMotion.bodyYawDegrees, 1)} deg`
-          : '';
-        setText('poseSyncStatus', `Video ${formatRangeTime(roundedTimeMs)} -> skeleton ${formatRangeTime(result.frameTimeMs)}${worldSuffix}`);
-        setText('walkSummaryPreviewSource', `Pose copier frame (${formatRangeTime(result.frameTimeMs)})`);
-        updateGvhmrWorldMotionSummary();
-      } else {
-        setText('poseSyncStatus', `Pose sync unavailable: ${result.reason}`);
+      try {
+        const result = state.previewAdapter.previewPoseAtTimeMs(timeMs, poseSource.frames, {
+          id: poseSource.id,
+          kind: 'pose_copier_v1',
+          retargetHints: poseSyncRetargetHints(poseSource, roundedTimeMs),
+          orientationTransform: buildOrientationTransformForFrame(
+            poseSource.frameAtTime(roundedTimeMs),
+            roundedTimeMs
+          ),
+          transformAnimation: (animation) => fuseAliciaWorldMotion(animation, state.worldMotion, {
+            timeSeconds: roundedTimeMs / 1000,
+            rootScale: 1.0,
+            yawSmoothing: 1,
+            calibScale: state.gvhmrCalibProfile?.scale ?? 1.0,
+            calibOffsetX: state.gvhmrCalibProfile?.offsetX ?? 0.0,
+            calibOffsetY: state.gvhmrCalibProfile?.offsetY ?? 0.0,
+            calibOffsetZ: state.gvhmrCalibProfile?.offsetZ ?? 0.0,
+            calibYawDegrees: state.gvhmrCalibProfile?.yawDegrees ?? 0.0
+          })
+        });
+        if (result.ok) {
+          state.poseSync.lastVideoTimeMs = roundedTimeMs;
+          state.poseSync.lastFrameTimeMs = result.frameTimeMs;
+          const worldSuffix = result.worldMotion?.applied
+            ? `, GVHMR yaw ${formatMetric(result.worldMotion.bodyYawDegrees, 1)} deg`
+            : '';
+          setText('poseSyncStatus', `Video ${formatRangeTime(roundedTimeMs)} -> ${poseSource.label} ${formatRangeTime(result.frameTimeMs)}${worldSuffix}`);
+          setText('walkSummaryPreviewSource', `Pose copier: ${poseSource.label} (${formatRangeTime(result.frameTimeMs)})`);
+          updateGvhmrWorldMotionSummary();
+        } else {
+          setText('poseSyncStatus', `Pose sync unavailable: ${result.reason}`);
+        }
+        return result;
+      } catch (err) {
+        console.error('Pose sync error:', err);
+        setText('poseSyncStatus', `Pose sync error: ${err.message}`);
+        return { ok: false, reason: 'exception', error: err };
       }
-      return result;
     }
 
     function syncPreviewToVideoTime({ force = false } = {}) {
@@ -2375,6 +2668,9 @@
     function getCurrentSkeletonPreviewTimeMs() {
       const video = $('videoPreview');
       const timeMs = Number(video.currentTime) * 1000;
+      if (state.currentVideoUrl && Number.isFinite(timeMs)) {
+        return timeMs;
+      }
       if (state.sequence?.sourceType === 'video' && Number.isFinite(timeMs)) {
         return timeMs;
       }
@@ -2699,13 +2995,12 @@
       drawSkeletonGrid(ctx, canvas, state.skeletonAnalysisMode);
 
       const previewTimeMs = getCurrentSkeletonPreviewTimeMs();
-      const frame = state.sequence?.frames?.length
-        ? state.adapter.getFrameAtMs(state.sequence, previewTimeMs)
-        : null;
+      const skeletonSource = poseCopierSkeletonSource();
+      const frame = skeletonSource.frameAtTime(previewTimeMs);
       if (!frame) {
         ctx.fillStyle = '#9daf9f';
         ctx.font = '15px Segoe UI, sans-serif';
-        ctx.fillText('Load a skeleton sequence to preview landmarks.', 28, 42);
+        ctx.fillText('Load a skeleton sequence or run GVHMR World Motion.', 28, 42);
         return;
       }
 
@@ -2849,7 +3144,8 @@
       clip.previewSpeed = Number($('previewSpeedSelect').value) || 1;
       clip.retargetHints = {
         ...(clip.retargetHints || {}),
-        mirrorX: !!state.traceOverlay?.sceneAlignmentOptions?.().mirrorX
+        mirrorX: !!state.traceOverlay?.sceneAlignmentOptions?.().mirrorX,
+        legFidelity: 0
       };
       attachPreviewFramesToClip(clip);
       const previewAdapter = state.previewAdapter;
@@ -3156,6 +3452,38 @@
     $('btnPoseCopierMode').addEventListener('click', () => setPreviewWorkflowMode('pose_copier'));
     $('btnWalkExtractorMode').addEventListener('click', () => setPreviewWorkflowMode('walk_extractor'));
     $('btnRunGvhmrWorldMotion').addEventListener('click', runGvhmrWorldMotion);
+    $('btnDownloadGvhmrJson').addEventListener('click', downloadGvhmrWorldMotionJson);
+    $('btnLoadGvhmrCalib').addEventListener('click', () => $('gvhmrCalibFileInput').click());
+    $('btnResetGvhmrCalib').addEventListener('click', resetGvhmrCalib);
+
+    $('gvhmrCalibFileInput').addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const profile = JSON.parse(ev.target.result);
+          if (typeof profile.scale !== 'number') {
+            throw new Error('Missing scale property');
+          }
+          state.gvhmrCalibProfile = {
+            scale: Number(profile.scale),
+            offsetX: Number(profile.offsetX || 0),
+            offsetY: Number(profile.offsetY || 0),
+            offsetZ: Number(profile.offsetZ || 0),
+            yawDegrees: Number(profile.yawDegrees || profile.yaw || 0)
+          };
+          $('btnResetGvhmrCalib').style.display = '';
+          updateGvhmrCalibProfileSummary();
+          syncPreviewToVideoTime({ force: true });
+          setStatus('GVHMR calibration profile loaded successfully.');
+        } catch (err) {
+          alert('Calibration JSON format is invalid: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    });
+
     $('previewSpeedSelect').addEventListener('change', () => {
       if (state.clip && state.mascot && !$('btnPreviewWalkCycle').disabled) {
         previewWalkCycle();
@@ -3168,9 +3496,11 @@
     updateVideoInfo();
     updateWalkStylePanels(null);
     updateGvhmrWorldMotionSummary();
+    updateGvhmrCalibProfileSummary();
     updateOrientationSummary(null);
     setPreviewWorkflowMode('pose_copier');
     drawSkeletonCanvas();
+    refreshCaptureServiceStatus();
     bootAliciaPreview();
   </script>
 </body>

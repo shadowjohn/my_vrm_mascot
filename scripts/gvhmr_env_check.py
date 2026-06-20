@@ -17,6 +17,11 @@ EXPECTED_MODEL_DIRS = [
     "inputs/checkpoints/body_models/smplx",
 ]
 
+EXPECTED_BODY_MODEL_FILES = [
+    "inputs/checkpoints/body_models/smpl/SMPL_NEUTRAL.pkl",
+    "inputs/checkpoints/body_models/smplx/SMPLX_NEUTRAL.npz",
+]
+
 
 def relpath(path):
     try:
@@ -98,7 +103,7 @@ sys.exit(1 if missing else 0)
     }
 
 
-def readiness_reason(checks, missing_checkpoints, missing_model_dirs):
+def readiness_reason(checks, missing_checkpoints, missing_model_dirs, missing_body_model_files):
     if not checks["envPython"]["ok"]:
         return "missing_env_python"
     if not checks["gvhmrRoot"]["ok"]:
@@ -109,7 +114,7 @@ def readiness_reason(checks, missing_checkpoints, missing_model_dirs):
         return "missing_requirements"
     if not checks["imports"]["ok"]:
         return "missing_imports"
-    if missing_checkpoints or missing_model_dirs:
+    if missing_checkpoints or missing_model_dirs or missing_body_model_files:
         return "missing_checkpoints"
     return "ready"
 
@@ -132,7 +137,11 @@ def build_report(args):
         model_dir for model_dir in EXPECTED_MODEL_DIRS
         if not (gvhmr_root / model_dir).is_dir()
     ]
-    reason = readiness_reason(checks, missing_checkpoints, missing_model_dirs)
+    missing_body_model_files = [
+        model_file for model_file in EXPECTED_BODY_MODEL_FILES
+        if not (gvhmr_root / model_file).is_file()
+    ]
+    reason = readiness_reason(checks, missing_checkpoints, missing_model_dirs, missing_body_model_files)
     return {
         "ok": True,
         "ready": reason == "ready",
@@ -140,6 +149,7 @@ def build_report(args):
         "checks": checks,
         "missingCheckpoints": missing_checkpoints,
         "missingModelDirs": missing_model_dirs,
+        "missingBodyModelFiles": missing_body_model_files,
     }
 
 

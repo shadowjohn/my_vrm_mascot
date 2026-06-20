@@ -34,18 +34,43 @@ function normalizeRootTranslation(rootTranslation = {}) {
   };
 }
 
+function normalizePoint(point = {}) {
+  const x = Number(point?.x);
+  const y = Number(point?.y);
+  const z = Number(point?.z);
+  if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z)) {
+    return null;
+  }
+  return { x, y, z };
+}
+
+function normalizeLandmarks(landmarks = {}) {
+  if (!landmarks || typeof landmarks !== 'object' || Array.isArray(landmarks)) {
+    return null;
+  }
+  const entries = Object.entries(landmarks)
+    .map(([name, point]) => [name, normalizePoint(point)])
+    .filter(([, point]) => point);
+  return entries.length ? Object.fromEntries(entries) : null;
+}
+
 function normalizeFrame(frame) {
   const t = finiteNumber(frame?.t, NaN);
   if (!Number.isFinite(t)) {
     return null;
   }
-  return {
+  const normalized = {
     t,
     bodyYawDegrees: clamp(finiteNumber(frame?.bodyYawDegrees), -180, 180),
     rootTranslation: normalizeRootTranslation(frame?.rootTranslation),
     footContact: normalizeFootContact(frame?.footContact),
     confidence: clamp(finiteNumber(frame?.confidence), 0, 1)
   };
+  const landmarks = normalizeLandmarks(frame?.landmarks);
+  if (landmarks) {
+    normalized.landmarks = landmarks;
+  }
+  return normalized;
 }
 
 export function normalizeWorldMotion(payload = {}) {

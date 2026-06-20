@@ -18,7 +18,20 @@ const DEFAULT_BASE_ROTATIONS = Object.freeze({
   leftUpperLeg: { x: 1, y: 0, z: 2 },
   rightUpperLeg: { x: -1, y: 0, z: -2 },
   leftLowerLeg: { x: 0, y: 0, z: 0 },
-  rightLowerLeg: { x: 0, y: 0, z: 0 }
+  rightLowerLeg: { x: 0, y: 0, z: 0 },
+  leftFoot: { x: 0, y: 0, z: 0 },
+  rightFoot: { x: 0, y: 0, z: 0 }
+});
+
+const ALICIA_SMPL_REST_OFFSETS = Object.freeze({
+  leftShoulder: { x: 0, y: 0, z: 4 },
+  rightShoulder: { x: 0, y: 0, z: -4 },
+  leftUpperArm: { x: 0, y: 0, z: 14 },
+  rightUpperArm: { x: 0, y: 0, z: -14 },
+  leftUpperLeg: { x: 0, y: 0, z: -3 },
+  rightUpperLeg: { x: 0, y: 0, z: 3 },
+  leftFoot: { x: -4, y: 0, z: 0 },
+  rightFoot: { x: -4, y: 0, z: 0 }
 });
 
 function finiteNumber(value, fallback = 0) {
@@ -28,6 +41,15 @@ function finiteNumber(value, fallback = 0) {
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
+}
+
+function normalizeDegrees(value) {
+  const degrees = finiteNumber(value);
+  return ((((degrees + 180) % 360) + 360) % 360) - 180;
+}
+
+function skeletonYawForAlicia(rawYawDegrees) {
+  return normalizeDegrees(-finiteNumber(rawYawDegrees));
 }
 
 function addDegrees(base = {}, offset = {}) {
@@ -62,6 +84,15 @@ function getBaseRotations(mascot) {
     ...DEFAULT_BASE_ROTATIONS,
     ...(mascot?.motion?.getPosePreset?.()?.basePose?.rotation || {})
   };
+}
+
+function applyAliciaSmplRestOffsetsToBase(baseRotations = {}) {
+  return Object.fromEntries(
+    Object.entries(baseRotations).map(([boneName, rotation]) => [
+      boneName,
+      addDegrees(rotation, ALICIA_SMPL_REST_OFFSETS[boneName])
+    ])
+  );
 }
 
 function sortedFrameList(source) {
@@ -225,43 +256,274 @@ function armOffsets(landmarks, side, scale) {
   };
 }
 
-function legOffsets(landmarks, side, scale) {
+function legParams(fidelity) {
+  const f = clamp(finiteNumber(fidelity, 0), 0, 1);
+  return {
+    forwardWeightUpper: 0.58 + f * 0.12,
+    forwardWeightFull: 0.28 + f * 0.12,
+    swingScale: 118 + f * 18,
+    swingMax: 30 + f * 8,
+    kneeFlexCoeff: 0.54 + f * 0.12,
+    lowerXMin: -8 - f * 10,
+    lowerXMax: 48 + f * 22,
+    lowerSwingMax: 12 + f * 8
+  };
+}
+
+function footParams(fidelity) {
+  const f = clamp(finiteNumber(fidelity, 0), 0, 1);
+  return {
+    pitchScale: 0.78 + f * 0.17,
+    yawScale: 0.38 + f * 0.34,
+    pitchMin: -34 - f * 11,
+    pitchMax: 26 + f * 14,
+  };
+}
+
+function footOffsets(landmarks, side, scale, fidelity) {
+  const params = footParams(fidelity);
+  const ankle = getPoint(landmarks, `${side}Ankle`);
+  const foot = getPoint(landmarks, `${side}Foot`);
+  const footVector = vector(ankle, foot);
+
+  const length = vectorLength(footVector) || 0.14;
+  const normalizedY = footVector.y / length;
+  const normalizedX = footVector.x / length;
+
+  const pitchDeg = Math.asin(clamp(normalizedY, -1, 1)) / DEG;
+  const yawDeg = Math.asin(clamp(normalizedX, -1, 1)) / DEG;
+
+  const pitch = clamp(pitchDeg * scale * params.pitchScale, params.pitchMin, params.pitchMax);
+  const yaw = clamp(yawDeg * scale * params.yawScale, -42, 42);
+  const roll = 0;
+
+  return {
+    x: pitch,
+    y: roll,
+    z: -yaw
+  };
+}
+
+function legOffsets(landmarks, side, scale, fidelity) {
+  const params = legParams(fidelity);
   const hips = getPoint(landmarks, 'hips');
   const knee = getOptionalPoint(landmarks, `${side}Knee`);
   const ankle = getPoint(landmarks, `${side}Ankle`);
   const fullLeg = vector(hips, ankle);
   const upperLeg = knee ? vector(hips, knee) : fullLeg;
   const lowerLeg = knee ? vector(knee, ankle) : fullLeg;
-  const forwardReach = upperLeg.z * 0.65 + fullLeg.z * 0.35;
+  const forwardReach = upperLeg.z * params.forwardWeightUpper + fullLeg.z * params.forwardWeightFull;
   const kneeAndAnkleAgree = knee && Math.sign(upperLeg.x) === Math.sign(fullLeg.x);
   const lateralReach = knee
     ? upperLeg.x * (kneeAndAnkleAgree ? 0.72 : 0.9) + fullLeg.x * (kneeAndAnkleAgree ? 0.28 : 0.1)
     : fullLeg.x;
-  const swing = clamp(-forwardReach * 170 * scale, -46, 46);
+  const swing = clamp(-forwardReach * params.swingScale * scale, -params.swingMax - 4, params.swingMax + 4);
   const sideReach = clamp(lateralReach * 86.4 * scale, -34.2, 34.2);
   const lowerSideReach = clamp((knee ? lowerLeg.x : fullLeg.x) * 86.4 * scale, -34.2, 34.2);
   const kneeFlex = knee
     ? jointFlexionDegrees(hips, knee, ankle)
     : clamp((1.05 - Math.abs(fullLeg.y)) * 42 * scale, 0, 34);
-  const lowerSwing = clamp(-lowerLeg.z * 45 * scale, -18, 18);
+  const lowerSwing = clamp(-lowerLeg.z * 45 * scale, -params.lowerSwingMax, params.lowerSwingMax);
+  const kneeSign = lowerLeg.z >= 0 ? 1 : -1;
+  const kneeRotation = kneeFlex * kneeSign;
+  const kneeFold = fidelity === 1
+    ? kneeRotation * params.kneeFlexCoeff
+    : kneeFlex * params.kneeFlexCoeff + lowerSwing;
 
   return {
     upper: {
-      x: clamp(swing, -42, 42),
+      x: clamp(swing, -params.swingMax, params.swingMax),
       y: 0,
       z: -sideReach
     },
     lower: {
-      x: clamp(kneeFlex * 0.62 + lowerSwing, -10, 58),
+      x: clamp(kneeFold, params.lowerXMin, params.lowerXMax),
       y: 0,
       z: clamp(-lowerSideReach * 0.32, -18, 18)
     }
   };
 }
 
-function torsoOffsets(landmarks, scale) {
+function directLegAnglesFromDown(item, options = {}) {
+  const down = Math.max(0.0001, -finiteNumber(item?.y));
+  const sagittalScale = finiteNumber(options.sagittalScale, 1);
+  const lateralScale = finiteNumber(options.lateralScale, 1);
+  const xMax = finiteNumber(options.xMax, 38);
+  const zMax = finiteNumber(options.zMax, 24);
+  return {
+    x: clamp((Math.atan2(-finiteNumber(item?.z), down) / DEG) * sagittalScale, -xMax, xMax),
+    y: 0,
+    z: clamp(-(Math.atan2(finiteNumber(item?.x), down) / DEG) * lateralScale, -zMax, zMax)
+  };
+}
+
+function directLegOffsets(landmarks, side) {
+  const hips = getPoint(landmarks, 'hips');
+  const knee = getOptionalPoint(landmarks, `${side}Knee`);
+  const ankle = getPoint(landmarks, `${side}Ankle`);
+  const fullLeg = vector(hips, ankle);
+  const upperLeg = knee ? vector(hips, knee) : fullLeg;
+  const lowerLeg = knee ? vector(knee, ankle) : fullLeg;
+  const upper = directLegAnglesFromDown(upperLeg, {
+    sagittalScale: 1.0,
+    lateralScale: 1.0,
+    xMax: 60,
+    zMax: 45
+  });
+  const lowerSagittal = directLegAnglesFromDown(lowerLeg, {
+    sagittalScale: 1.0,
+    lateralScale: 1.0,
+    xMax: 45,
+    zMax: 35
+  });
+  const kneeFlex = knee
+    ? jointFlexionDegrees(hips, knee, ankle)
+    : clamp((1.05 - Math.abs(fullLeg.y)) * 42, 0, 34);
+  const kneeSign = lowerLeg.z >= 0 ? 1 : -1;
+  const kneeRotation = kneeFlex * kneeSign;
+
+  return {
+    upper,
+    lower: {
+      x: clamp(kneeRotation * 0.95, -10, 120),
+      y: 0,
+      z: lowerSagittal.z
+    }
+  };
+}
+
+function directFootOffsets(landmarks, side) {
+  const ankle = getPoint(landmarks, `${side}Ankle`);
+  const foot = getPoint(landmarks, `${side}Foot`);
+  if (!ankle || !foot) {
+    return { x: 0, y: 0, z: 0 };
+  }
+  const footVector = vector(ankle, foot);
+  const pitch = (Math.atan2(footVector.y, Math.max(0.01, -footVector.z)) / DEG);
+  const yaw = (Math.atan2(footVector.x, Math.max(0.01, -footVector.z)) / DEG);
+
+  return {
+    x: clamp(pitch, -45, 35),
+    y: 0,
+    z: clamp(-yaw, -45, 45)
+  };
+}
+
+function directArmAnglesFromOutward(item, side, options = {}) {
+  const sign = side === 'left' ? 1 : -1;
+  const outward = sign * finiteNumber(item?.x);
+  const xMax = finiteNumber(options.xMax, 80);
+  const yMax = finiteNumber(options.yMax, 85);
+  const zMax = finiteNumber(options.zMax, 90);
+
+  // Z-rotation: roll (up/down)
+  const zAngle = -sign * (Math.atan2(finiteNumber(item?.y), Math.max(0.0001, outward)) / DEG);
+
+  // Y-rotation: yaw (forward/backward swing)
+  const len2d = Math.max(0.0001, Math.hypot(finiteNumber(item?.x), finiteNumber(item?.y)));
+  const yAngle = -sign * (Math.atan2(finiteNumber(item?.z), len2d) / DEG);
+
+  // X-rotation: twist
+  const xAngle = 0;
+
+  return {
+    x: clamp(xAngle, -xMax, xMax),
+    y: clamp(yAngle, -yMax, yMax),
+    z: clamp(zAngle, -zMax, zMax)
+  };
+}
+
+function directArmOffsets(landmarks, side) {
+  const shoulder = getPoint(landmarks, `${side}Shoulder`);
+  const elbow = getOptionalPoint(landmarks, `${side}Elbow`);
+  const wrist = getPoint(landmarks, `${side}Wrist`);
+
+  const fullArm = vector(shoulder, wrist);
+  const upperArm = elbow ? vector(shoulder, elbow) : fullArm;
+  const lowerArm = elbow ? vector(elbow, wrist) : fullArm;
+
+  const sign = side === 'left' ? 1 : -1;
+  const bendSign = side === 'left' ? -1 : 1;
+
+  // 1. Upper Arm Angles
+  const upper = directArmAnglesFromOutward(upperArm, side, {
+    xMax: 80,
+    yMax: 85,
+    zMax: 90
+  });
+
+  // Base upper arm rotation
+  const baseUpper = side === 'left' ? { x: 7, y: 0, z: 42 } : { x: 7, y: 0, z: -42 };
+
+  // Z offset
+  const zOffset = upper.z - baseUpper.z;
+  const yOffset = upper.y - baseUpper.y;
+
+  // 2. Elbow flexion
+  const elbowFlex = elbow
+    ? jointFlexionDegrees(shoulder, elbow, wrist)
+    : clamp((shoulder.y - wrist.y) * 80, 0, 130);
+
+  // Base lower arm rotation
+  const baseLower = side === 'left' ? { x: 0, y: -9, z: 0 } : { x: 0, y: 9, z: 0 };
+  const yLowerOffset = bendSign * clamp(elbowFlex, 0, 140) - baseLower.y;
+
+  // 3. Forearm twist (roll)
+  const roll = (Math.atan2(lowerArm.z, Math.max(0.01, -sign * lowerArm.y)) / DEG);
+  const zLowerOffset = sign * clamp(roll * 1.5, -90, 90) - baseLower.z;
+
+  return {
+    shoulder: { x: 0, y: 0, z: 0 },
+    upper: {
+      x: 0,
+      y: yOffset,
+      z: zOffset
+    },
+    lower: {
+      x: 0,
+      y: yLowerOffset,
+      z: zLowerOffset
+    }
+  };
+}
+
+
+function torsoOffsets(landmarks, scale, directPose = false) {
   const hips = getPoint(landmarks, 'hips');
   const chest = getPoint(landmarks, 'chest');
+
+  if (directPose) {
+    const torsoVec = {
+      x: chest.x - hips.x,
+      y: chest.y - hips.y,
+      z: chest.z - hips.z
+    };
+
+    const pitch = (Math.atan2(-torsoVec.z, Math.max(0.1, torsoVec.y)) / DEG);
+    const roll = -(Math.atan2(torsoVec.x, Math.max(0.1, torsoVec.y)) / DEG);
+
+    const leftShoulder = getPoint(landmarks, 'leftShoulder');
+    const rightShoulder = getPoint(landmarks, 'rightShoulder');
+    let twist = 0;
+    if (leftShoulder && rightShoulder) {
+      const shoulderVec = {
+        x: rightShoulder.x - leftShoulder.x,
+        z: rightShoulder.z - leftShoulder.z
+      };
+      twist = (Math.atan2(-shoulderVec.z, Math.max(0.1, shoulderVec.x)) / DEG);
+    }
+
+    const cPitch = clamp(pitch, -40, 40);
+    const cRoll = clamp(roll, -35, 35);
+    const cTwist = clamp(twist, -45, 45);
+
+    return {
+      hips: { x: cPitch * 0.2, y: cTwist * 0.2, z: cRoll * 0.2 },
+      spine: { x: cPitch * 0.5, y: cTwist * 0.5, z: cRoll * 0.5 },
+      chest: { x: cPitch * 0.3, y: cTwist * 0.3, z: cRoll * 0.3 }
+    };
+  }
+
   const torsoDx = chest.x - hips.x;
   const torsoDy = Math.max(0.16, Math.abs(chest.y - hips.y));
   const torsoRoll = clamp((Math.atan2(torsoDx, torsoDy) / DEG) * scale, -32, 32);
@@ -289,7 +551,12 @@ function retargetHints(clip) {
     strideScale: finiteNumber(hints.strideScale, 1),
     armSwingScale: finiteNumber(hints.armSwingScale, 1),
     hipBobScale: finiteNumber(hints.hipBobScale, 1),
-    mirrorX: hints.mirrorX === true
+    mirrorX: hints.mirrorX === true,
+    legFidelity: 0,
+    directSkeletonPose: hints.directSkeletonPose === true,
+    normalizationYawDegrees: hints.normalizationYawDegrees !== undefined && hints.normalizationYawDegrees !== null
+      ? finiteNumber(hints.normalizationYawDegrees)
+      : null
   };
 }
 
@@ -318,14 +585,20 @@ function buildPreviewAnimation(clip, mascot) {
     finiteNumber(clip?.loop?.durationMs, previewFrames[previewFrames.length - 1].timeMs - loopStartMs)
   );
   const loopDurationMs = Math.max(300, Math.round(sourceLoopDurationMs / previewSpeed));
-  const baseRotations = getBaseRotations(mascot);
   const hints = retargetHints(clip);
+  const baseRotations = hints.directSkeletonPose
+    ? applyAliciaSmplRestOffsetsToBase(getBaseRotations(mascot))
+    : getBaseRotations(mascot);
   const transformedFrames = previewFrames.map((previewFrame) => ({
     ...previewFrame,
     landmarks: transformRetargetLandmarks(previewFrame.landmarks, hints)
   }));
   const bodyOrientation = estimateBodyYaw(transformedFrames);
-  const bodyYawDegrees = bodyOrientation.confidence >= 0.45 ? bodyOrientation.yawDegrees : 0;
+  const skeletonYawDegrees = bodyOrientation.confidence >= 0.45 ? bodyOrientation.yawDegrees : 0;
+  const bodyYawDegrees = hints.normalizationYawDegrees === null
+    ? skeletonYawForAlicia(skeletonYawDegrees)
+    : normalizeDegrees(hints.normalizationYawDegrees);
+  const normalizationYawDegrees = bodyYawDegrees;
   const firstSourceHips = getPoint(transformedFrames[0].landmarks, 'hips');
   const bones = {};
   const hipsPosition = [];
@@ -335,11 +608,25 @@ function buildPreviewAnimation(clip, mascot) {
     const landmarks = normalizeSkeletonToAlicia(sourceLandmarks, undefined, { yawDegrees: bodyYawDegrees }).landmarks;
     const timeMs = clamp(Math.round((finiteNumber(previewFrame.timeMs) - loopStartMs) / previewSpeed), 0, loopDurationMs);
     const hips = getPoint(sourceLandmarks, 'hips');
-    const leftArm = armOffsets(landmarks, 'left', hints.armSwingScale);
-    const rightArm = armOffsets(landmarks, 'right', hints.armSwingScale);
-    const leftLeg = legOffsets(landmarks, 'left', hints.strideScale);
-    const rightLeg = legOffsets(landmarks, 'right', hints.strideScale);
-    const torso = torsoOffsets(landmarks, hints.strideScale);
+    const leftArm = hints.directSkeletonPose
+      ? directArmOffsets(landmarks, 'left')
+      : armOffsets(landmarks, 'left', hints.armSwingScale);
+    const rightArm = hints.directSkeletonPose
+      ? directArmOffsets(landmarks, 'right')
+      : armOffsets(landmarks, 'right', hints.armSwingScale);
+    const leftLeg = hints.directSkeletonPose
+      ? directLegOffsets(landmarks, 'left')
+      : legOffsets(landmarks, 'left', hints.strideScale, hints.legFidelity);
+    const rightLeg = hints.directSkeletonPose
+      ? directLegOffsets(landmarks, 'right')
+      : legOffsets(landmarks, 'right', hints.strideScale, hints.legFidelity);
+    const leftFoot = hints.directSkeletonPose
+      ? directFootOffsets(landmarks, 'left')
+      : footOffsets(landmarks, 'left', hints.strideScale, hints.legFidelity);
+    const rightFoot = hints.directSkeletonPose
+      ? directFootOffsets(landmarks, 'right')
+      : footOffsets(landmarks, 'right', hints.strideScale, hints.legFidelity);
+    const torso = torsoOffsets(landmarks, hints.directSkeletonPose ? 1 : hints.strideScale, hints.directSkeletonPose);
     torso.hips.y += bodyYawDegrees;
 
     hipsPosition.push({
@@ -361,8 +648,10 @@ function buildPreviewAnimation(clip, mascot) {
     pushBoneKey(bones, 'rightLowerArm', timeMs, baseRotations, rightArm.lower);
     pushBoneKey(bones, 'leftUpperLeg', timeMs, baseRotations, leftLeg.upper);
     pushBoneKey(bones, 'leftLowerLeg', timeMs, baseRotations, leftLeg.lower);
+    pushBoneKey(bones, 'leftFoot', timeMs, baseRotations, leftFoot);
     pushBoneKey(bones, 'rightUpperLeg', timeMs, baseRotations, rightLeg.upper);
     pushBoneKey(bones, 'rightLowerLeg', timeMs, baseRotations, rightLeg.lower);
+    pushBoneKey(bones, 'rightFoot', timeMs, baseRotations, rightFoot);
   }
 
   return {
@@ -370,10 +659,14 @@ function buildPreviewAnimation(clip, mascot) {
     name: clip.id || 'motion_clip_preview',
     duration_ms: loopDurationMs,
     fps: 12,
-    retarget_mode: hasJointChainLandmarks(previewFrames) ? 'joint_chain_preview' : 'endpoint_preview',
+    retarget_mode: hints.directSkeletonPose
+      ? 'direct_skeleton_preview'
+      : (hasJointChainLandmarks(previewFrames) ? 'joint_chain_preview' : 'endpoint_preview'),
     source_kind: clip.kind || 'motion_clip_v1',
     body_orientation: {
       ...bodyOrientation,
+      skeletonYawDegrees,
+      normalizationYawDegrees,
       appliedYawDegrees: bodyYawDegrees
     },
     bones,
@@ -384,8 +677,10 @@ function buildPreviewAnimation(clip, mascot) {
 
 function buildPoseAnimation(frame, frames, clip, mascot) {
   const sourceFrames = sortedFrameList(frames);
-  const baseRotations = getBaseRotations(mascot);
   const hints = retargetHints(clip);
+  const baseRotations = hints.directSkeletonPose
+    ? applyAliciaSmplRestOffsetsToBase(getBaseRotations(mascot))
+    : getBaseRotations(mascot);
   const transformedFrames = (sourceFrames.length ? sourceFrames : [frame]).map((previewFrame) => ({
     ...previewFrame,
     landmarks: transformRetargetLandmarks(previewFrame.landmarks, hints)
@@ -395,16 +690,34 @@ function buildPoseAnimation(frame, frames, clip, mascot) {
     landmarks: transformRetargetLandmarks(frame.landmarks, hints)
   };
   const bodyOrientation = estimateBodyYaw(transformedFrames);
-  const bodyYawDegrees = bodyOrientation.confidence >= 0.45 ? bodyOrientation.yawDegrees : 0;
+  const skeletonYawDegrees = bodyOrientation.confidence >= 0.45 ? bodyOrientation.yawDegrees : 0;
+  const bodyYawDegrees = hints.normalizationYawDegrees === null
+    ? skeletonYawForAlicia(skeletonYawDegrees)
+    : normalizeDegrees(hints.normalizationYawDegrees);
+  const normalizationYawDegrees = bodyYawDegrees;
   const firstSourceHips = getPoint(transformedFrames[0]?.landmarks, 'hips');
   const sourceLandmarks = transformedFrame.landmarks;
   const landmarks = normalizeSkeletonToAlicia(sourceLandmarks, undefined, { yawDegrees: bodyYawDegrees }).landmarks;
   const hips = getPoint(sourceLandmarks, 'hips');
-  const leftArm = armOffsets(landmarks, 'left', hints.armSwingScale);
-  const rightArm = armOffsets(landmarks, 'right', hints.armSwingScale);
-  const leftLeg = legOffsets(landmarks, 'left', hints.strideScale);
-  const rightLeg = legOffsets(landmarks, 'right', hints.strideScale);
-  const torso = torsoOffsets(landmarks, hints.strideScale);
+  const leftArm = hints.directSkeletonPose
+    ? directArmOffsets(landmarks, 'left')
+    : armOffsets(landmarks, 'left', hints.armSwingScale);
+  const rightArm = hints.directSkeletonPose
+    ? directArmOffsets(landmarks, 'right')
+    : armOffsets(landmarks, 'right', hints.armSwingScale);
+  const leftLeg = hints.directSkeletonPose
+    ? directLegOffsets(landmarks, 'left')
+    : legOffsets(landmarks, 'left', hints.strideScale, hints.legFidelity);
+  const rightLeg = hints.directSkeletonPose
+    ? directLegOffsets(landmarks, 'right')
+    : legOffsets(landmarks, 'right', hints.strideScale, hints.legFidelity);
+  const leftFoot = hints.directSkeletonPose
+    ? directFootOffsets(landmarks, 'left')
+    : footOffsets(landmarks, 'left', hints.strideScale, hints.legFidelity);
+  const rightFoot = hints.directSkeletonPose
+    ? directFootOffsets(landmarks, 'right')
+    : footOffsets(landmarks, 'right', hints.strideScale, hints.legFidelity);
+  const torso = torsoOffsets(landmarks, hints.directSkeletonPose ? 1 : hints.strideScale, hints.directSkeletonPose);
   const bones = {};
   torso.hips.y += bodyYawDegrees;
 
@@ -419,19 +732,25 @@ function buildPoseAnimation(frame, frames, clip, mascot) {
   pushBoneKey(bones, 'rightLowerArm', 0, baseRotations, rightArm.lower);
   pushBoneKey(bones, 'leftUpperLeg', 0, baseRotations, leftLeg.upper);
   pushBoneKey(bones, 'leftLowerLeg', 0, baseRotations, leftLeg.lower);
+  pushBoneKey(bones, 'leftFoot', 0, baseRotations, leftFoot);
   pushBoneKey(bones, 'rightUpperLeg', 0, baseRotations, rightLeg.upper);
   pushBoneKey(bones, 'rightLowerLeg', 0, baseRotations, rightLeg.lower);
+  pushBoneKey(bones, 'rightFoot', 0, baseRotations, rightFoot);
 
   return {
     version: 1,
     name: clip.id || 'pose_copier_frame',
     duration_ms: 1,
     fps: 1,
-    retarget_mode: hasJointChainLandmarks([frame]) ? 'joint_chain_pose' : 'endpoint_pose',
+    retarget_mode: hints.directSkeletonPose
+      ? 'direct_skeleton_pose'
+      : (hasJointChainLandmarks([frame]) ? 'joint_chain_pose' : 'endpoint_pose'),
     source_kind: clip.kind || 'pose_copier_v1',
     source_time_ms: finiteNumber(frame.timeMs),
     body_orientation: {
       ...bodyOrientation,
+      skeletonYawDegrees,
+      normalizationYawDegrees,
       appliedYawDegrees: bodyYawDegrees
     },
     bones,

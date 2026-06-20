@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "id": "93",
+  "category": "standing",
+  "label": "93幀",
+  "model": "AliciaSolid",
+  "basePose": {
+    "rotation": {
+      "spine": {
+        "x": 2,
+        "y": 0,
+        "z": -2
+      },
+      "chest": {
+        "x": -2,
+        "y": -2,
+        "z": -1
+      },
+      "leftShoulder": {
+        "x": 0,
+        "y": 0,
+        "z": 2
+      },
+      "rightShoulder": {
+        "x": 0,
+        "y": 0,
+        "z": -2
+      },
+      "leftUpperArm": {
+        "x": 16,
+        "y": -5,
+        "z": 24
+      },
+      "rightUpperArm": {
+        "x": 9,
+        "y": 9,
+        "z": 61
+      },
+      "leftLowerArm": {
+        "x": -16,
+        "y": -119,
+        "z": 70
+      },
+      "rightLowerArm": {
+        "x": -12,
+        "y": 7,
+        "z": 23
+      },
+      "leftHand": {
+        "x": -2,
+        "y": -2,
+        "z": -7
+      },
+      "rightHand": {
+        "x": 138,
+        "y": 16,
+        "z": -7
+      },
+      "leftUpperLeg": {
+        "x": 1,
+        "y": 0,
+        "z": -23
+      },
+      "rightUpperLeg": {
+        "x": -1,
+        "y": 0,
+        "z": 21
+      },
+      "leftLowerLeg": {
+        "x": 0,
+        "y": 0,
+        "z": 10
+      },
+      "rightLowerLeg": {
+        "x": -10,
+        "y": -2,
+        "z": -12
+      },
+      "leftFoot": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "rightFoot": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "hips": {
+        "x": 0,
+        "y": 72,
+        "z": 0
+      }
+    },
+    "position": {
+      "hips": {
+        "x": 0,
+        "y": 0,
+        "z": 0.004
+      }
+    }
+  },
+  "humanization": {
+    "profile": "alicia",
+    "level": 2
+  },
+  "qa": {
+    "balance": 5,
+    "silhouette": 5,
+    "noTpose": true,
+    "noArmCrossBody": true
+  },
+  "runtimeQa": {
+    "transitionScore": 0,
+    "idleCompatibility": true,
+    "clipCompatibility": true,
+    "vrmaCompatibility": true
+  },
+  "source": {
+    "type": "manual",
+    "tool": "pose_training_lab"
+  }
+}

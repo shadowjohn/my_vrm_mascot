@@ -15,6 +15,12 @@ const requiredIds = [
   'btnCaptureYoutube',
   'btnExtractVideoSkeleton',
   'btnRunGvhmrWorldMotion',
+  'serviceStatusStrip',
+  'serviceStatusYtDlp',
+  'serviceStatusSkeleton',
+  'serviceStatusMotionBert',
+  'serviceStatusGvhmr',
+  'serviceStatusMicromamba',
   'captureRangeLabel',
   'captureRangeStartSlider',
   'captureRangeEndSlider',
@@ -141,7 +147,16 @@ assert.match(html, /id="skeletonExtractionProgressPanel"[\s\S]*aria-live="polite
 assert.match(html, /id="skeletonExtractionProgressBar"[\s\S]*role="progressbar"[\s\S]*aria-valuemin="0"[\s\S]*aria-valuemax="100"/);
 assert.match(html, /id="skeletonExtractionProgressFill"/);
 assert.match(html, /id="skeletonExtractionProgressLog"/);
-assert.match(html, /M20\.3 - Walk Style Extractor/);
+assert.match(html, /Capture service readiness/);
+assert.match(html, /refreshCaptureServiceStatus\(\)/);
+assert.match(html, /\/api\/capture\/services\/status/);
+assert.match(html, /data-state="partial"/);
+assert.match(html, /\['ready',\s*'partial',\s*'missing',\s*'checking'\]/);
+assert.match(html, /service\.status \|\| \(service\.ok \? 'ready' : 'missing'\)/);
+assert.match(html, /data-service-id="ytdlp"/);
+assert.match(html, /data-service-id="motionbert"/);
+assert.match(html, /data-service-id="gvhmr"/);
+assert.doesNotMatch(html, /M20\.3 - Walk Style Extractor/);
 assert.match(html, /Advanced Debug/);
 assert.match(html, /Input Source/);
 assert.match(html, /Walk Cycle Analysis/);
@@ -171,7 +186,7 @@ assert.match(html, /Body Yaw/);
 assert.match(html, /Head Gaze/);
 assert.match(html, /Chest Align/);
 assert.match(html, /Trace Foot/);
-assert.match(html, /grid-template-columns:\s*minmax\(320px,\s*0\.9fr\)\s+minmax\(380px,\s*1\.1fr\)\s+minmax\(420px,\s*1\.2fr\)/);
+assert.match(html, /grid-template-columns:\s*minmax\(320px,\s*1fr\)\s+minmax\(420px,\s*1\.2fr\)/);
 assert.match(html, /#skeletonPreviewCanvas\s*\{[\s\S]*min-height:\s*280px/);
 assert.match(html, /fetch\('api\/capture\/youtube'/);
 assert.match(html, /fetch\('api\/capture\/video\/skeleton'/);
@@ -233,12 +248,26 @@ assert.match(html, /function buildOrientationTransformForFrame/);
 assert.match(html, /function updateOrientationSummary/);
 assert.match(html, /function skeletonMotionBertDebugPayload\(style\)/);
 assert.match(html, /function setPreviewWorkflowMode\(mode\)/);
+assert.match(html, /function poseCopierSkeletonSource\(\)/);
+assert.match(html, /function aliciaFacingYawFromGvhmrFrame\(frame\)/);
+assert.match(html, /function normalizeDegrees\(value\)/);
+assert.match(html, /const gvhmrFrames = gvhmrWorldMotionTraceFrames\(state\.worldMotion\)/);
+assert.match(html, /source:\s*'gvhmr_smpl_joints'/);
+assert.match(html, /source:\s*'sequence_skeleton'/);
 assert.match(html, /function syncAliciaPoseToVideoTime\(\{\s*force/);
 assert.match(html, /function syncPreviewToVideoTime\(\{\s*force/);
 assert.match(html, /function startPoseSyncPlaybackLoop\(\)/);
 assert.match(html, /function stopPoseSyncPlaybackLoop\(\)/);
-assert.match(html, /previewPoseAtTimeMs\(timeMs,\s*state\.sequence\.frames/);
+assert.match(html, /const poseSource = poseCopierSkeletonSource\(\)/);
+assert.match(html, /previewPoseAtTimeMs\(timeMs,\s*poseSource\.frames/);
+assert.match(html, /retargetHints:\s*poseSyncRetargetHints\(poseSource,\s*roundedTimeMs\)/);
+assert.match(html, /hints\.normalizationYawDegrees = aliciaFacingYawFromGvhmrFrame\(worldFrame\)/);
+assert.match(html, /hints\.directSkeletonPose = true/);
+assert.doesNotMatch(html, /hints\.swapLegs\s*=\s*true/);
+assert.doesNotMatch(html, /hints\.legFidelity\s*=\s*1/);
+assert.doesNotMatch(html, /legFidelity:\s*isGvhmr\s*\?\s*1\s*:\s*0/);
 assert.match(html, /orientationTransform:\s*buildOrientationTransformForFrame/);
+assert.match(html, /buildOrientationTransformForFrame\(\s*poseSource\.frameAtTime\(roundedTimeMs\)/);
 assert.match(html, /estimateHeadGaze/);
 assert.match(html, /estimateUpperBodyAlignment/);
 assert.match(html, /setText\('poseSyncStatus'/);
@@ -267,7 +296,9 @@ assert.match(html, /skeletonPreviewCanvas'\)\.addEventListener\('pointerdown'/);
 assert.match(html, /skeletonPreviewCanvas'\)\.addEventListener\('pointermove'/);
 assert.match(html, /skeletonPreviewCanvas'\)\.addEventListener\('pointerup'/);
 assert.match(html, /function getCurrentSkeletonPreviewTimeMs\(\)/);
-assert.match(html, /state\.adapter\.getFrameAtMs\(state\.sequence,\s*previewTimeMs\)/);
+assert.match(html, /if \(state\.currentVideoUrl && Number\.isFinite\(timeMs\)\)/);
+assert.match(html, /const skeletonSource = poseCopierSkeletonSource\(\)/);
+assert.match(html, /const frame = skeletonSource\.frameAtTime\(previewTimeMs\)/);
 assert.match(html, /for \(const \[from,\s*to\] of SKELETON_BONES\)/);
 assert.match(html, /addEventListener\('timeupdate',\s*\(\) => syncPreviewToVideoTime\(\)/);
 assert.match(html, /addEventListener\('seeked',\s*\(\) => syncPreviewToVideoTime\(\{\s*force:\s*true\s*\}\)/);
@@ -295,6 +326,10 @@ assert.match(html, /clip\.previewFrames = previewFrames/);
 assert.match(html, /traceOverlay:\s*new TraceSkeletonOverlay\(\)/);
 assert.match(html, /function updateTraceOverlayForClip\(clip,\s*result\)/);
 assert.match(html, /state\.traceOverlay\.play\(\{[\s\S]*frames:\s*clip\.previewFrames/);
+assert.match(html, /function updateTraceOverlayForGvhmrWorldMotion\(payload/);
+assert.match(html, /const traceFrames = gvhmrWorldMotionTraceFrames\(payload\)/);
+assert.match(html, /frames:\s*traceFrames/);
+assert.match(html, /source_kind:\s*'gvhmr_world_motion'/);
 assert.match(html, /traceOverlayToggle'\)\.addEventListener\('change'/);
 assert.match(html, /mirrorX:\s*!!state\.traceOverlay\?\.sceneAlignmentOptions\?\.\(\)\.mirrorX/);
 assert.match(html, /previewAdapter\.previewClip/);

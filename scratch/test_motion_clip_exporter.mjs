@@ -1116,13 +1116,207 @@ assert.equal(sideFacingCalls[0].body_orientation.facing, 'right_side');
 assert.ok(sideFacingCalls[0].body_orientation.yawDegrees > 65);
 assert.ok(sideFacingCalls[0].body_orientation.confidence >= 0.6);
 assert.ok(
+  sideFacingCalls[0].body_orientation.appliedYawDegrees < -80 &&
+    sideFacingCalls[0].body_orientation.appliedYawDegrees > -120,
+  'side-facing skeleton should keep raw yaw for debug but apply Alicia-facing yaw to the VRM root'
+);
+assert.equal(
+  sideFacingCalls[0].body_orientation.normalizationYawDegrees,
+  sideFacingCalls[0].body_orientation.appliedYawDegrees,
+  'side-facing skeleton should normalize limb pose in the same yaw basis that Alicia applies to the root'
+);
+assert.ok(
   Math.abs(sideFacingCalls[0].bones.hips[0].rot[1]) > 0.45,
   'side-facing source should add body yaw to Alicia hips/root rotation'
+);
+assert.ok(
+  sideFacingCalls[0].bones.hips[0].rot[1] < -0.45,
+  'side-facing skeleton should rotate Alicia hips in the matching visual direction instead of the mirrored direction'
 );
 assert.ok(
   Math.abs(sideFacingCalls[0].bones.leftUpperLeg[1].rot[2]) < 0.25 &&
     Math.abs(sideFacingCalls[0].bones.rightUpperLeg[1].rot[2]) < 0.25,
   'side-facing walk should not turn front/back leg depth into a wide split stance'
+);
+
+const gvhmrWorldSideStrideFrames = [{
+  timeMs: 6133,
+  landmarks: {
+    hips: { x: 0, y: 1, z: 0 },
+    chest: { x: 0, y: 1.42, z: 0 },
+    head: { x: 0.02, y: 1.7, z: 0 },
+    leftShoulder: { x: -0.02, y: 1.5, z: 0.22 },
+    rightShoulder: { x: -0.02, y: 1.5, z: -0.22 },
+    leftElbow: { x: -0.12, y: 1.28, z: 0.22 },
+    rightElbow: { x: 0.1, y: 1.28, z: -0.22 },
+    leftWrist: { x: -0.18, y: 1.1, z: 0.22 },
+    rightWrist: { x: 0.16, y: 1.1, z: -0.22 },
+    leftKnee: { x: -0.3, y: 0.55, z: 0.05 },
+    rightKnee: { x: 0.1, y: 0.55, z: -0.05 },
+    leftAnkle: { x: -0.42, y: 0, z: 0.06 },
+    rightAnkle: { x: 0.16, y: 0, z: -0.06 },
+    leftFoot: { x: -0.5, y: -0.02, z: 0.06 },
+    rightFoot: { x: 0.22, y: -0.02, z: -0.06 }
+  }
+}];
+function holdPoseWithHints(retargetHints) {
+  const calls = [];
+  new AliciaMotionPreviewAdapter({
+    mascot: {
+      motion: {
+        holdCustomPose(animData) {
+          calls.push(animData);
+        }
+      }
+    }
+  }).previewPoseAtTimeMs(6133, gvhmrWorldSideStrideFrames, {
+    id: 'gvhmr_world_side_stride',
+    kind: 'pose_copier_v1',
+    retargetHints
+  });
+  return calls[0];
+}
+const unlocalizedGvhmrStride = holdPoseWithHints({
+  strideScale: 1,
+  armSwingScale: 1,
+  hipBobScale: 1
+});
+const localizedGvhmrStride = holdPoseWithHints({
+  strideScale: 1,
+  armSwingScale: 1,
+  hipBobScale: 1,
+  normalizationYawDegrees: -90
+});
+const highFidelityGvhmrStride = holdPoseWithHints({
+  strideScale: 1,
+  armSwingScale: 1,
+  hipBobScale: 1,
+  normalizationYawDegrees: -90,
+  legFidelity: 1
+});
+const directGvhmrStride = holdPoseWithHints({
+  strideScale: 1,
+  armSwingScale: 1,
+  hipBobScale: 1,
+  normalizationYawDegrees: -90,
+  directSkeletonPose: true
+});
+const directScaledGvhmrStride = holdPoseWithHints({
+  strideScale: 2.4,
+  armSwingScale: 1.8,
+  hipBobScale: 1,
+  normalizationYawDegrees: -90,
+  legFidelity: 1,
+  directSkeletonPose: true
+});
+assert.equal(localizedGvhmrStride.body_orientation.appliedYawDegrees, -90);
+assert.equal(highFidelityGvhmrStride.body_orientation.appliedYawDegrees, -90);
+assert.equal(directGvhmrStride.retarget_mode, 'direct_skeleton_pose');
+const previewAdapterSource = readFileSync('js/AliciaMotionPreviewAdapter.js', 'utf8');
+assert.match(previewAdapterSource, /ALICIA_SMPL_REST_OFFSETS/);
+assert.match(previewAdapterSource, /hints\.directSkeletonPose\s*\?\s*applyAliciaSmplRestOffsetsToBase/);
+for (const boneName of ['leftUpperLeg', 'leftLowerLeg', 'leftFoot', 'rightUpperLeg', 'rightLowerLeg', 'rightFoot']) {
+  assert.deepEqual(
+    directScaledGvhmrStride.bones[boneName][0].rot,
+    directGvhmrStride.bones[boneName][0].rot,
+    `GVHMR direct skeleton copier should bypass stride heuristics for ${boneName}`
+  );
+}
+assert.ok(
+  directGvhmrStride.bones.leftUpperLeg[0].rot[0] > 0 &&
+    directGvhmrStride.bones.rightUpperLeg[0].rot[0] < 0,
+  'GVHMR direct skeleton fixture should start with opposite thigh forward/back signs'
+);
+assert.ok(
+  Math.abs(localizedGvhmrStride.bones.leftUpperLeg[0].rot[0]) < 0.28 &&
+    Math.abs(localizedGvhmrStride.bones.rightUpperLeg[0].rot[0]) < 0.24,
+  'GVHMR pose copier should keep thigh swing conservative so Alicia stays close to the skeleton overlay'
+);
+assert.ok(
+  Math.abs(highFidelityGvhmrStride.bones.leftUpperLeg[0].rot[0]) <=
+    Math.abs(localizedGvhmrStride.bones.leftUpperLeg[0].rot[0]) + 0.02,
+  'GVHMR leg fidelity flag should not amplify Alicia leg swing beyond the conservative pose copier'
+);
+assert.ok(
+  unlocalizedGvhmrStride.bones.leftUpperLeg[0].rot[0] < 0 &&
+    localizedGvhmrStride.bones.leftUpperLeg[0].rot[0] > 0,
+  'GVHMR side-facing left thigh should use Alicia-local forward swing after yaw normalization'
+);
+assert.ok(
+  unlocalizedGvhmrStride.bones.rightUpperLeg[0].rot[0] > 0 &&
+    localizedGvhmrStride.bones.rightUpperLeg[0].rot[0] < 0,
+  'GVHMR side-facing right thigh should use Alicia-local back swing after yaw normalization'
+);
+assert.ok(
+  localizedGvhmrStride.bones.leftLowerLeg[0].rot[0] > 0 &&
+    localizedGvhmrStride.bones.rightLowerLeg[0].rot[0] > -0.03,
+  'GVHMR side-facing shins should keep humanoid knee flex instead of hyperextending backward'
+);
+assert.ok(
+  localizedGvhmrStride.bones.leftLowerLeg[0].rot[0] > localizedGvhmrStride.bones.rightLowerLeg[0].rot[0],
+  'GVHMR side-facing shins should bend the lifted knee more strongly than the planted knee'
+);
+assert.ok(
+  Array.isArray(localizedGvhmrStride.bones.leftFoot) &&
+    Array.isArray(localizedGvhmrStride.bones.rightFoot),
+  'GVHMR pose copier should retarget foot bones from ankle-to-foot skeleton landmarks'
+);
+assert.ok(
+  Math.abs(localizedGvhmrStride.bones.leftFoot[0].rot[0]) > 0.03 ||
+    Math.abs(localizedGvhmrStride.bones.rightFoot[0].rot[0]) > 0.03 ||
+    Math.abs(localizedGvhmrStride.bones.leftFoot[0].rot[1]) > 0.03 ||
+    Math.abs(localizedGvhmrStride.bones.rightFoot[0].rot[1]) > 0.03,
+  'GVHMR foot bones should not stay in the neutral foot pose when skeleton has foot landmarks'
+);
+assert.notDeepEqual(
+  localizedGvhmrStride.bones.leftFoot[0].rot,
+  localizedGvhmrStride.bones.rightFoot[0].rot,
+  'GVHMR left and right foot bones should preserve different ankle-to-foot directions'
+);
+
+const gvhmrForwardBentKneeFrames = [{
+  timeMs: 1200,
+  landmarks: {
+    hips: { x: 0, y: 1, z: 0 },
+    chest: { x: 0, y: 1.42, z: 0 },
+    head: { x: 0, y: 1.68, z: 0 },
+    leftShoulder: { x: -0.2, y: 1.5, z: 0 },
+    rightShoulder: { x: 0.2, y: 1.5, z: 0 },
+    leftElbow: { x: -0.28, y: 1.25, z: 0 },
+    rightElbow: { x: 0.28, y: 1.25, z: 0 },
+    leftWrist: { x: -0.34, y: 1.05, z: 0 },
+    rightWrist: { x: 0.34, y: 1.05, z: 0 },
+    leftKnee: { x: -0.08, y: 0.55, z: 0.28 },
+    rightKnee: { x: 0.08, y: 0.55, z: -0.08 },
+    leftAnkle: { x: -0.09, y: 0, z: -0.12 },
+    rightAnkle: { x: 0.09, y: 0, z: -0.16 },
+    leftFoot: { x: -0.09, y: -0.02, z: -0.24 },
+    rightFoot: { x: 0.09, y: -0.02, z: -0.28 }
+  }
+}];
+const gvhmrForwardBentKneeCalls = [];
+new AliciaMotionPreviewAdapter({
+  mascot: {
+    motion: {
+      holdCustomPose(animData) {
+        gvhmrForwardBentKneeCalls.push(animData);
+      }
+    }
+  }
+}).previewPoseAtTimeMs(1200, gvhmrForwardBentKneeFrames, {
+  id: 'gvhmr_forward_bent_knee_pose',
+  kind: 'pose_copier_v1',
+  retargetHints: {
+    strideScale: 1,
+    armSwingScale: 1,
+    hipBobScale: 1,
+    normalizationYawDegrees: 0
+  }
+});
+const gvhmrForwardBentKneePose = gvhmrForwardBentKneeCalls[0];
+assert.ok(
+  gvhmrForwardBentKneePose.bones.leftLowerLeg[0].rot[0] > 0,
+  'GVHMR knee retarget should bend the lower leg forward when the knee is in front of the ankle'
 );
 
 const mirroredRetargetCalls = [];

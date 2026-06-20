@@ -13,6 +13,17 @@ function smoothYaw(value, smoothing) {
   return finiteNumber(value) * clamp(finiteNumber(smoothing, 1), 0, 1);
 }
 
+function normalizeDegrees(value) {
+  const degrees = finiteNumber(value);
+  return ((((degrees + 180) % 360) + 360) % 360) - 180;
+}
+
+function aliciaFacingYawDegrees(frame, source, yawOffset = 0) {
+  const rawYaw = finiteNumber(frame?.bodyYawDegrees) + yawOffset;
+  const sourceOffset = source === 'gvhmr' ? 180 : 0;
+  return normalizeDegrees(rawYaw + sourceOffset);
+}
+
 function roundMotionValue(value) {
   return Math.round(value * 1000000) / 1000000;
 }
@@ -73,7 +84,34 @@ export function fuseAliciaWorldMotion(poseAnimation, worldMotionPayload, options
     return poseAnimation;
   }
 
-  const bodyYawDegrees = smoothYaw(frame.bodyYawDegrees, options.yawSmoothing ?? 1);
+  const scale = finiteNumber(options.calibScale, 1.0);
+  const offsetX = finiteNumber(options.calibOffsetX, 0.0);
+  const offsetY = finiteNumber(options.calibOffsetY, 0.0);
+  const offsetZ = finiteNumber(options.calibOffsetZ, 0.0);
+  const yawOffset = finiteNumber(options.calibYawDegrees, 0.0);
+
+  const worldTranslation = { ...frame.rootTranslation };
+  worldTranslation.x = worldTranslation.x * scale + offsetX;
+  worldTranslation.y = worldTranslation.y * scale + offsetY;
+  worldTranslation.z = worldTranslation.z * scale + offsetZ;
+
+  if (options.grounded !== false) {
+    const currentHipsY = frame.landmarks?.hips?.y;
+    if (currentHipsY !== undefined && Number.isFinite(currentHipsY)) {
+      worldTranslation.y = (currentHipsY * scale) + offsetY - 1.0 * scale;
+    } else {
+      const validY = worldMotion.frames
+        .map(f => f.rootTranslation?.y)
+        .filter(y => y !== undefined && Number.isFinite(y));
+      if (validY.length > 0) {
+        const minY = Math.min(...validY);
+        worldTranslation.y = worldTranslation.y - minY * scale;
+      }
+    }
+  }
+
+  const worldYawDegrees = finiteNumber(frame.bodyYawDegrees) + yawOffset;
+  const bodyYawDegrees = smoothYaw(aliciaFacingYawDegrees(frame, worldMotion.source, yawOffset), options.yawSmoothing ?? 1);
   const previousYawDegrees = finiteNumber(poseAnimation?.body_orientation?.appliedYawDegrees);
   const yawDeltaDegrees = bodyYawDegrees - previousYawDegrees;
   return {
@@ -81,18 +119,19 @@ export function fuseAliciaWorldMotion(poseAnimation, worldMotionPayload, options
     body_orientation: {
       ...(poseAnimation.body_orientation || {}),
       appliedYawDegrees: bodyYawDegrees,
-      worldYawDegrees: bodyYawDegrees
+      worldYawDegrees
     },
     bones: applyRootYawToBones(poseAnimation.bones, yawDeltaDegrees),
     hips_position: [{
       time_ms: 0,
-      pos: scaledRootPosition(frame.rootTranslation, options.rootScale)
+      pos: scaledRootPosition(worldTranslation, options.rootScale)
     }],
     world_motion: {
       applied: true,
       source: worldMotion.source,
       frameTimeSeconds: frame.t,
       bodyYawDegrees,
+      worldYawDegrees,
       rootTranslation: frame.rootTranslation,
       footContact: frame.footContact,
       confidence: frame.confidence

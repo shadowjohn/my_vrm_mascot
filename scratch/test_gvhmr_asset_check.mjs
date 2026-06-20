@@ -26,6 +26,10 @@ assert.ok(missing.missing.includes('inputs/checkpoints/vitpose/vitpose-h-multi-c
 assert.ok(missing.missing.includes('inputs/checkpoints/yolo/yolov8x.pt'));
 assert.ok(missing.missing.includes('inputs/checkpoints/body_models/smpl'));
 assert.ok(missing.missing.includes('inputs/checkpoints/body_models/smplx'));
+assert.ok(missing.missing.includes('inputs/checkpoints/body_models/smpl/SMPL_NEUTRAL.pkl'));
+assert.ok(missing.missing.includes('inputs/checkpoints/body_models/smplx/SMPLX_NEUTRAL.npz'));
+assert.ok(missing.missingBodyModelFiles.includes('inputs/checkpoints/body_models/smpl/SMPL_NEUTRAL.pkl'));
+assert.ok(missing.missingBodyModelFiles.includes('inputs/checkpoints/body_models/smplx/SMPLX_NEUTRAL.npz'));
 
 for (const file of [
   'inputs/checkpoints/gvhmr/gvhmr_siga24_release.ckpt',
@@ -41,10 +45,26 @@ for (const file of [
 mkdirSync(join(fakeRoot, 'inputs', 'checkpoints', 'body_models', 'smpl'), { recursive: true });
 mkdirSync(join(fakeRoot, 'inputs', 'checkpoints', 'body_models', 'smplx'), { recursive: true });
 
+const emptyBodyModels = runAssetCheck(['--gvhmr-root', fakeRoot]);
+assert.equal(emptyBodyModels.ok, false);
+assert.deepEqual(emptyBodyModels.missingCheckpoints, []);
+assert.deepEqual(emptyBodyModels.missingModelDirs, []);
+assert.ok(emptyBodyModels.missingBodyModelFiles.includes('inputs/checkpoints/body_models/smpl/SMPL_NEUTRAL.pkl'));
+assert.ok(emptyBodyModels.missingBodyModelFiles.includes('inputs/checkpoints/body_models/smplx/SMPLX_NEUTRAL.npz'));
+
+for (const file of [
+  'inputs/checkpoints/body_models/smpl/SMPL_NEUTRAL.pkl',
+  'inputs/checkpoints/body_models/smplx/SMPLX_NEUTRAL.npz'
+]) {
+  const path = join(fakeRoot, ...file.split('/'));
+  writeFileSync(path, 'fake-body-model', 'utf8');
+}
+
 const ready = runAssetCheck(['--gvhmr-root', fakeRoot]);
-assert.deepEqual(ready, {
-  ok: true,
-  missing: []
-});
+assert.equal(ready.ok, true);
+assert.deepEqual(ready.missing, []);
+assert.deepEqual(ready.missingCheckpoints, []);
+assert.deepEqual(ready.missingModelDirs, []);
+assert.deepEqual(ready.missingBodyModelFiles, []);
 
 console.log('PASS test_gvhmr_asset_check');

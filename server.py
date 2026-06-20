@@ -1,6 +1,8 @@
 import os
+import importlib.util
 import json
 import mimetypes
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -41,6 +43,135 @@ MOTION_PROFILE_CATEGORIES = {
 
 def _now_iso():
     return datetime.now().astimezone().isoformat(timespec="seconds")
+
+
+def _module_available(module_name):
+    return importlib.util.find_spec(module_name) is not None
+
+
+def _path_ready(path, expected_type):
+    candidate = Path(path)
+    if expected_type == "dir":
+        return candidate.is_dir()
+    return candidate.is_file()
+
+
+def _service_light(service_id, label, ok, detail, status=None):
+    service_status = status or ("ready" if ok else "missing")
+    return {
+        "id": service_id,
+        "label": label,
+        "ok": bool(ok),
+        "status": service_status,
+        "detail": detail,
+    }
+
+
+def _micromamba_executable_path():
+    configured = os.environ.get("MICROMAMBA_EXE") or os.environ.get("MAMBA_EXE")
+    candidates = []
+    if configured:
+        candidates.append(Path(configured))
+    candidates.extend([
+        BASE_DIR / "conda_vm" / "micromamba" / "micromamba.exe",
+        BASE_DIR / "conda_vm" / "micromamba" / "micromamba",
+    ])
+    on_path = shutil.which("micromamba")
+    if on_path:
+        candidates.append(Path(on_path))
+
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def _capture_service_status_report():
+    ytdlp_ready = _module_available("yt_dlp")
+    skeleton_missing = [
+        module_name
+        for module_name in ("cv2", "mediapipe")
+        if not _module_available(module_name)
+    ]
+
+    try:
+        _assert_motionbert_runtime_ready()
+        motionbert_ready = True
+        motionbert_detail = f"{_motionbert_python_path()} / {_motionbert_checkpoint_path().name}"
+    except RuntimeError as exc:
+        motionbert_ready = False
+        motionbert_detail = str(exc)
+
+    gvhmr_runtime_missing = []
+    gvhmr_asset_missing = []
+    gvhmr_asset_error = ""
+    for path, expected_type, label in (
+        (_gvhmr_python_path(), "file", "GVHMR python env"),
+        (_gvhmr_root_dir(), "dir", "GVHMR repo"),
+        (_gvhmr_lift_sidecar_path(), "file", "GVHMR lift sidecar"),
+    ):
+        if not _path_ready(path, expected_type):
+            gvhmr_runtime_missing.append(label)
+    if not gvhmr_runtime_missing:
+        try:
+            asset_status = _run_gvhmr_asset_check()
+            if not asset_status.get("ok"):
+                gvhmr_asset_missing.extend(asset_status.get("missing") or [])
+                gvhmr_asset_error = asset_status.get("error") or ""
+        except RuntimeError as exc:
+            gvhmr_asset_error = str(exc)
+    if gvhmr_runtime_missing:
+        gvhmr_ready = False
+        gvhmr_status = "missing"
+        gvhmr_detail = "Missing: " + ", ".join(gvhmr_runtime_missing)
+    elif gvhmr_asset_missing or gvhmr_asset_error:
+        gvhmr_ready = False
+        gvhmr_status = "partial"
+        gvhmr_detail_parts = []
+        if gvhmr_asset_missing:
+            gvhmr_detail_parts.append("missing model assets: " + ", ".join(gvhmr_asset_missing))
+        if gvhmr_asset_error:
+            gvhmr_detail_parts.append(gvhmr_asset_error)
+        gvhmr_detail = "GVHMR runtime ready; " + "; ".join(gvhmr_detail_parts)
+    else:
+        gvhmr_ready = True
+        gvhmr_status = "ready"
+        gvhmr_detail = "GVHMR env/assets ready"
+
+    micromamba_path = _micromamba_executable_path()
+    services = [
+        _service_light(
+            "ytdlp",
+            "yt-dlp",
+            ytdlp_ready,
+            "yt-dlp import ready" if ytdlp_ready else "Python module yt_dlp missing",
+        ),
+        _service_light(
+            "skeleton",
+            "Skeleton",
+            not skeleton_missing,
+            "MediaPipe skeleton extraction ready" if not skeleton_missing else f"Missing modules: {', '.join(skeleton_missing)}",
+        ),
+        _service_light("motionbert", "MotionBERT", motionbert_ready, motionbert_detail),
+        _service_light(
+            "gvhmr",
+            "GVHMR",
+            gvhmr_ready,
+            gvhmr_detail,
+            gvhmr_status,
+        ),
+        _service_light(
+            "micromamba",
+            "micromamba",
+            micromamba_path is not None,
+            str(micromamba_path) if micromamba_path else "micromamba executable missing",
+        ),
+    ]
+    return {
+        "ok": all(service["ok"] for service in services),
+        "checkedAt": _now_iso(),
+        "services": services,
+    }
 
 
 def _youtube_capture_dir():
@@ -431,7 +562,17 @@ def _gvhmr_runtime_env():
         env.get("PATH", ""),
     ]
     env["PATH"] = os.pathsep.join(part for part in path_parts if part)
+    # ponytail: GVHMR is heavy; keep Windows responsive. Raise GVHMR_CPU_THREADS if throughput matters.
+    cpu_threads = env.get("GVHMR_CPU_THREADS", "2")
+    for key in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS", "NUMEXPR_NUM_THREADS"):
+        env.setdefault(key, cpu_threads)
     return env
+
+
+def _gvhmr_subprocess_creationflags():
+    if os.name != "nt":
+        return 0
+    return getattr(subprocess, "BELOW_NORMAL_PRIORITY_CLASS", 0)
 
 
 def _run_gvhmr_asset_check():
@@ -530,6 +671,7 @@ def _run_gvhmr_world_motion(video_path, static_camera=True):
                 errors="replace",
                 timeout=GVHMR_TIMEOUT_SEC,
                 env=_gvhmr_runtime_env(),
+                creationflags=_gvhmr_subprocess_creationflags(),
                 check=False,
             )
         except subprocess.TimeoutExpired as exc:
@@ -548,6 +690,35 @@ def _run_gvhmr_world_motion(video_path, static_camera=True):
         raise RuntimeError("GVHMR world motion output invalid")
     payload.setdefault("metadata", {})
     payload["metadata"]["runtimeMs"] = round((time.time() - started_at) * 1000)
+    return payload
+
+
+def _filter_world_motion_capture_range(payload, start_ms=0, end_ms=None):
+    if not isinstance(payload, dict):
+        return payload
+
+    frames = payload.get("frames")
+    if not isinstance(frames, list):
+        return payload
+
+    start_ms = max(0.0, float(start_ms or 0))
+    end_ms = None if end_ms is None else float(end_ms)
+    filtered = [
+        frame for frame in frames
+        if isinstance(frame, dict)
+        and (float(frame.get("t") or 0) * 1000) >= start_ms
+        and (end_ms is None or (float(frame.get("t") or 0) * 1000) <= end_ms)
+    ]
+    if filtered:
+        payload["frames"] = filtered
+
+    payload.setdefault("metadata", {})
+    payload["metadata"]["captureRange"] = {
+        "startMs": round(start_ms, 3),
+        "endMs": None if end_ms is None else round(end_ms, 3),
+        "sourceFrameCount": len(frames),
+        "filteredFrameCount": len(payload.get("frames") or []),
+    }
     return payload
 
 
@@ -1114,6 +1285,11 @@ def serve_youtube_capture(filename):
     return "File not found", 404
 
 
+@app.route('/api/capture/services/status', methods=['GET'])
+def capture_services_status():
+    return jsonify(_capture_service_status_report())
+
+
 @app.route('/api/capture/youtube', methods=['POST'])
 def capture_youtube():
     data = request.get_json() or {}
@@ -1169,6 +1345,7 @@ def capture_video_world_motion():
     data = request.get_json() or {}
     try:
         video_path = _resolve_local_video_url(data.get("videoUrl"))
+        start_ms, end_ms = _normalize_video_capture_range(data)
         asset_status = _run_gvhmr_asset_check()
         if not asset_status.get("ok"):
             return jsonify({
@@ -1182,6 +1359,7 @@ def capture_video_world_motion():
             video_path,
             static_camera=data.get("staticCamera") is not False,
         )
+        world_motion = _filter_world_motion_capture_range(world_motion, start_ms, end_ms)
     except ValueError as exc:
         return jsonify({"ok": False, "error": str(exc)}), 400
     except FileNotFoundError as exc:
@@ -1686,4 +1864,11 @@ def serve_manifests(filepath):
 
 if __name__ == '__main__':
     # 保護點 1：限制本機 127.0.0.1，關閉對外綁定
-    app.run(host='127.0.0.1', port=8765, debug=True)
+    # ponytail: 日常工具頁不要開 Flask reloader，專案內有 conda/model 目錄時 Windows 會被檔案監看拖慢。
+    app.run(
+        host='127.0.0.1',
+        port=8765,
+        debug=os.environ.get("ALICIA_SERVER_DEBUG") == "1",
+        use_reloader=False,
+        threaded=True,
+    )

@@ -29,6 +29,9 @@ export class LookAtController {
   #maxYaw = 30;     // 最大左右轉角（度）
   #maxPitch = 20;   // 最大上下仰角（度）
   #neckRatio = 0.3; // 脖子分攤比例
+  #headOffset = null;
+  #neckOffset = null;
+
 
   /**
    * 綁定 VRM 模型
@@ -130,9 +133,12 @@ export class LookAtController {
    * 每幀更新
    * @param {number} dt - deltaTime in seconds
    */
-  update(dt) {
+  update(dt, offsets = {}) {
     if (!this.#headBone) return;
     this.#elapsed += dt;
+
+    this.#headOffset = offsets.headOffset || null;
+    this.#neckOffset = offsets.neckOffset || null;
 
     if (!this.#enabled) {
       if (this.#targetMode === 'none') {
@@ -156,17 +162,23 @@ export class LookAtController {
   #applyHeadRotation(yawDegrees, pitchDegrees) {
     const yawRad = yawDegrees * Math.PI / 180;
     const pitchRad = pitchDegrees * Math.PI / 180;
-    // 分攤到脖子和頭部
+
+    const DEG = Math.PI / 180;
+    const neckOffset = this.#neckOffset || { x: 0, y: 0, z: 0 };
+    const headOffset = this.#headOffset || { x: 0, y: 0, z: 0 };
+
+    // 分攤到脖子和頭部，並加上 base offset
     if (this.#neckBone) {
-      this.#neckBone.rotation.y = yawRad * this.#neckRatio;
-      this.#neckBone.rotation.x = pitchRad * this.#neckRatio;
+      this.#neckBone.rotation.x = pitchRad * this.#neckRatio + (neckOffset.x || 0) * DEG;
+      this.#neckBone.rotation.y = yawRad * this.#neckRatio + (neckOffset.y || 0) * DEG;
+      this.#neckBone.rotation.z = (neckOffset.z || 0) * DEG;
     }
 
-    // 頭部拿剩餘的旋轉
+    // 頭部拿剩餘的旋轉，並加上 base offset
     const headRatio = 1 - this.#neckRatio;
-    this.#headBone.rotation.y = yawRad * headRatio;
-    this.#headBone.rotation.x = pitchRad * headRatio;
-    this.#headBone.rotation.z = 0;
+    this.#headBone.rotation.x = pitchRad * headRatio + (headOffset.x || 0) * DEG;
+    this.#headBone.rotation.y = yawRad * headRatio + (headOffset.y || 0) * DEG;
+    this.#headBone.rotation.z = (headOffset.z || 0) * DEG;
   }
 
   #applyIdleHeadDrift() {
@@ -174,15 +186,19 @@ export class LookAtController {
     const pitchRad = Math.sin(this.#elapsed * 0.44 + 1.2) * 0.9 * Math.PI / 180;
     const rollRad = Math.sin(this.#elapsed * 0.31 + 0.8) * 0.6 * Math.PI / 180;
 
+    const DEG = Math.PI / 180;
+    const neckOffset = this.#neckOffset || { x: 0, y: 0, z: 0 };
+    const headOffset = this.#headOffset || { x: 0, y: 0, z: 0 };
+
     if (this.#neckBone) {
-      this.#neckBone.rotation.y = yawRad * 0.25;
-      this.#neckBone.rotation.x = pitchRad * 0.25;
-      this.#neckBone.rotation.z = rollRad * 0.2;
+      this.#neckBone.rotation.x = pitchRad * 0.25 + (neckOffset.x || 0) * DEG;
+      this.#neckBone.rotation.y = yawRad * 0.25 + (neckOffset.y || 0) * DEG;
+      this.#neckBone.rotation.z = rollRad * 0.2 + (neckOffset.z || 0) * DEG;
     }
 
-    this.#headBone.rotation.y = yawRad * 0.75;
-    this.#headBone.rotation.x = pitchRad * 0.75;
-    this.#headBone.rotation.z = rollRad * 0.8;
+    this.#headBone.rotation.x = pitchRad * 0.75 + (headOffset.x || 0) * DEG;
+    this.#headBone.rotation.y = yawRad * 0.75 + (headOffset.y || 0) * DEG;
+    this.#headBone.rotation.z = rollRad * 0.8 + (headOffset.z || 0) * DEG;
   }
 
   /** 清理 */

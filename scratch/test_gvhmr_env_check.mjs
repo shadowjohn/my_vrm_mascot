@@ -38,6 +38,33 @@ assert.equal(structural.checks.requirements.ok, true);
 assert.equal(structural.checks.imports.skipped, true);
 assert.ok(structural.missingCheckpoints.includes('inputs/checkpoints/gvhmr/gvhmr_siga24_release.ckpt'));
 assert.ok(structural.missingModelDirs.includes('inputs/checkpoints/body_models/smpl'));
+assert.ok(structural.missingBodyModelFiles.includes('inputs/checkpoints/body_models/smpl/SMPL_NEUTRAL.pkl'));
+assert.ok(structural.missingBodyModelFiles.includes('inputs/checkpoints/body_models/smplx/SMPLX_NEUTRAL.npz'));
+
+for (const file of [
+  'inputs/checkpoints/gvhmr/gvhmr_siga24_release.ckpt',
+  'inputs/checkpoints/hmr2/epoch=10-step=25000.ckpt',
+  'inputs/checkpoints/vitpose/vitpose-h-multi-coco.pth',
+  'inputs/checkpoints/yolo/yolov8x.pt',
+  'inputs/checkpoints/body_models/smpl/SMPL_NEUTRAL.pkl',
+  'inputs/checkpoints/body_models/smplx/SMPLX_NEUTRAL.npz'
+]) {
+  const path = join(fakeRoot, ...file.split('/'));
+  mkdirSync(path.replace(/[\\/][^\\/]+$/, ''), { recursive: true });
+  writeFileSync(path, 'fake-asset', 'utf8');
+}
+
+const ready = runChecker([
+  '--env-python', pythonPath,
+  '--gvhmr-root', fakeRoot,
+  '--skip-imports'
+]);
+assert.equal(ready.ok, true);
+assert.equal(ready.ready, true);
+assert.equal(ready.reason, 'ready');
+assert.deepEqual(ready.missingCheckpoints, []);
+assert.deepEqual(ready.missingModelDirs, []);
+assert.deepEqual(ready.missingBodyModelFiles, []);
 
 const missingRoot = runChecker([
   '--env-python', pythonPath,

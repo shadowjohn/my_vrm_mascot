@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Alicia GVHMR JSON Demo</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07110d;
+      --panel: #13221b;
+      --line: #385545;
+      --text: #f2fff5;
+      --muted: #9db2a3;
+      --green: #9bed91;
+      --gold: #f5cd69;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, "Microsoft JhengHei", sans-serif;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 14px;
+      padding: 14px;
+      min-height: calc(100vh - 65px);
+      box-sizing: border-box;
+    }
+
+    #previewArea {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 14px;
+      min-height: 620px;
+    }
+
+    #previewArea.show-skeleton {
+      grid-template-columns: minmax(0, 1fr) 360px;
+    }
+
+    #stage,
+    #skeletonPanel {
+      min-height: 620px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #0d1729;
+      overflow: hidden;
+    }
+
+    #stage {
+      position: relative;
+    }
+
+    #sourceVideoOverlay {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      z-index: 10;
+      width: clamp(180px, 24vw, 320px);
+      border: 1px solid rgba(155, 237, 145, 0.55);
+      border-radius: 8px;
+      background: rgba(7, 17, 13, 0.86);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.38);
+      overflow: hidden;
+    }
+
+    #sourceVideoOverlay strong {
+      display: block;
+      padding: 6px 8px;
+      color: var(--gold);
+      font-size: 12px;
+    }
+
+    #sourceVideo {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: contain;
+      background: #050907;
+    }
+
+    #skeletonPanel {
+      display: none;
+      grid-template-rows: auto 1fr;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
+    #previewArea.show-skeleton #skeletonPanel {
+      display: grid;
+    }
+
+    #skeletonCanvas {
+      width: 100%;
+      height: 100%;
+      min-height: 570px;
+    }
+
+    .skeleton-title,
+    .check-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .check-row {
+      justify-content: flex-start;
+      color: var(--text);
+    }
+
+    aside {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 14px;
+    }
+
+    .row {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    button,
+    select,
+    input[type="range"] {
+      width: 100%;
+    }
+
+    button,
+    select {
+      border: 1px solid #67a566;
+      border-radius: 6px;
+      background: #376f37;
+      color: var(--text);
+      padding: 12px;
+      font-weight: 700;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    input[type="range"] {
+      accent-color: var(--green);
+    }
+
+    code,
+    output {
+      color: var(--gold);
+      font-family: Consolas, monospace;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 900px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      #stage {
+        min-height: 520px;
+      }
+
+      #previewArea.show-skeleton {
+        grid-template-columns: 1fr;
+      }
+
+      #skeletonCanvas {
+        min-height: 420px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Alicia GVHMR JSON Demo</h1>
+    <output id="status">初始化中...</output>
+  </header>
+
+  <main>
+    <section id="previewArea">
+      <section id="stage" aria-label="Alicia VRM 預覽">
+        <div id="sourceVideoOverlay">
+          <strong>原片</strong>
+          <video id="sourceVideo" muted playsinline loop></video>
+        </div>
+      </section>
+      <section id="skeletonPanel" aria-label="GVHMR 側視骨架">
+        <div class="skeleton-title">
+          <strong>GVHMR 側視骨架</strong>
+          <output id="skeletonFrameLabel">--</output>
+        </div>
+        <canvas id="skeletonCanvas"></canvas>
+      </section>
+    </section>
+    <aside>
+      <div class="row">
+        <label for="motionSelect">範例</label>
+        <select id="motionSelect"></select>
+      </div>
+      <div class="row">
+        <label class="check-row" for="skeletonToggle">
+          <input id="skeletonToggle" type="checkbox">
+          載入 GVHMR 側視骨架
+        </label>
+        <output id="skeletonStatus">未載入</output>
+      </div>
+      <div class="row">
+        <button id="playButton" type="button">暫停</button>
+      </div>
+      <div class="row">
+        <label for="timeSlider">時間 <output id="timeLabel">0.00s</output></label>
+        <input id="timeSlider" type="range" min="0" max="0" step="1" value="0">
+      </div>
+      <div class="row">
+        <label for="speedSlider">速度 <output id="speedLabel">1.0x</output></label>
+        <input id="speedSlider" type="range" min="0.25" max="2" step="0.25" value="1">
+      </div>
+      <div class="row">
+        <label>來源 JSON</label>
+        <code id="sourcePath"></code>
+      </div>
+      <pre id="debug"></pre>
+    </aside>
+  </main>
+
+  <script src="vendor/three.min.js"></script>
+  <script src="vendor/GLTFLoader.js"></script>
+  <script src="vendor/OrbitControls.js"></script>
+  <script src="vendor/three-vrm.min.js"></script>
+  <script type="module">
+    import { VrmMascot } from './js/VrmMascot.js';
+
+    const MODEL_URL = 'models/mascot.vrm';
+    const MOTION_EXAMPLES = [
+      {
+        label: 'DW4zkfl95cU / Blender IK + SMPL toe',
+        url: 'conda_vm/gvhmr/GVHMR/outputs/demo/DW4zkfl95cU/alicia_blender_bake_motion.json',
+      },
+      {
+        label: 'EnXEOF9XR38 / Blender IK + SMPL toe',
+        url: 'conda_vm/gvhmr/GVHMR/outputs/demo/EnXEOF9XR38/alicia_blender_bake_motion.json',
+      },
+      {
+        label: 'LVqSKQtfU8M / Blender IK + SMPL toe',
+        url: 'conda_vm/gvhmr/GVHMR/outputs/demo/LVqSKQtfU8M/alicia_blender_bake_motion.json',
+      },
+      {
+        label: 'tiPFgjZ9_Po / Blender IK + SMPL toe',
+        url: 'conda_vm/gvhmr/GVHMR/outputs/demo/tiPFgjZ9_Po/alicia_blender_bake_motion.json',
+      },
+      {
+        label: 'xc-YZjU4xOs / Blender IK + SMPL toe',
+        url: 'conda_vm/gvhmr/GVHMR/outputs/demo/xc-YZjU4xOs/alicia_blender_bake_motion.json',
+      },
+    ];
+
+    const $ = (id) => document.getElementById(id);
+    const state = {
+      playing: true,
+      motion: null,
+      skeleton: null,
+      skeletonUrl: '',
+      videoUrl: '',
+      durationMs: 0,
+      startedAt: performance.now(),
+      pausedAtMs: 0,
+      mascot: null
+    };
+
+    const SKELETON_LINKS = [
+      ['head', 'neck'],
+      ['neck', 'chest'],
+      ['chest', 'hips'],
+      ['chest', 'leftShoulder'],
+      ['leftShoulder', 'leftElbow'],
+      ['leftElbow', 'leftWrist'],
+      ['chest', 'rightShoulder'],
+      ['rightShoulder', 'rightElbow'],
+      ['rightElbow', 'rightWrist'],
+      ['hips', 'leftKnee'],
+      ['leftKnee', 'leftAnkle'],
+      ['leftAnkle', 'leftFoot'],
+      ['leftFoot', 'leftToe'],
+      ['hips', 'rightKnee'],
+      ['rightKnee', 'rightAnkle'],
+      ['rightAnkle', 'rightFoot'],
+      ['rightFoot', 'rightToe'],
+    ];
+
+    const SPINE_LINKS = new Set(['head:neck', 'neck:chest', 'chest:hips']);
+
+    function setStatus(text) {
+      $('status').textContent = text;
+    }
+
+    function skeletonUrlFor(url) {
+      return url.replace('alicia_blender_bake_motion.json', 'alicia_intermediate_landmarks.json');
+    }
+
+    function videoUrlFor(url) {
+      return url.replace('alicia_blender_bake_motion.json', '0_input_video.mp4');
+    }
+
+    function frameTimeMs(frame, index) {
+      if (Number.isFinite(frame?.timeMs)) return frame.timeMs;
+      if (Number.isFinite(frame?.time_ms)) return frame.time_ms;
+      if (Number.isFinite(frame?.t)) return frame.t * 1000;
+      return index * 1000 / 30;
+    }
+
+    function skeletonFrameAt(timeMs) {
+      const frames = state.skeleton?.frames || [];
+      if (!frames.length) return null;
+      let best = frames[0];
+      let bestDelta = Math.abs(frameTimeMs(best, 0) - timeMs);
+      for (let index = 1; index < frames.length; index += 1) {
+        const delta = Math.abs(frameTimeMs(frames[index], index) - timeMs);
+        if (delta < bestDelta) {
+          best = frames[index];
+          bestDelta = delta;
+        }
+      }
+      return best;
+    }
+
+    function fitCanvas(canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const width = Math.max(1, Math.round(rect.width * ratio));
+      const height = Math.max(1, Math.round(rect.height * ratio));
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+      return { width, height, ratio };
+    }
+
+    function drawGvhmrSkeleton(timeMs) {
+      const canvas = $('skeletonCanvas');
+      const ctx = canvas.getContext('2d');
+      const { width, height } = fitCanvas(canvas);
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = '#07110d';
+      ctx.fillRect(0, 0, width, height);
+      if (!$('skeletonToggle').checked) return;
+
+      const frame = skeletonFrameAt(timeMs);
+      const landmarks = frame?.landmarks || null;
+      if (!landmarks) {
+        ctx.fillStyle = '#9db2a3';
+        ctx.fillText('GVHMR skeleton not loaded', 16, 24);
+        return;
+      }
+
+      const points = Object.values(landmarks).filter((item) => item && Number.isFinite(item.y));
+      const xs = points.map((item) => item.z || 0);
+      const ys = points.map((item) => item.y || 0);
+      const minX = Math.min(...xs);
+      const maxX = Math.max(...xs);
+      const minY = Math.min(...ys);
+      const maxY = Math.max(...ys);
+      const pad = 36;
+      const scale = Math.min(
+        (width - pad * 2) / Math.max(0.001, maxX - minX),
+        (height - pad * 2) / Math.max(0.001, maxY - minY)
+      );
+      const map = (name) => {
+        const p = landmarks[name];
+        if (!p) return null;
+        return {
+          x: width / 2 + ((p.z || 0) - (minX + maxX) / 2) * scale,
+          y: height - pad - ((p.y || 0) - minY) * scale,
+        };
+      };
+
+      ctx.strokeStyle = 'rgba(155, 237, 145, 0.10)';
+      ctx.lineWidth = 1;
+      for (let x = pad; x < width - pad; x += 42) {
+        ctx.beginPath();
+        ctx.moveTo(x, pad);
+        ctx.lineTo(x, height - pad);
+        ctx.stroke();
+      }
+
+      for (const [a, b] of SKELETON_LINKS) {
+        const pa = map(a);
+        const pb = map(b);
+        if (!pa || !pb) continue;
+        const isSpine = SPINE_LINKS.has(`${a}:${b}`);
+        ctx.strokeStyle = isSpine ? '#f5cd69' : '#9bed91';
+        ctx.lineWidth = isSpine ? 4 : 2;
+        ctx.beginPath();
+        ctx.moveTo(pa.x, pa.y);
+        ctx.lineTo(pb.x, pb.y);
+        ctx.stroke();
+      }
+
+      for (const name of Object.keys(landmarks)) {
+        const p = map(name);
+        if (!p) continue;
+        ctx.fillStyle = ['hips', 'chest', 'neck', 'head'].includes(name) ? '#f5cd69' : '#cfe8ff';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      $('skeletonFrameLabel').textContent = `frame ${frame.frameIndex ?? '--'} / ${(timeMs / 1000).toFixed(2)}s`;
+    }
+
+    function poseAt(timeMs) {
+      if (!state.mascot || !state.motion) return;
+      state.mascot.motion.holdCustomPose(state.motion, { timeMs });
+      drawGvhmrSkeleton(timeMs);
+      syncSourceVideo(timeMs);
+      $('timeSlider').value = String(Math.round(timeMs));
+      $('timeLabel').textContent = `${(timeMs / 1000).toFixed(2)}s`;
+      $('debug').textContent = JSON.stringify({
+        source: state.motion.source,
+        retargetMode: state.motion.retarget_mode,
+        facingYaw: state.motion.facing_alignment?.yawCorrectionDegrees,
+        sourceForward: state.motion.facing_alignment?.sourceForward,
+        targetForward: state.motion.facing_alignment?.targetForward,
+        frameCount: state.motion.frame_count,
+        skeletonFrames: state.skeleton?.frames?.length || 0,
+        video: state.videoUrl,
+        timeMs: Math.round(timeMs)
+      }, null, 2);
+    }
+
+    function tick(now) {
+      requestAnimationFrame(tick);
+      if (!state.playing || !state.durationMs) return;
+      const speed = Number($('speedSlider').value) || 1;
+      const elapsed = (now - state.startedAt) * speed;
+      poseAt(elapsed % state.durationMs);
+    }
+
+    function loadSourceVideoFor(url) {
+      const video = $('sourceVideo');
+      state.videoUrl = videoUrlFor(url);
+      if (video.getAttribute('src') !== state.videoUrl) {
+        video.src = state.videoUrl;
+        video.load();
+      }
+      video.playbackRate = Number($('speedSlider').value) || 1;
+    }
+
+    function syncSourceVideo(timeMs) {
+      const video = $('sourceVideo');
+      if (!state.videoUrl) return;
+      video.playbackRate = Number($('speedSlider').value) || 1;
+      let target = timeMs / 1000;
+      if (Number.isFinite(video.duration) && video.duration > 0) {
+        target %= video.duration;
+      }
+      const threshold = state.playing ? 0.22 : 0.04;
+      if (Number.isFinite(target) && Math.abs(video.currentTime - target) > threshold) {
+        try {
+          video.currentTime = target;
+        } catch {}
+      }
+      if (state.playing && video.paused) {
+        video.play().catch(() => {});
+      } else if (!state.playing && !video.paused) {
+        video.pause();
+      }
+    }
+
+    async function loadSkeletonFor(url) {
+      if (!$('skeletonToggle').checked) {
+        state.skeleton = null;
+        state.skeletonUrl = '';
+        $('skeletonStatus').textContent = '未載入';
+        return;
+      }
+      state.skeletonUrl = skeletonUrlFor(url);
+      $('skeletonStatus').textContent = '載入中...';
+      try {
+        state.skeleton = await fetch(state.skeletonUrl).then((response) => response.json());
+        $('skeletonStatus').textContent = `已載入 ${state.skeleton.frames?.length || 0} frames`;
+      } catch (error) {
+        console.warn(error);
+        state.skeleton = null;
+        $('skeletonStatus').textContent = '骨架載入失敗';
+      }
+    }
+
+    async function loadMotion(url) {
+      setStatus('載入 motion...');
+      $('sourcePath').textContent = url;
+      state.motion = await fetch(url).then((response) => response.json());
+      loadSourceVideoFor(url);
+      await loadSkeletonFor(url);
+      state.durationMs = Number(state.motion.duration_ms) || 1000;
+      state.pausedAtMs = 0;
+      state.startedAt = performance.now();
+      state.playing = true;
+      $('playButton').textContent = '暫停';
+      $('timeSlider').max = String(Math.round(state.durationMs));
+      state.mascot.motion.playCustom(state.motion, { loop: true });
+      poseAt(0);
+      setStatus(`已載入 baked motion：${state.motion.frame_count} frames`);
+    }
+
+    async function init() {
+      $('motionSelect').innerHTML = MOTION_EXAMPLES
+        .map((item) => `<option value="${item.url}">${item.label}</option>`)
+        .join('');
+      $('motionSelect').addEventListener('change', () => loadMotion($('motionSelect').value));
+      $('skeletonToggle').addEventListener('change', async () => {
+        $('previewArea').classList.toggle('show-skeleton', $('skeletonToggle').checked);
+        await loadSkeletonFor($('motionSelect').value);
+        poseAt(Number($('timeSlider').value) || 0);
+      });
+      $('speedSlider').addEventListener('input', () => {
+        $('speedLabel').textContent = `${Number($('speedSlider').value).toFixed(1)}x`;
+        $('sourceVideo').playbackRate = Number($('speedSlider').value) || 1;
+      });
+      $('timeSlider').addEventListener('input', () => {
+        state.playing = false;
+        state.pausedAtMs = Number($('timeSlider').value) || 0;
+        $('playButton').textContent = '播放';
+        poseAt(state.pausedAtMs);
+      });
+      $('playButton').addEventListener('click', () => {
+        state.playing = !state.playing;
+        $('playButton').textContent = state.playing ? '暫停' : '播放';
+        if (state.playing) {
+          state.startedAt = performance.now() - state.pausedAtMs / (Number($('speedSlider').value) || 1);
+        } else {
+          state.pausedAtMs = Number($('timeSlider').value) || 0;
+        }
+        syncSourceVideo(Number($('timeSlider').value) || 0);
+      });
+
+      state.mascot = new VrmMascot($('stage'), { cameraDistance: 3.2 });
+      await state.mascot.load(MODEL_URL);
+      await loadMotion(MOTION_EXAMPLES[0].url);
+      requestAnimationFrame(tick);
+    }
+
+    init().catch((error) => {
+      console.error(error);
+      setStatus(`失敗：${error.message}`);
+    });
+  </script>
+</body>
+</html>
