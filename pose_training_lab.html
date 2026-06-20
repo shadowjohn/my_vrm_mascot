@@ -352,7 +352,7 @@
       <h1>Alicia GVHMR 姿勢校正台</h1>
       <div class="subtitle">GVHMR 骨架 - Alicia 對齊 - 可重用修正參數</div>
     </div>
-    <div id="trainingStatus" role="status">就緒。先載入 YouTube 影片。</div>
+    <div id="trainingStatus" role="status">就緒。先載入 YouTube 或本機影片。</div>
   </header>
 
   <main>
@@ -368,6 +368,14 @@
           <input id="trainingYoutubeUrl" type="url" inputmode="url" placeholder="https://www.youtube.com/watch?v=...">
         </label>
         <button id="btnTrainingLoadYoutube" type="button">載入 YouTube 影片</button>
+      </div>
+
+      <div class="group">
+        <label for="trainingVideoUpload">
+          本機影片
+          <input id="trainingVideoUpload" type="file" accept="video/mp4,video/*">
+        </label>
+        <button id="btnTrainingUploadVideo" type="button">上傳本機影片</button>
       </div>
 
       <div class="group">
@@ -1469,6 +1477,21 @@
       applyTrainingCalibration({ refreshJson: false, syncBoneOffsets: false });
     }
 
+    function applyTrainingVideoSource(source, fallbackType = 'video') {
+      state.source = {
+        id: source.id || source.filename || `${fallbackType}_capture`,
+        type: source.type || fallbackType,
+        youtubeUrl: source.sourceUrl || '',
+        title: source.title || source.filename || '影片擷取',
+        filename: source.filename || '',
+        videoUrl: source.url
+      };
+      state.currentVideoUrl = source.url;
+      $('trainingVideoPreview').src = source.url;
+      $('trainingVideoPreview').load();
+      refreshTrainingJson();
+    }
+
     async function loadYoutubeSource() {
       const url = $('trainingYoutubeUrl').value.trim();
       if (!url) {
@@ -1489,17 +1512,7 @@
         if (!response.ok || !body?.ok) {
           throw new Error(body?.error || `HTTP ${response.status}`);
         }
-        const source = body.source;
-        state.source = {
-          id: source.id || source.filename || 'youtube_capture',
-          type: 'youtube',
-          youtubeUrl: source.sourceUrl || url,
-          title: source.title || source.filename || 'YouTube 擷取'
-        };
-        state.currentVideoUrl = source.url;
-        $('trainingVideoPreview').src = source.url;
-        $('trainingVideoPreview').load();
-        refreshTrainingJson();
+        applyTrainingVideoSource(body.source, 'youtube');
         setStatus(`已載入 YouTube 影片：${state.source.title}。`);
       } catch (error) {
         setStatus(`YouTube 載入失敗：${error.message}`, 'error');
@@ -1509,9 +1522,40 @@
       }
     }
 
+    async function uploadLocalVideoSource() {
+      const file = $('trainingVideoUpload').files?.[0];
+      if (!file) {
+        setStatus('請先選擇本機影片。', 'error');
+        return;
+      }
+      const button = $('btnTrainingUploadVideo');
+      const label = button.textContent;
+      button.disabled = true;
+      button.textContent = '上傳中...';
+      try {
+        const form = new FormData();
+        form.append('video', file, file.name || 'upload.mp4');
+        const response = await fetch('api/capture/video/upload', {
+          method: 'POST',
+          body: form
+        });
+        const body = await response.json().catch(() => null);
+        if (!response.ok || !body?.ok) {
+          throw new Error(body?.error || `HTTP ${response.status}`);
+        }
+        applyTrainingVideoSource(body.source, 'upload');
+        setStatus(`已載入本機影片：${state.source.title}。`);
+      } catch (error) {
+        setStatus(`本機影片上傳失敗：${error.message}`, 'error');
+      } finally {
+        button.disabled = false;
+        button.textContent = label;
+      }
+    }
+
     async function runGvhmrWorldMotion() {
       if (!state.currentVideoUrl) {
-        setStatus('請先載入 YouTube 影片，再執行 GVHMR。', 'error');
+        setStatus('請先載入 YouTube 或本機影片，再執行 GVHMR。', 'error');
         return;
       }
       const captureRange = readCaptureRange();
@@ -1574,6 +1618,7 @@
 
     function bindEvents() {
       $('btnTrainingLoadYoutube').addEventListener('click', loadYoutubeSource);
+      $('btnTrainingUploadVideo').addEventListener('click', uploadLocalVideoSource);
       $('btnTrainingRunGvhmr').addEventListener('click', runGvhmrWorldMotion);
       $('btnTrainingApplyCalibration').addEventListener('click', applyTrainingCalibration);
       $('btnTrainingCaptureKeyframe').addEventListener('click', captureTrainingKeyframe);

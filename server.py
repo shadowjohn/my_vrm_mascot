@@ -328,6 +328,47 @@ def _build_youtube_capture_source(source_url, download_result):
     }
 
 
+def _build_uploaded_video_source(upload_result):
+    filename = os.path.basename(str(upload_result.get("filename", "")))
+    if not filename:
+        raise ValueError("影片上傳結果缺少檔名")
+
+    content_type = mimetypes.guess_type(filename)[0] or "video/mp4"
+    return {
+        "type": "upload",
+        "title": str(upload_result.get("title") or Path(filename).stem),
+        "filename": filename,
+        "url": f"capture/youtube/{filename}",
+        "contentType": content_type,
+        "size": int(upload_result.get("size") or 0),
+        "uploadedAt": _now_iso(),
+    }
+
+
+def _save_uploaded_capture_video(file_storage):
+    if not file_storage or not file_storage.filename:
+        raise ValueError("請選擇 MP4 影片")
+
+    suffix = Path(file_storage.filename).suffix.lower()
+    if suffix not in {".mp4", ".mov", ".webm", ".mkv", ".m4v"}:
+        raise ValueError("只支援 MP4 / MOV / WebM / MKV / M4V 影片")
+
+    original_stem = Path(file_storage.filename).stem
+    safe_stem = "".join(ch if ch.isalnum() or ch in ("-", "_") else "_" for ch in original_stem).strip("_")
+    safe_stem = safe_stem[:50] or "upload"
+    filename = f"upload_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}_{safe_stem}{suffix}"
+    capture_dir = _youtube_capture_dir()
+    capture_dir.mkdir(parents=True, exist_ok=True)
+    video_path = capture_dir / filename
+    file_storage.save(video_path)
+    return {
+        "title": original_stem or safe_stem,
+        "filename": filename,
+        "path": video_path,
+        "size": video_path.stat().st_size,
+    }
+
+
 def _resolve_local_video_url(video_url):
     raw_url = str(video_url or "").strip()
     if not raw_url:
@@ -1413,6 +1454,23 @@ def capture_youtube():
         normalized_url = _normalize_youtube_url(source_url)
         download_result = _download_youtube_capture(normalized_url)
         source = _build_youtube_capture_source(normalized_url, download_result)
+    except ValueError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+    except RuntimeError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 503
+
+    return jsonify({
+        "ok": True,
+        "source": source,
+    })
+
+
+@app.route('/api/capture/video/upload', methods=['POST'])
+def capture_video_upload():
+    video_file = request.files.get("video")
+    try:
+        upload_result = _save_uploaded_capture_video(video_file)
+        source = _build_uploaded_video_source(upload_result)
     except ValueError as exc:
         return jsonify({"ok": False, "error": str(exc)}), 400
     except RuntimeError as exc:
