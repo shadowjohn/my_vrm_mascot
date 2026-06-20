@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import uuid
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse, urlunparse
@@ -178,12 +179,23 @@ def _youtube_capture_dir():
     return BASE_DIR / "local_assets" / "capture" / "youtube"
 
 
+def _image_pose_capture_dir():
+    return BASE_DIR / "local_assets" / "capture" / "image_pose"
+
+
 def _path_is_inside(path, base_dir):
     try:
         path.resolve().relative_to(base_dir.resolve())
         return True
     except ValueError:
         return False
+
+
+def _local_file_url(path):
+    resolved = Path(path).resolve()
+    if not _path_is_inside(resolved, BASE_DIR):
+        raise ValueError("local file must be inside project root")
+    return resolved.relative_to(BASE_DIR.resolve()).as_posix()
 
 
 def _normalize_youtube_url(raw_url):
@@ -575,6 +587,33 @@ def _gvhmr_subprocess_creationflags():
     return getattr(subprocess, "BELOW_NORMAL_PRIORITY_CLASS", 0)
 
 
+def _ffmpeg_executable_path():
+    return os.environ.get("FFMPEG_EXE") or shutil.which("ffmpeg") or "ffmpeg"
+
+
+def _blender_executable_path():
+    configured = os.environ.get("BLENDER_EXE")
+    candidates = []
+    if configured:
+        candidates.append(Path(configured))
+    on_path = shutil.which("blender")
+    if on_path:
+        candidates.append(Path(on_path))
+    candidates.extend([
+        Path("C:/Program Files/Blender Foundation/Blender 4.5/blender.exe"),
+        Path("C:/Program Files/Blender Foundation/Blender 4.4/blender.exe"),
+        Path("C:/Program Files/Blender Foundation/Blender 4.3/blender.exe"),
+    ])
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    return Path("blender")
+
+
+def _gvhmr_demo_output_dir_for_video(video_path):
+    return _gvhmr_root_dir() / "outputs" / "demo" / Path(video_path).stem
+
+
 def _run_gvhmr_asset_check():
     sidecar = _gvhmr_asset_check_sidecar_path()
     if not sidecar.is_file():
@@ -691,6 +730,82 @@ def _run_gvhmr_world_motion(video_path, static_camera=True):
     payload.setdefault("metadata", {})
     payload["metadata"]["runtimeMs"] = round((time.time() - started_at) * 1000)
     return payload
+
+
+def _write_still_video_from_image(image_path, video_path):
+    command = [
+        str(_ffmpeg_executable_path()),
+        "-y",
+        "-loop",
+        "1",
+        "-framerate",
+        "30",
+        "-i",
+        str(image_path),
+        "-t",
+        "1",
+        "-vf",
+        "scale=trunc(iw/2)*2:trunc(ih/2)*2,format=yuv420p",
+        "-r",
+        "30",
+        str(video_path),
+    ]
+    result = subprocess.run(
+        command,
+        cwd=str(BASE_DIR),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=90,
+        check=False,
+        creationflags=_gvhmr_subprocess_creationflags(),
+    )
+    if result.returncode != 0 or not Path(video_path).is_file():
+        detail = (result.stderr or result.stdout or "").strip()
+        raise RuntimeError(f"ffmpeg still video failed: {detail[-1000:]}")
+
+
+def _run_alicia_blender_bake(input_json, output_json):
+    blender_path = _blender_executable_path()
+    bake_script = SERVER_DIR / "scripts" / "gvhmr_to_alicia_blender_bake.py"
+    model_path = BASE_DIR / "models" / "mascot.vrm"
+    if not bake_script.is_file():
+        raise RuntimeError(f"Blender bake script not found: {bake_script}")
+    if not model_path.is_file():
+        raise RuntimeError(f"Alicia VRM model not found: {model_path}")
+
+    command = [
+        str(blender_path),
+        "-b",
+        "--python",
+        str(bake_script),
+        "--",
+        "--input-json",
+        str(input_json),
+        "--output-json",
+        str(output_json),
+        "--model",
+        str(model_path),
+        "--fps",
+        "30",
+    ]
+    result = subprocess.run(
+        command,
+        cwd=str(BASE_DIR),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=GVHMR_TIMEOUT_SEC,
+        check=False,
+        creationflags=_gvhmr_subprocess_creationflags(),
+    )
+    if result.returncode != 0 or not Path(output_json).is_file():
+        detail = (result.stderr or result.stdout or "").strip()
+        raise RuntimeError(f"Blender Alicia bake failed: {detail[-1200:]}")
 
 
 def _filter_world_motion_capture_range(payload, start_ms=0, end_ms=None):
@@ -1307,6 +1422,78 @@ def capture_youtube():
         "ok": True,
         "source": source,
     })
+
+
+@app.route('/api/capture/image/pose', methods=['POST'])
+def capture_image_pose():
+    image_file = request.files.get("image")
+    if not image_file or not image_file.filename:
+        return jsonify({"ok": False, "error": "請選擇或貼上一張圖片"}), 400
+
+    suffix = Path(image_file.filename).suffix.lower()
+    if suffix not in {".png", ".jpg", ".jpeg", ".webp"}:
+        suffix = ".png"
+
+    job_id = f"image_pose_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
+    work_dir = _image_pose_capture_dir() / job_id
+    image_path = work_dir / f"source{suffix}"
+    video_path = work_dir / f"{job_id}.mp4"
+    started_at = time.time()
+
+    try:
+        work_dir.mkdir(parents=True, exist_ok=True)
+        image_file.save(image_path)
+        _write_still_video_from_image(image_path, video_path)
+
+        asset_status = _run_gvhmr_asset_check()
+        if not asset_status.get("ok"):
+            return jsonify({
+                "ok": False,
+                "reason": "missing_assets",
+                "missing": list(asset_status.get("missing") or []),
+                "assetStatus": asset_status,
+            }), 503
+
+        world_motion = _run_gvhmr_world_motion(video_path, static_camera=True)
+        if not isinstance(world_motion, dict) or world_motion.get("ok") is not True:
+            return jsonify({
+                "ok": False,
+                "reason": world_motion.get("reason") if isinstance(world_motion, dict) else "invalid_world_motion",
+                "worldMotion": world_motion,
+                "assetStatus": asset_status,
+            }), 503
+
+        output_dir = _gvhmr_demo_output_dir_for_video(video_path)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        skeleton_path = output_dir / "alicia_intermediate_landmarks.json"
+        motion_path = output_dir / "alicia_image_pose.json"
+        shutil.copy2(video_path, output_dir / "0_input_video.mp4")
+        shutil.copy2(image_path, output_dir / f"source_image{suffix}")
+
+        world_motion.setdefault("metadata", {})
+        world_motion["metadata"]["imagePose"] = {
+            "jobId": job_id,
+            "sourceImageUrl": _local_file_url(image_path),
+            "stillVideoUrl": _local_file_url(video_path),
+        }
+        skeleton_path.write_text(json.dumps(world_motion, ensure_ascii=False, indent=2), encoding="utf-8", newline="\n")
+        _run_alicia_blender_bake(skeleton_path, motion_path)
+
+        return jsonify({
+            "ok": True,
+            "jobId": job_id,
+            "runtimeMs": round((time.time() - started_at) * 1000),
+            "imageUrl": _local_file_url(image_path),
+            "videoUrl": _local_file_url(output_dir / "0_input_video.mp4"),
+            "skeletonUrl": _local_file_url(skeleton_path),
+            "motionUrl": _local_file_url(motion_path),
+            "assetStatus": asset_status,
+            "frameCount": len(world_motion.get("frames") or []),
+        })
+    except RuntimeError as exc:
+        return jsonify({"ok": False, "reason": "failed", "error": str(exc)}), 503
+    except Exception as exc:
+        return jsonify({"ok": False, "reason": "failed", "error": str(exc)}), 500
 
 
 @app.route('/api/capture/video/skeleton', methods=['POST'])

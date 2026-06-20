@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Alicia Image Pose Lab</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #08110d;
+      color: #edf7ed;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: end;
+      padding: 18px 22px;
+      border-bottom: 1px solid #244131;
+      background: #050907;
+    }
+    h1 { margin: 0; font-size: 22px; }
+    header p { margin: 4px 0 0; color: #9db2a3; }
+    #status { color: #ffe27a; font-family: ui-monospace, Consolas, monospace; }
+    main {
+      display: grid;
+      grid-template-columns: 320px minmax(280px, 420px) minmax(420px, 1fr);
+      gap: 14px;
+      padding: 14px;
+      min-height: calc(100vh - 76px);
+    }
+    section {
+      min-height: 0;
+      border: 1px solid #315041;
+      background: #122018;
+      border-radius: 8px;
+      padding: 14px;
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      color: #9bed91;
+    }
+    button, .file-label {
+      width: 100%;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 42px;
+      border: 1px solid #75b66f;
+      border-radius: 6px;
+      background: #4c913f;
+      color: #fff;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:disabled {
+      cursor: wait;
+      opacity: 0.55;
+    }
+    input[type="file"] { display: none; }
+    .hint {
+      margin: 10px 0;
+      color: #aebdaf;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .preview {
+      display: grid;
+      place-items: center;
+      min-height: 320px;
+      border: 1px solid #2f473b;
+      border-radius: 6px;
+      background: #050907;
+      overflow: hidden;
+    }
+    #sourceImage {
+      max-width: 100%;
+      max-height: 62vh;
+      display: none;
+    }
+    #emptyImage {
+      padding: 24px;
+      color: #8fa094;
+      text-align: center;
+    }
+    #skeletonCanvas {
+      width: 100%;
+      height: 62vh;
+      min-height: 420px;
+      border-radius: 6px;
+      background: #07110d;
+    }
+    #stage {
+      position: relative;
+      width: 100%;
+      height: 72vh;
+      min-height: 520px;
+      overflow: hidden;
+      border-radius: 6px;
+      background: #0e1728;
+      border: 1px solid #3b5c49;
+    }
+    .actions {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    a.download {
+      display: none;
+      text-align: center;
+      color: #9bed91;
+      text-decoration: none;
+      border: 1px solid #315041;
+      border-radius: 6px;
+      padding: 10px;
+    }
+    pre {
+      min-height: 120px;
+      max-height: 260px;
+      overflow: auto;
+      padding: 12px;
+      border-radius: 6px;
+      background: #0b150f;
+      color: #d4e7d7;
+      font-size: 12px;
+    }
+    @media (max-width: 1100px) {
+      main { grid-template-columns: 1fr; }
+      #stage, #skeletonCanvas { height: 58vh; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Alicia Image Pose Lab</h1>
+      <p>貼一張圖片，轉成 GVHMR still video，再讓 Alicia 仿靜態姿勢。</p>
+    </div>
+    <output id="status">準備就緒</output>
+  </header>
+
+  <main>
+    <section>
+      <h2>1. 圖片來源</h2>
+      <label class="file-label">
+        選擇圖片
+        <input id="imageInput" type="file" accept="image/*">
+      </label>
+      <p class="hint">也可以直接 Ctrl+V 貼上剪貼簿圖片。建議用全身、人物不要被裁切的圖。</p>
+      <div class="preview">
+        <img id="sourceImage" alt="來源圖片">
+        <div id="emptyImage">尚未載入圖片</div>
+      </div>
+      <div class="actions">
+        <button id="runButton" type="button" disabled>產生 Alicia 姿勢</button>
+        <a id="downloadLink" class="download" download="alicia_image_pose.json">下載 Alicia pose JSON</a>
+      </div>
+    </section>
+
+    <section>
+      <h2>2. GVHMR 側視骨架</h2>
+      <canvas id="skeletonCanvas"></canvas>
+    </section>
+
+    <section>
+      <h2>3. Alicia 靜態姿勢</h2>
+      <div id="stage" aria-label="Alicia pose preview"></div>
+      <pre id="debug">{}</pre>
+    </section>
+  </main>
+
+  <script src="vendor/three.min.js"></script>
+  <script src="vendor/GLTFLoader.js"></script>
+  <script src="vendor/OrbitControls.js"></script>
+  <script src="vendor/three-vrm.min.js"></script>
+  <script type="module">
+    import { VrmMascot } from './js/VrmMascot.js';
+
+    const $ = (id) => document.getElementById(id);
+    const state = {
+      file: null,
+      imageUrl: '',
+      mascot: null,
+      motion: null,
+      skeleton: null
+    };
+
+    const SKELETON_LINKS = [
+      ['head', 'neck'], ['neck', 'chest'], ['chest', 'hips'],
+      ['chest', 'leftShoulder'], ['leftShoulder', 'leftElbow'], ['leftElbow', 'leftWrist'],
+      ['chest', 'rightShoulder'], ['rightShoulder', 'rightElbow'], ['rightElbow', 'rightWrist'],
+      ['hips', 'leftKnee'], ['leftKnee', 'leftAnkle'], ['leftAnkle', 'leftFoot'], ['leftFoot', 'leftToe'],
+      ['hips', 'rightKnee'], ['rightKnee', 'rightAnkle'], ['rightAnkle', 'rightFoot'], ['rightFoot', 'rightToe'],
+    ];
+    const SPINE_LINKS = new Set(['head:neck', 'neck:chest', 'chest:hips']);
+
+    function setStatus(text) {
+      $('status').textContent = text;
+    }
+
+    function setImage(file) {
+      if (!file) return;
+      if (state.imageUrl) URL.revokeObjectURL(state.imageUrl);
+      state.file = file;
+      state.imageUrl = URL.createObjectURL(file);
+      $('sourceImage').src = state.imageUrl;
+      $('sourceImage').style.display = 'block';
+      $('emptyImage').style.display = 'none';
+      $('runButton').disabled = false;
+      $('downloadLink').style.display = 'none';
+      setStatus(`已載入圖片：${file.name || 'clipboard.png'}`);
+    }
+
+    function fitCanvas(canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const width = Math.max(1, Math.round(rect.width * ratio));
+      const height = Math.max(1, Math.round(rect.height * ratio));
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+      return { width, height };
+    }
+
+    function frameTimeMs(frame, index) {
+      if (Number.isFinite(frame?.timeMs)) return frame.timeMs;
+      if (Number.isFinite(frame?.time_ms)) return frame.time_ms;
+      if (Number.isFinite(frame?.t)) return frame.t * 1000;
+      return index * 1000 / 30;
+    }
+
+    function drawSkeleton() {
+      const canvas = $('skeletonCanvas');
+      const ctx = canvas.getContext('2d');
+      const { width, height } = fitCanvas(canvas);
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = '#07110d';
+      ctx.fillRect(0, 0, width, height);
+
+      const frames = state.skeleton?.frames || [];
+      const frame = frames[0];
+      const landmarks = frame?.landmarks;
+      if (!landmarks) {
+        ctx.fillStyle = '#9db2a3';
+        ctx.fillText('尚未產生 GVHMR 骨架', 18, 28);
+        return;
+      }
+
+      const points = Object.values(landmarks).filter((item) => item && Number.isFinite(item.y));
+      const xs = points.map((item) => item.z || 0);
+      const ys = points.map((item) => item.y || 0);
+      const minX = Math.min(...xs);
+      const maxX = Math.max(...xs);
+      const minY = Math.min(...ys);
+      const maxY = Math.max(...ys);
+      const pad = 40;
+      const scale = Math.min(
+        (width - pad * 2) / Math.max(0.001, maxX - minX),
+        (height - pad * 2) / Math.max(0.001, maxY - minY)
+      );
+      const map = (name) => {
+        const p = landmarks[name];
+        if (!p) return null;
+        return {
+          x: width / 2 + ((p.z || 0) - (minX + maxX) / 2) * scale,
+          y: height - pad - ((p.y || 0) - minY) * scale,
+        };
+      };
+
+      ctx.strokeStyle = 'rgba(155, 237, 145, 0.12)';
+      ctx.lineWidth = 1;
+      for (let x = pad; x < width - pad; x += 44) {
+        ctx.beginPath();
+        ctx.moveTo(x, pad);
+        ctx.lineTo(x, height - pad);
+        ctx.stroke();
+      }
+
+      for (const [a, b] of SKELETON_LINKS) {
+        const pa = map(a);
+        const pb = map(b);
+        if (!pa || !pb) continue;
+        const isSpine = SPINE_LINKS.has(`${a}:${b}`);
+        ctx.strokeStyle = isSpine ? '#f5cd69' : '#9bed91';
+        ctx.lineWidth = isSpine ? 4 : 2;
+        ctx.beginPath();
+        ctx.moveTo(pa.x, pa.y);
+        ctx.lineTo(pb.x, pb.y);
+        ctx.stroke();
+      }
+
+      for (const name of Object.keys(landmarks)) {
+        const p = map(name);
+        if (!p) continue;
+        ctx.fillStyle = ['hips', 'chest', 'neck', 'head'].includes(name) ? '#f5cd69' : '#cfe8ff';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.fillStyle = '#f5cd69';
+      ctx.fillText(`frame ${frame.frameIndex ?? 0} / ${(frameTimeMs(frame, 0) / 1000).toFixed(2)}s`, 18, height - 18);
+    }
+
+    async function loadResult(result) {
+      if (result.imageUrl && !state.file) {
+        $('sourceImage').src = result.imageUrl;
+        $('sourceImage').style.display = 'block';
+        $('emptyImage').style.display = 'none';
+      }
+      state.motion = await fetch(result.motionUrl, { cache: 'no-store' }).then((response) => response.json());
+      state.skeleton = await fetch(result.skeletonUrl, { cache: 'no-store' }).then((response) => response.json());
+      state.mascot.motion.holdCustomPose(state.motion, { timeMs: 0 });
+      drawSkeleton();
+      $('downloadLink').href = result.motionUrl;
+      $('downloadLink').style.display = 'block';
+      $('debug').textContent = JSON.stringify({
+        jobId: result.jobId,
+        frameCount: result.frameCount,
+        runtimeMs: result.runtimeMs,
+        imageUrl: result.imageUrl,
+        motionUrl: result.motionUrl,
+        skeletonUrl: result.skeletonUrl,
+        source: state.motion.source,
+        retargetMode: state.motion.retarget_mode,
+        bakedFrames: state.motion.frame_count
+      }, null, 2);
+    }
+
+    async function loadQueryResult() {
+      const params = new URLSearchParams(location.search);
+      const motionUrl = params.get('motion');
+      const skeletonUrl = params.get('skeleton');
+      if (!motionUrl || !skeletonUrl) return;
+      setStatus('載入網址中的 Alicia pose...');
+      await loadResult({
+        jobId: params.get('job') || 'query',
+        imageUrl: params.get('image') || '',
+        motionUrl,
+        skeletonUrl,
+        frameCount: Number(params.get('frames') || 0),
+        runtimeMs: 0
+      });
+      setStatus('已載入網址中的 Alicia pose');
+    }
+
+    async function runImagePose() {
+      if (!state.file) return;
+      $('runButton').disabled = true;
+      setStatus('GVHMR / Blender 執行中，這步可能需要一段時間...');
+      const form = new FormData();
+      form.append('image', state.file, state.file.name || 'clipboard.png');
+      try {
+        const response = await fetch('/api/capture/image/pose', { method: 'POST', body: form });
+        const result = await response.json();
+        if (!response.ok || !result.ok) {
+          throw new Error(result.error || result.reason || 'image pose failed');
+        }
+        await loadResult(result);
+        setStatus(`完成：${result.frameCount} frames / ${(result.runtimeMs / 1000).toFixed(1)}s`);
+      } catch (error) {
+        console.error(error);
+        setStatus(`失敗：${error.message}`);
+      } finally {
+        $('runButton').disabled = false;
+      }
+    }
+
+    $('imageInput').addEventListener('change', (event) => {
+      setImage(event.target.files?.[0]);
+    });
+    $('runButton').addEventListener('click', runImagePose);
+    document.addEventListener('paste', (event) => {
+      for (const item of event.clipboardData?.items || []) {
+        if (item.type.startsWith('image/')) {
+          setImage(item.getAsFile());
+          event.preventDefault();
+          return;
+        }
+      }
+    });
+
+    state.mascot = new VrmMascot($('stage'), { cameraDistance: 3.2 });
+    state.mascot.load('models/mascot.vrm').then(async () => {
+      drawSkeleton();
+      await loadQueryResult();
+    }).catch((error) => {
+      console.error(error);
+      setStatus(`Alicia 載入失敗：${error.message}`);
+    });
+    window.addEventListener('resize', drawSkeleton);
+  </script>
+</body>
+</html>
