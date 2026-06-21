@@ -355,15 +355,27 @@
       return MOTION_EXAMPLES;
     }
 
+    async function fetchJson(url, label) {
+      const response = await fetch(url, { cache: 'no-store' });
+      if (!response.ok) {
+        throw new Error(`${label} 載入失敗：HTTP ${response.status}`);
+      }
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('json') && !url.toLowerCase().endsWith('.json')) {
+        throw new Error(`${label} 不是 JSON：${url}`);
+      }
+      return response.json();
+    }
+
     async function loadPoseDbExample(id) {
-      const body = await fetch(`api/pose-db/items/${encodeURIComponent(id)}`, { cache: 'no-store' }).then((response) => response.json());
+      const body = await fetchJson(`api/pose-db/items/${encodeURIComponent(id)}`, 'Pose DB item');
       if (!body.ok || !body.item) {
         throw new Error(body.error || `Pose item ${id} not found`);
       }
       const item = body.item;
-      const url = item.pose_json_path || item.source_url;
+      const url = item.pose_json_path || (item.source_kind === 'pose_json' ? item.source_url : '');
       if (!url) {
-        throw new Error(`Pose item ${id} has no pose_json_path`);
+        throw new Error(`Pose item #${item.id} 是 ${item.source_kind}，尚未轉成 Alicia pose JSON，不能用 pose_demo 預覽`);
       }
       return {
         label: `#${item.id} ${item.title}`,
@@ -599,7 +611,7 @@
       state.currentExample = example || selectedExampleFor(url);
       setStatus('載入 motion...');
       $('sourcePath').textContent = url;
-      state.motion = await fetch(url, { cache: 'no-store' }).then((response) => response.json());
+      state.motion = await fetchJson(url, 'Alicia pose JSON');
       loadSourceVideoFor(url);
       await loadSkeletonFor(url);
       state.durationMs = Number(state.motion.duration_ms) || 1000;
