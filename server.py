@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import uuid
 from datetime import datetime
@@ -22,6 +23,7 @@ app = Flask(__name__, static_folder='.', static_url_path='')
 BASE_DIR = Path(__file__).resolve().parent
 SERVER_DIR = BASE_DIR
 POSE_DB_PATH = BASE_DIR / "db.sqlite"
+POSE_DB_WORKER_STARTED = False
 
 
 @app.after_request
@@ -1919,6 +1921,86 @@ def pose_db_import_vrma():
     return jsonify({"ok": True, "result": result})
 
 
+def _pose_db_existing_path(path_value):
+    if not path_value:
+        return None
+    path = Path(str(path_value))
+    if not path.is_absolute():
+        path = BASE_DIR / path
+    try:
+        resolved = path.resolve()
+        if not _path_is_inside(resolved, BASE_DIR):
+            return None
+    except OSError:
+        return None
+    return resolved if resolved.is_file() else None
+
+
+def _process_pose_db_job(job):
+    item_id = job["id"]
+    source_kind = job.get("source_kind")
+    pose_db.append_progress(POSE_DB_PATH, item_id, f"Worker picked {source_kind}", 5)
+
+    if source_kind == "pose_json":
+        motion_path = _pose_db_existing_path(job.get("pose_json_path") or job.get("source_url"))
+        if not motion_path:
+            pose_db.finish_job(POSE_DB_PATH, item_id, ok=False, error_message="pose_json file not found")
+            return
+        metadata = {}
+        try:
+            metadata = json.loads(motion_path.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+        frames = metadata.get("frameCount")
+        if not isinstance(frames, int):
+            frame_list = metadata.get("frames")
+            frames = len(frame_list) if isinstance(frame_list, list) else int(job.get("frames") or 0)
+        pose_db.append_progress(POSE_DB_PATH, item_id, "pose_json verified", 95)
+        pose_db.finish_job(
+            POSE_DB_PATH,
+            item_id,
+            ok=True,
+            frames=frames,
+            pose_json_path=job.get("pose_json_path") or job.get("source_url"),
+        )
+        return
+
+    if source_kind == "vrma":
+        pose_db.append_progress(POSE_DB_PATH, item_id, "VRMA registered; pose_json conversion is queued separately", 95)
+        pose_db.finish_job(POSE_DB_PATH, item_id, ok=True, status_vrma=job.get("status_vrma") or 3)
+        return
+
+    # ponytail: keep the first DB worker harmless; heavy GVHMR jobs stay in the lab until queue UX is proven.
+    pose_db.finish_job(
+        POSE_DB_PATH,
+        item_id,
+        ok=False,
+        error_message="M20.7 worker only verifies existing pose_json/vrma. Use Motion/Image Lab to generate assets first.",
+    )
+
+
+def _pose_db_worker_loop():
+    pose_db.init_db(POSE_DB_PATH)
+    while True:
+        try:
+            job = pose_db.claim_next_job(POSE_DB_PATH)
+            if job:
+                _process_pose_db_job(job)
+            else:
+                time.sleep(2)
+        except Exception as exc:
+            print(f"[pose-db-worker] {exc}", file=sys.stderr)
+            time.sleep(5)
+
+
+def _start_pose_db_worker_once():
+    global POSE_DB_WORKER_STARTED
+    if POSE_DB_WORKER_STARTED:
+        return
+    POSE_DB_WORKER_STARTED = True
+    threading.Thread(target=_pose_db_worker_loop, name="pose-db-worker", daemon=True).start()
+
+
 @app.route('/api/motion-profiles', methods=['GET', 'POST'])
 def motion_profiles():
     if request.method == 'GET':
@@ -2396,6 +2478,7 @@ def serve_manifests(filepath):
 
 
 if __name__ == '__main__':
+    _start_pose_db_worker_once()
     # 保護點 1：限制本機 127.0.0.1，關閉對外綁定
     # ponytail: 日常工具頁不要開 Flask reloader，專案內有 conda/model 目錄時 Windows 會被檔案監看拖慢。
     app.run(
