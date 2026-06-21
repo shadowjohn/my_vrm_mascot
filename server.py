@@ -21,6 +21,16 @@ BASE_DIR = Path(__file__).resolve().parent
 SERVER_DIR = BASE_DIR
 
 
+@app.after_request
+def _disable_dev_static_cache(response):
+    # ponytail: lab 頁常重烘 JS/JSON，統一 no-store 比每條 URL 加版本參數省事。
+    if not request.path.startswith("/api/") and request.path.endswith((".html", ".js", ".json")):
+        response.headers["Cache-Control"] = "no-store"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
+
+
 def _env_int(name, default):
     try:
         return max(1, int(os.environ.get(name, str(default))))
@@ -39,6 +49,7 @@ VIDEO_SKELETON_MAX_FRAMES = 240
 MOTIONBERT_TIMEOUT_SEC = 240
 # ponytail: GVHMR runtime varies wildly by GPU/video; env knob beats a new settings UI.
 GVHMR_TIMEOUT_SEC = _env_int("GVHMR_TIMEOUT_SEC", 1800)
+HAND_POSE_TIMEOUT_SEC = _env_int("HAND_POSE_TIMEOUT_SEC", 300)
 MOTIONBERT_DEFAULT_CONFIG = "configs/pose3d/MB_ft_h36m_global_lite.yaml"
 MOTIONBERT_DEFAULT_CHECKPOINT = "checkpoint/pose3d/FT_MB_lite_MB_ft_h36m_global_lite/best_epoch.bin"
 MOTION_PROFILE_CATEGORIES = {
@@ -605,6 +616,16 @@ def _gvhmr_python_path():
     return env_dir / "bin" / "python"
 
 
+def _server_python_path():
+    configured = os.environ.get("SERVER_PYTHON") or os.environ.get("HAND_POSE_PYTHON")
+    if configured:
+        return Path(configured)
+    env_dir = BASE_DIR / "conda_vm" / "server" / "env"
+    if os.name == "nt":
+        return env_dir / "python.exe"
+    return env_dir / "bin" / "python"
+
+
 def _gvhmr_asset_check_sidecar_path():
     configured = os.environ.get("GVHMR_ASSET_CHECK_SIDECAR")
     return Path(configured) if configured else SERVER_DIR / "scripts" / "gvhmr_asset_check.py"
@@ -818,7 +839,43 @@ def _write_still_video_from_image(image_path, video_path):
         raise RuntimeError(f"ffmpeg still video failed: {detail[-1000:]}")
 
 
-def _run_alicia_blender_bake(input_json, output_json):
+def _run_mediapipe_hand_pass(video_path, skeleton_json, output_json):
+    python_path = _server_python_path()
+    sidecar = SERVER_DIR / "scripts" / "mediapipe_hand_pass.py"
+    if not python_path.is_file() or not sidecar.is_file():
+        return None
+
+    command = [
+        str(python_path),
+        str(sidecar),
+        "--video",
+        str(video_path),
+        "--skeleton-json",
+        str(skeleton_json),
+        "--output-json",
+        str(output_json),
+    ]
+    try:
+        result = subprocess.run(
+            command,
+            cwd=str(BASE_DIR),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=HAND_POSE_TIMEOUT_SEC,
+            check=False,
+            creationflags=_gvhmr_subprocess_creationflags(),
+        )
+    except subprocess.TimeoutExpired:
+        return None
+    if result.returncode != 0 or not Path(output_json).is_file():
+        return None
+    return Path(output_json)
+
+
+def _run_alicia_blender_bake(input_json, output_json, hand_json=None):
     blender_path = _blender_executable_path()
     bake_script = SERVER_DIR / "scripts" / "gvhmr_to_alicia_blender_bake.py"
     model_path = BASE_DIR / "models" / "mascot.vrm"
@@ -842,6 +899,8 @@ def _run_alicia_blender_bake(input_json, output_json):
         "--fps",
         "30",
     ]
+    if hand_json:
+        command.extend(["--hand-json", str(hand_json)])
     result = subprocess.run(
         command,
         cwd=str(BASE_DIR),
@@ -868,12 +927,14 @@ def _write_alicia_demo_motion_artifacts(video_path, world_motion):
     if not demo_video_path.is_file():
         shutil.copy2(video_path, demo_video_path)
     skeleton_path.write_text(json.dumps(world_motion, ensure_ascii=False, indent=2), encoding="utf-8", newline="\n")
-    _run_alicia_blender_bake(skeleton_path, motion_path)
+    hand_path = _run_mediapipe_hand_pass(demo_video_path, skeleton_path, output_dir / "mediapipe_hand_poses.json")
+    _run_alicia_blender_bake(skeleton_path, motion_path, hand_json=hand_path)
     return {
         "outputDir": output_dir,
         "videoPath": demo_video_path,
         "skeletonPath": skeleton_path,
         "motionPath": motion_path,
+        "handPath": hand_path,
     }
 
 
@@ -1608,7 +1669,11 @@ def capture_image_pose():
         finish_step("寫入中介骨架 JSON", step_started_at)
 
         step_started_at = time.time()
-        _run_alicia_blender_bake(skeleton_path, motion_path)
+        hand_path = _run_mediapipe_hand_pass(output_dir / "0_input_video.mp4", skeleton_path, output_dir / "mediapipe_hand_poses.json")
+        finish_step("MediaPipe 手部偵測", step_started_at)
+
+        step_started_at = time.time()
+        _run_alicia_blender_bake(skeleton_path, motion_path, hand_json=hand_path)
         finish_step("Blender IK bake Alicia pose", step_started_at)
 
         return jsonify({
@@ -1619,6 +1684,7 @@ def capture_image_pose():
             "videoUrl": _local_file_url(output_dir / "0_input_video.mp4"),
             "skeletonUrl": _local_file_url(skeleton_path),
             "motionUrl": _local_file_url(motion_path),
+            "handPoseUrl": _local_file_url(hand_path) if hand_path else "",
             "assetStatus": asset_status,
             "frameCount": len(world_motion.get("frames") or []),
             "steps": steps,
@@ -1720,6 +1786,7 @@ def capture_video_world_motion():
         "motionUrl": _local_file_url(demo_artifacts["motionPath"]),
         "skeletonUrl": _local_file_url(demo_artifacts["skeletonPath"]),
         "videoUrl": _local_file_url(demo_artifacts["videoPath"]),
+        "handPoseUrl": _local_file_url(demo_artifacts["handPath"]) if demo_artifacts.get("handPath") else "",
         "runtimeMs": round((time.time() - started_at) * 1000),
         "steps": steps,
     })

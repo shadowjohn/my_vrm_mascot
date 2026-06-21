@@ -96,6 +96,18 @@ function createFakeVrm() {
     'rightLowerArm',
     'leftHand',
     'rightHand',
+    'leftThumbProximal',
+    'leftThumbIntermediate',
+    'leftIndexProximal',
+    'leftIndexIntermediate',
+    'leftMiddleProximal',
+    'leftMiddleIntermediate',
+    'rightThumbProximal',
+    'rightThumbIntermediate',
+    'rightIndexProximal',
+    'rightIndexIntermediate',
+    'rightMiddleProximal',
+    'rightMiddleIntermediate',
     'leftUpperLeg',
     'leftLowerLeg',
     'leftFoot',
@@ -583,6 +595,60 @@ function testHoldCustomPoseMaintainsSingleFramePose() {
   }
 }
 
+function testCustomPoseAppliesHandPoseFingerCurl() {
+  const previousThree = globalThis.THREE;
+  globalThis.THREE = {
+    Quaternion: class {
+      constructor() {
+        return createQuaternion();
+      }
+    },
+  };
+
+  try {
+    const motion = new MotionController();
+    const { vrm, bones } = createFakeVrm();
+
+    motion.setVrm(vrm);
+    motion.loadPosePreset(JSON.parse(readFileSync('motions/poses/alicia_solid.json', 'utf8')));
+    motion.holdCustomPose({
+      duration_ms: 1,
+      bones: {},
+      hand_poses: {
+        left: [{ time_ms: 0, gesture: 'fist', fingerCurl: 0.9 }],
+        right: [{ time_ms: 0, gesture: 'open', fingerCurl: 0.1 }],
+      },
+    }, { timeMs: 0 });
+
+    assert.ok(Math.abs(bones.leftIndexProximal.rotation.z) > radians(35), 'fist should visibly curl left fingers around the finger bend axis');
+    assert.ok(Math.abs(bones.leftMiddleIntermediate.rotation.z) > radians(25), 'fist should curl intermediate finger bones around the bend axis');
+    assert.ok(bones.leftThumbProximal.rotation.y > radians(15), 'left thumb should tuck into the palm for a fist');
+    assert.ok(bones.leftIndexProximal.rotation.z > 0, 'left fingers should curl toward the palm');
+    assert.equal(bones.leftIndexProximal.rotation.x, 0, 'finger curl must not twist along the finger length axis');
+    assert.ok(bones.rightIndexProximal.rotation.x < radians(12), 'open hand should stay mostly open');
+
+    motion.resetToNaturalPose(0);
+    assert.equal(bones.leftIndexProximal.rotation.x, 0, 'natural pose should clear custom finger curl');
+
+    motion.holdCustomPose({
+      duration_ms: 1,
+      bones: {},
+      hand_poses: {
+        right: [{ time_ms: 0, gesture: 'relaxed', fingerCurl: 0.39 }],
+      },
+    }, { timeMs: 0 });
+    assert.ok(Math.abs(bones.rightIndexProximal.rotation.z) > radians(25), 'relaxed should look like a half fist');
+    assert.ok(bones.rightIndexProximal.rotation.z < 0, 'right fingers should curl toward the palm');
+    assert.ok(bones.rightThumbProximal.rotation.y < -radians(10), 'right thumb should tuck into the palm for a half fist');
+  } finally {
+    if (previousThree === undefined) {
+      delete globalThis.THREE;
+    } else {
+      globalThis.THREE = previousThree;
+    }
+  }
+}
+
 function testShortClipsDoNotProduceTPose() {
   for (const name of MOTION_CLIP_NAMES) {
     const motion = new MotionController();
@@ -826,6 +892,7 @@ const tests = [
   testPlayClipEndsBackToIdleWithoutResidualPose,
   testClipDoesNotMutateIdleMicroMotionState,
   testHoldCustomPoseMaintainsSingleFramePose,
+  testCustomPoseAppliesHandPoseFingerCurl,
   testShortClipsDoNotProduceTPose,
   testLegacyPlayRoutesClipNamesDeterministically,
   testCoreSemanticMotionsDoNotResolveToRawVrma,

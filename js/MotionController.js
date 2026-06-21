@@ -128,6 +128,22 @@ export const DEFAULT_POSE_PRESET = {
 };
 
 const AXES = ['x', 'y', 'z'];
+const FINGER_BONES = {
+  left: [
+    'leftThumbProximal', 'leftThumbIntermediate', 'leftThumbDistal',
+    'leftIndexProximal', 'leftIndexIntermediate', 'leftIndexDistal',
+    'leftMiddleProximal', 'leftMiddleIntermediate', 'leftMiddleDistal',
+    'leftRingProximal', 'leftRingIntermediate', 'leftRingDistal',
+    'leftLittleProximal', 'leftLittleIntermediate', 'leftLittleDistal',
+  ],
+  right: [
+    'rightThumbProximal', 'rightThumbIntermediate', 'rightThumbDistal',
+    'rightIndexProximal', 'rightIndexIntermediate', 'rightIndexDistal',
+    'rightMiddleProximal', 'rightMiddleIntermediate', 'rightMiddleDistal',
+    'rightRingProximal', 'rightRingIntermediate', 'rightRingDistal',
+    'rightLittleProximal', 'rightLittleIntermediate', 'rightLittleDistal',
+  ],
+};
 
 function cloneJson(value) {
   return JSON.parse(JSON.stringify(value));
@@ -277,6 +293,11 @@ export class MotionController {
       leftShoulder:   h.getBoneNode(bn.LeftShoulder),
       rightShoulder:  h.getBoneNode(bn.RightShoulder),
     };
+    for (const names of Object.values(FINGER_BONES)) {
+      for (const name of names) {
+        this.#bones[name] = h.getBoneNode(bn[name.charAt(0).toUpperCase() + name.slice(1)] || name);
+      }
+    }
     // 記錄 hips 初始 Y
     if (this.#bones.hips) {
       this.#hipsBaseY = this.#bones.hips.position.y;
@@ -1227,6 +1248,11 @@ export class MotionController {
         (pose.z || 0) * DEG
       );
     }
+    for (const names of Object.values(FINGER_BONES)) {
+      for (const name of names) {
+        this.#bones[name]?.rotation.set(0, 0, 0);
+      }
+    }
   }
 
   /** 低強度呼吸（供其他動作疊加） */
@@ -1413,6 +1439,52 @@ export class MotionController {
       this.#bones.hips.position.x = px;
       this.#bones.hips.position.y = this.#hipsBaseY + py;
       this.#bones.hips.position.z = pz;
+    }
+    this.#applyCustomHandPoses(timeMs);
+  }
+
+  #sampleHandPose(side, timeMs) {
+    const keys = this.#customAnimData?.hand_poses?.[side] || [];
+    if (!keys.length) return null;
+    let kA = keys[0];
+    let kB = keys[0];
+    if (timeMs >= keys[keys.length - 1].time_ms) {
+      kA = keys[keys.length - 1];
+      kB = kA;
+    } else {
+      for (let i = 0; i < keys.length - 1; i++) {
+        if (timeMs >= keys[i].time_ms && timeMs <= keys[i + 1].time_ms) {
+          kA = keys[i];
+          kB = keys[i + 1];
+          break;
+        }
+      }
+    }
+    const denom = kB.time_ms - kA.time_ms;
+    const alpha = denom > 0 ? (timeMs - kA.time_ms) / denom : 0;
+    const fallback = kA.gesture === 'fist' ? 0.85 : kA.gesture === 'open' ? 0.1 : 0.45;
+    const curl = lerp(finiteNumber(kA.fingerCurl, fallback), finiteNumber(kB.fingerCurl, fallback), alpha);
+    return (kA.gesture === 'relaxed' || kB.gesture === 'relaxed') ? Math.max(0.52, curl) : curl;
+  }
+
+  #applyCustomHandPoses(timeMs) {
+    for (const side of ['left', 'right']) {
+      const curl = this.#sampleHandPose(side, timeMs);
+      if (curl === null) continue;
+      const sign = side === 'left' ? 1 : -1;
+      for (const name of FINGER_BONES[side]) {
+        const bone = this.#bones[name];
+        if (!bone) continue;
+        const isThumb = name.includes('Thumb');
+        const isDistal = name.includes('Distal');
+        const amount = curl * (isThumb ? 38 : isDistal ? 34 : 64) * DEG;
+        if (isThumb) {
+          bone.rotation.y = amount * sign;
+          bone.rotation.z = amount * 0.45 * sign;
+        } else {
+          bone.rotation.z = amount * sign;
+        }
+      }
     }
   }
 

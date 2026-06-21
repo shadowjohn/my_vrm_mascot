@@ -23,7 +23,7 @@ def create_local_capture(tmp_base, filename="yt_world001.mp4"):
     return video_path
 
 
-def fake_alicia_bake(input_json, output_json):
+def fake_alicia_bake(input_json, output_json, hand_json=None):
     Path(output_json).write_text('{"ok": true, "source": "gvhmr_blender_bake", "bones": {}}', encoding="utf-8")
 
 
@@ -69,7 +69,18 @@ def test_video_world_motion_api_returns_world_motion_payload_when_ready():
         module = load_server_module()
         module.BASE_DIR = tmp_base
         module._run_gvhmr_asset_check = lambda: {"ok": True, "missing": []}
-        module._run_alicia_blender_bake = fake_alicia_bake
+        bake_seen = {}
+
+        def fake_hand_pass(video_path, skeleton_path, output_json):
+            Path(output_json).write_text('{"frames":[]}', encoding="utf-8")
+            return Path(output_json)
+
+        def fake_bake(input_json, output_json, hand_json=None):
+            bake_seen["hand_json"] = hand_json
+            fake_alicia_bake(input_json, output_json, hand_json=hand_json)
+
+        module._run_mediapipe_hand_pass = fake_hand_pass
+        module._run_alicia_blender_bake = fake_bake
 
         def fake_runner(path, static_camera=True):
             assert path == video_path
@@ -99,8 +110,10 @@ def test_video_world_motion_api_returns_world_motion_payload_when_ready():
         assert body["worldMotion"]["frames"][0]["bodyYawDegrees"] == -82.5
         assert body["assetStatus"]["ok"] is True
         assert body["motionUrl"].endswith("/alicia_blender_bake_motion.json")
+        assert body["handPoseUrl"].endswith("/mediapipe_hand_poses.json")
         assert (tmp_base / body["motionUrl"]).is_file()
         assert (tmp_base / body["skeletonUrl"]).is_file()
+        assert bake_seen["hand_json"].name == "mediapipe_hand_poses.json"
 
 
 def test_video_world_motion_api_filters_frames_to_capture_range():
@@ -110,6 +123,7 @@ def test_video_world_motion_api_filters_frames_to_capture_range():
         module = load_server_module()
         module.BASE_DIR = tmp_base
         module._run_gvhmr_asset_check = lambda: {"ok": True, "missing": []}
+        module._run_mediapipe_hand_pass = lambda *args, **kwargs: None
         module._run_alicia_blender_bake = fake_alicia_bake
 
         def fake_runner(path, static_camera=True):

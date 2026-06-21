@@ -50,7 +50,11 @@ def main():
                     "hips": {"x": 0, "y": 1.0, "z": 0},
                     "chest": {"x": 0, "y": 1.45, "z": 0},
                     "leftShoulder": {"x": 0, "y": 1.45, "z": 0.5},
+                    "leftElbow": {"x": -0.12, "y": 1.18, "z": 0.45},
+                    "leftWrist": {"x": -0.18, "y": 1.02, "z": 0.42},
                     "rightShoulder": {"x": 0, "y": 1.45, "z": -0.5},
+                    "rightElbow": {"x": 0.12, "y": 1.18, "z": -0.45},
+                    "rightWrist": {"x": 0.18, "y": 1.02, "z": -0.42},
                     "leftKnee": {"x": -0.16, "y": 0.55, "z": -0.35},
                     "leftAnkle": {"x": -0.16, "y": 0.06, "z": -0.55},
                     "leftFoot": {"x": -0.16, "y": 0.04, "z": -0.72},
@@ -65,7 +69,11 @@ def main():
                     "hips": {"x": 0.01, "y": 1.0, "z": 0},
                     "chest": {"x": 0.01, "y": 1.45, "z": 0},
                     "leftShoulder": {"x": 0.01, "y": 1.45, "z": 0.5},
+                    "leftElbow": {"x": -0.11, "y": 1.18, "z": 0.45},
+                    "leftWrist": {"x": -0.17, "y": 1.02, "z": 0.42},
                     "rightShoulder": {"x": 0.01, "y": 1.45, "z": -0.5},
+                    "rightElbow": {"x": 0.13, "y": 1.18, "z": -0.45},
+                    "rightWrist": {"x": 0.19, "y": 1.02, "z": -0.42},
                     "leftKnee": {"x": -0.17, "y": 0.54, "z": -0.34},
                     "leftAnkle": {"x": -0.17, "y": 0.06, "z": -0.53},
                     "leftFoot": {"x": -0.17, "y": 0.04, "z": -0.70},
@@ -92,6 +100,56 @@ def main():
     assert animation["duration_ms"] == 33
     assert set(["hips", "spine", "chest", "leftUpperLeg", "rightUpperLeg"]).issubset(animation["bones"])
     assert set(["leftToes", "rightToes"]).issubset(animation["bones"])
+    assert set(["leftHand", "rightHand"]).issubset(animation["bones"])
+    assert set(["left", "right"]).issubset(animation["hand_poses"])
+    assert animation["hand_poses"]["left"][0]["gesture"] in {"open", "fist", "relaxed"}
+    assert animation["hand_poses"]["left"][0]["confidence"] >= 0.45
+    hand_animation = module.build_animation_from_landmarks(
+        payload,
+        fps=30,
+        armature=None,
+        hand_frames=[
+            {
+                "time_ms": 0,
+                "left": {
+                    "source": "mediapipe_hands",
+                    "confidence": 0.91,
+                    "gesture": "fist",
+                    "fingerCurl": 0.9,
+                    "palmPitch": -6,
+                    "palmYaw": 4,
+                    "palmRoll": 2,
+                },
+                "right": {
+                    "source": "mediapipe_hands",
+                    "confidence": 0.88,
+                    "gesture": "open",
+                    "fingerCurl": 0.12,
+                    "palmPitch": 3,
+                    "palmYaw": -4,
+                    "palmRoll": -2,
+                },
+            },
+            {
+                "time_ms": 33,
+                "left": {
+                    "source": "pass",
+                    "confidence": 0,
+                    "gesture": "fist",
+                    "fingerCurl": 0.9,
+                    "palmPitch": -6,
+                    "palmYaw": 4,
+                    "palmRoll": 2,
+                    "heldFromTimeMs": 0,
+                },
+                "right": {"source": "pass", "confidence": 0, "gesture": "keep"},
+            },
+        ],
+    )
+    assert hand_animation["hand_poses"]["left"][0]["source"] == "mediapipe_hands"
+    assert hand_animation["hand_poses"]["left"][0]["gesture"] == "fist"
+    assert hand_animation["hand_poses"]["left"][1]["source"] == "pass"
+    assert hand_animation["hand_poses"]["left"][1]["gesture"] == "fist"
     assert len(animation["bones"]["leftUpperLeg"]) == 2
     assert len(animation["bones"]["leftToes"]) == 2
     assert animation["bones"]["leftFoot"][0]["rot"] != core_with_rest_override["bones"]["leftFoot"][0]["rot"]

@@ -123,7 +123,8 @@ TOE_ROLL_CLEARANCE = 0.005
 FOOT_CONTACT_THRESHOLD = 0.06
 FOOT_ROLL_LIMIT = 0.04
 TOE_FORWARD_MIN_REACH = 0.035
-SMOOTH_BONES = {"leftLowerLeg", "leftFoot", "rightLowerLeg", "rightFoot"}
+HAND_BONES = ("leftHand", "rightHand")
+SMOOTH_BONES = {"leftLowerLeg", "leftFoot", "rightLowerLeg", "rightFoot", *HAND_BONES}
 LEG_LOWER_FALLBACK_LIMIT_DEGREES = 75
 LEG_UPPER_FALLBACK_LIMIT_DEGREES = 100
 HIGH_KNEE_UPPER_FALLBACK_LIMIT_DEGREES = 155
@@ -391,6 +392,19 @@ def normalize_quat(q):
     return tuple(round(float(v) / size, 6) for v in q)
 
 
+def quat_from_euler_degrees(x, y, z):
+    rx, ry, rz = (math.radians(float(v)) / 2 for v in (x, y, z))
+    sx, cx = math.sin(rx), math.cos(rx)
+    sy, cy = math.sin(ry), math.cos(ry)
+    sz, cz = math.sin(rz), math.cos(rz)
+    return normalize_quat((
+        sx * cy * cz + cx * sy * sz,
+        cx * sy * cz - sx * cy * sz,
+        cx * cy * sz + sx * sy * cz,
+        cx * cy * cz - sx * sy * sz,
+    ))
+
+
 def damp_torso_pitch_quat(bone_name, quat):
     if bone_name not in TORSO_PITCH_BONES:
         return quat
@@ -427,6 +441,75 @@ def should_use_base_leg_pose(lower_quat, upper_quat, landmarks, side):
 
 def should_use_direct_lifted_leg_pose(landmarks, side):
     return is_high_knee_pose(landmarks, side)
+
+
+def clamp(value, low, high):
+    return max(low, min(high, value))
+
+
+def infer_hand_pose(landmarks, side):
+    elbow_name = f"{side}Elbow"
+    wrist_name = f"{side}Wrist"
+    shoulder_name = f"{side}Shoulder"
+    if not has_point(landmarks, elbow_name) or not has_point(landmarks, wrist_name):
+        return None
+    elbow = point(landmarks, elbow_name)
+    wrist = point(landmarks, wrist_name)
+    forearm = normalize(sub(wrist, elbow))
+    shoulder_y = point(landmarks, shoulder_name)[1] if has_point(landmarks, shoulder_name) else wrist[1]
+    gesture = "open" if wrist[1] > shoulder_y + 0.03 else "relaxed"
+    finger_curl = 0.15 if gesture == "open" else 0.45
+    side_sign = -1 if side == "left" else 1
+    palm_pitch = clamp(-forearm[1] * 24, -28, 28)
+    palm_yaw = clamp(forearm[2] * 22, -22, 22)
+    palm_roll = clamp(side_sign * (8 + abs(forearm[0]) * 10), -24, 24)
+    # ponytail: GVHMR has no fingers; this is a wrist/palm proxy until a real hand detector is wired in.
+    return {
+        "confidence": 0.66,
+        "gesture": gesture,
+        "palmPitch": round(palm_pitch, 3),
+        "palmYaw": round(palm_yaw, 3),
+        "palmRoll": round(palm_roll, 3),
+        "fingerCurl": finger_curl,
+        "source": "forearm_proxy",
+    }
+
+
+def hand_pose_quat(hand_pose):
+    curl = float(hand_pose.get("fingerCurl", 0.45))
+    return quat_from_euler_degrees(
+        float(hand_pose.get("palmPitch", 0)) + curl * 5,
+        float(hand_pose.get("palmYaw", 0)),
+        float(hand_pose.get("palmRoll", 0)),
+    )
+
+
+def load_hand_pose_frames(path):
+    if not path:
+        return []
+    hand_path = Path(path)
+    if not hand_path.is_file():
+        return []
+    payload = json.loads(hand_path.read_text(encoding="utf-8"))
+    return payload.get("frames") or []
+
+
+def external_hand_pose_for_frame(hand_frames, index, time_ms, side):
+    if not hand_frames:
+        return None
+    if index < len(hand_frames):
+        frame = hand_frames[index]
+    else:
+        frame = min(
+            hand_frames,
+            key=lambda item: abs(frame_time_ms(item, index, 30) - time_ms),
+        )
+    pose = frame.get(side) if isinstance(frame, dict) else None
+    if not isinstance(pose, dict):
+        return None
+    if pose.get("source") == "pass" and "fingerCurl" not in pose:
+        return None
+    return dict(pose)
 
 
 def estimate_source_forward_xz(landmarks):
@@ -669,7 +752,7 @@ def reset_pose(armature):
         bone.scale = (1, 1, 1)
 
 
-def build_animation_with_blender_ik(payload, fps, armature, facing_alignment):
+def build_animation_with_blender_ik(payload, fps, armature, facing_alignment, hand_frames=None):
     import bpy
 
     frames = [frame for frame in payload.get("frames", []) if frame.get("landmarks")]
@@ -681,7 +764,14 @@ def build_animation_with_blender_ik(payload, fps, armature, facing_alignment):
         for name, direction in blender_rest_dirs(armature).items()
         if name.endswith("Foot") or name.endswith("Toes")
     }
-    base_animation = build_animation_core(payload, fps, facing_alignment, rest_dirs=foot_rest_dirs, smooth=False)
+    base_animation = build_animation_core(
+        payload,
+        fps,
+        facing_alignment,
+        rest_dirs=foot_rest_dirs,
+        smooth=False,
+        hand_frames=hand_frames,
+    )
     retip_edit_bones_for_ik(armature)
     convert, convert_relative_to_hips = build_blender_space_mapper(frames, armature)
     targets = setup_leg_ik(armature, convert_relative_to_hips, frames[0]["landmarks"])
@@ -741,20 +831,21 @@ def build_animation_with_blender_ik(payload, fps, armature, facing_alignment):
     }
 
 
-def build_animation_from_landmarks(payload, fps=30, armature=None):
+def build_animation_from_landmarks(payload, fps=30, armature=None, hand_frames=None):
     payload, facing_alignment = normalize_payload_facing(payload)
     if armature:
-        return build_animation_with_blender_ik(payload, fps, armature, facing_alignment)
-    return build_animation_core(payload, fps, facing_alignment)
+        return build_animation_with_blender_ik(payload, fps, armature, facing_alignment, hand_frames=hand_frames)
+    return build_animation_core(payload, fps, facing_alignment, hand_frames=hand_frames)
 
 
-def build_animation_core(payload, fps, facing_alignment, rest_dirs=None, smooth=True):
+def build_animation_core(payload, fps, facing_alignment, rest_dirs=None, smooth=True, hand_frames=None):
     frames = [frame for frame in payload.get("frames", []) if frame.get("landmarks")]
     if not frames:
         raise ValueError("no landmark frames to bake")
 
     rest_dirs = rest_dirs or {}
-    bones = {name: [] for name in BONE_CHAINS}
+    bones = {name: [] for name in list(BONE_CHAINS) + list(HAND_BONES)}
+    hand_poses = {"left": [], "right": []}
     hips_position = []
     first_hips = point(frames[0]["landmarks"], "hips")
 
@@ -778,8 +869,16 @@ def build_animation_core(payload, fps, facing_alignment, rest_dirs=None, smooth=
             if quat:
                 world_quats[bone_name] = quat_mul(parent_world_quat, quat) if parent_world_quat else quat
                 bones[bone_name].append({"time_ms": time_ms, "rot": list(quat)})
+        for side in ("left", "right"):
+            hand_pose = external_hand_pose_for_frame(hand_frames, index, time_ms, side)
+            if not hand_pose:
+                hand_pose = infer_hand_pose(landmarks, side)
+            if hand_pose:
+                hand_poses[side].append({"time_ms": time_ms, **hand_pose})
+                bones[f"{side}Hand"].append({"time_ms": time_ms, "rot": list(hand_pose_quat(hand_pose))})
 
     bones = {name: keys for name, keys in bones.items() if keys}
+    hand_poses = {side: keys for side, keys in hand_poses.items() if keys}
     if smooth:
         bones = smooth_motion_bones(bones)
     duration_ms = max(item["time_ms"] for item in hips_position)
@@ -792,6 +891,7 @@ def build_animation_core(payload, fps, facing_alignment, rest_dirs=None, smooth=
         "duration_ms": duration_ms,
         "bones": bones,
         "hips_position": hips_position,
+        "hand_poses": hand_poses,
         "frame_count": len(frames),
         "ik": {"leftFoot": "locked", "rightFoot": "locked"},
         "facing_alignment": facing_alignment,
@@ -816,14 +916,16 @@ def main():
     parser.add_argument("--output-json", required=True)
     parser.add_argument("--model", default="models/mascot.vrm")
     parser.add_argument("--fps", type=float, default=30.0)
+    parser.add_argument("--hand-json", default="")
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else None
     args = parser.parse_args(argv)
 
     input_path = Path(args.input_json)
     output_path = Path(args.output_json)
     payload = json.loads(input_path.read_text(encoding="utf-8"))
+    hand_frames = load_hand_pose_frames(args.hand_json)
     armature = import_alicia_armature(Path(args.model))
-    animation = build_animation_from_landmarks(payload, fps=args.fps, armature=armature)
+    animation = build_animation_from_landmarks(payload, fps=args.fps, armature=armature, hand_frames=hand_frames)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(animation, ensure_ascii=False, indent=2), encoding="utf-8", newline="\n")
     print(f"wrote {output_path}")
