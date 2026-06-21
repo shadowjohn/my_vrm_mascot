@@ -196,7 +196,12 @@
     import { VrmMascot } from './js/VrmMascot.js';
 
     const MODEL_URL = 'models/mascot.vrm';
-    const REQUESTED_ID = Number(new URLSearchParams(location.search).get('id') || 0);
+    function getRequestedPoseId() {
+      const params = new URLSearchParams(location.search);
+      return Number(params.get('poseId') || params.get('postId') || params.get('id') || 0);
+    }
+
+    const REQUESTED_ID = getRequestedPoseId();
     const $ = (id) => document.getElementById(id);
     const state = {
       rows: [],
@@ -242,6 +247,7 @@
         this.vrm.scene.traverse((obj) => {
           obj.frustumCulled = false;
         });
+        this.vrm.scene.rotation.y = Math.PI;
         this.scene.add(this.vrm.scene);
       }
 
@@ -290,6 +296,26 @@
 
     function optionLabel(row) {
       return `#${row.id} ${row.title}`;
+    }
+
+    function tunePosePreviewQuality(mascot) {
+      const ctx = mascot.getSceneContext?.();
+      if (!ctx?.renderer || typeof THREE === 'undefined') return;
+      ctx.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      if ('outputColorSpace' in ctx.renderer && THREE.SRGBColorSpace) {
+        ctx.renderer.outputColorSpace = THREE.SRGBColorSpace;
+      } else if ('outputEncoding' in ctx.renderer && THREE.sRGBEncoding) {
+        ctx.renderer.outputEncoding = THREE.sRGBEncoding;
+      }
+      ctx.scene.background = new THREE.Color(0x0d1729);
+
+      const hemi = new THREE.HemisphereLight(0xffffff, 0x334455, 0.8);
+      hemi.name = 'poseCompareSoftLight';
+      ctx.scene.add(hemi);
+      const key = new THREE.DirectionalLight(0xffffff, 0.9);
+      key.name = 'poseCompareKeyLight';
+      key.position.set(1.5, 3, 2);
+      ctx.scene.add(key);
     }
 
     async function fetchJson(url) {
@@ -349,6 +375,7 @@
         state.poseMascot.load(MODEL_URL),
         loadRows(),
       ]);
+      tunePosePreviewQuality(state.poseMascot);
       $('itemSelect').addEventListener('change', loadSelected);
       $('reloadButton').addEventListener('click', loadSelected);
       await loadSelected();

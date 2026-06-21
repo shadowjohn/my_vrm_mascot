@@ -7,6 +7,7 @@ from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 
+from pose_json_to_vrma import convert_pose_json_to_vrma
 from vrma_pose_converter import convert_vrma_to_pose_json
 
 
@@ -140,7 +141,15 @@ def list_kinds(db_path):
     init_db(db_path)
     with _connect(db_path) as conn:
         rows = conn.execute(
-            "SELECT * FROM kinds WHERE del = 0 ORDER BY character, name, id"
+            """
+            SELECT kinds.*,
+                   COUNT(data.id) AS item_count
+            FROM kinds
+            LEFT JOIN data ON data.kinds_id = kinds.id AND data.del = 0
+            WHERE kinds.del = 0
+            GROUP BY kinds.id
+            ORDER BY kinds.character, kinds.name, kinds.id
+            """
         ).fetchall()
         return [dict(row) for row in rows]
 
@@ -185,6 +194,19 @@ def update_kind(db_path, kind_id, fields):
     params = list(values.values()) + [int(kind_id)]
     with _connect(db_path) as conn:
         conn.execute(f"UPDATE kinds SET {assignments} WHERE id = ?", params)
+    return get_kind(db_path, kind_id)
+
+
+def delete_kind(db_path, kind_id):
+    init_db(db_path)
+    with _connect(db_path) as conn:
+        count = conn.execute(
+            "SELECT COUNT(*) FROM data WHERE del = 0 AND kinds_id = ?",
+            (int(kind_id),),
+        ).fetchone()[0]
+        if count:
+            raise ValueError("kind still has items")
+        conn.execute("UPDATE kinds SET del = 1 WHERE id = ?", (int(kind_id),))
     return get_kind(db_path, kind_id)
 
 
@@ -453,6 +475,55 @@ def convert_vrma_item_to_pose_json(db_path, base_dir, item_id):
         raise
 
 
+def convert_pose_json_item_to_vrma(db_path, base_dir, item_id):
+    item = get_item(db_path, item_id)
+    if not item:
+        return None
+    pose_path_value = item.get("pose_json_path") or (item.get("source_url") if item.get("source_kind") == "pose_json" else "")
+    if not pose_path_value:
+        raise ValueError("item has no pose_json_path")
+
+    started_at = _now()
+    update_item(
+        db_path,
+        item_id,
+        {
+            "status_vrma": 2,
+            "vrma_start_datetime": started_at,
+            "vrma_end_datetime": None,
+            "vrma_process_ms": None,
+            "error_message": "",
+        },
+    )
+    try:
+        pose_path = _resolve_local_asset(base_dir, pose_path_value)
+        output_dir = Path(base_dir) / "local_assets" / "pose_db" / "vrma_exported"
+        output_path = output_dir / f"{int(item_id)}_{_safe_file_stem(pose_path)}.vrma"
+        result = convert_pose_json_to_vrma(pose_path, output_path)
+        ended_at = _now()
+        process_ms = int((time.time() - time.mktime(datetime.fromisoformat(started_at).timetuple())) * 1000)
+        return update_item(
+            db_path,
+            item_id,
+            {
+                "status_vrma": 3,
+                "vrma_path": _rel_path(base_dir, output_path),
+                "vrma_end_datetime": ended_at,
+                "vrma_process_ms": process_ms,
+                "metadata_json": json.dumps(
+                    {
+                        "pose_json_to_vrma": result,
+                        "source_pose_json": _rel_path(base_dir, pose_path),
+                    },
+                    ensure_ascii=False,
+                ),
+            },
+        )
+    except Exception as exc:
+        update_item(db_path, item_id, {"status_vrma": 0, "error_message": str(exc)})
+        raise
+
+
 def import_gvhmr_demo_outputs(db_path, base_dir, gvhmr_demo_root):
     kind = create_kind(db_path, "GVHMR Demo", "alicia")
     imported = 0
@@ -502,8 +573,63 @@ def import_gvhmr_demo_outputs(db_path, base_dir, gvhmr_demo_root):
     return {"imported": imported, "root": str(root)}
 
 
+def _load_vrma_motion_profiles(base_dir):
+    path = Path(base_dir) / "examples" / "m6_7_vrma_samples" / "review" / "motion_profiles.json"
+    if not path.is_file():
+        return {}
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return data.get("profiles", {})
+
+
+def _vrma_profile_fields(profile):
+    usage = str(profile.get("usageDescription") or "").strip()
+    details = [str(value).strip() for value in profile.get("agentUsage") or [] if str(value).strip()]
+    parts = []
+    if usage:
+        parts.append(usage)
+    parts.extend(value for value in details if value not in parts)
+    return {
+        "purpose": "｜".join(parts) if parts else str(profile.get("description") or "").strip(),
+        "metadata_json": json.dumps(
+            {
+                "profileSource": profile.get("source"),
+                "description": profile.get("description"),
+                "motionCategory": profile.get("motionCategory"),
+                "motionScore": profile.get("motionScore"),
+                "note": profile.get("note"),
+            },
+            ensure_ascii=False,
+        ),
+    }
+
+
+def apply_vrma_motion_profiles(db_path, base_dir):
+    profiles = _load_vrma_motion_profiles(base_dir)
+    if not profiles:
+        return {"updated": 0, "profiles": 0}
+    init_db(db_path)
+    updated = 0
+    with _connect(db_path) as conn:
+        rows = conn.execute(
+            "SELECT id, source_url, vrma_path FROM data WHERE del = 0 AND source_kind = 'vrma'"
+        ).fetchall()
+        for row in rows:
+            source_name = Path(row["vrma_path"] or row["source_url"] or "").name
+            profile = profiles.get(source_name)
+            if not profile:
+                continue
+            fields = _vrma_profile_fields(profile)
+            conn.execute(
+                "UPDATE data SET purpose = ?, metadata_json = ? WHERE id = ?",
+                (fields["purpose"], fields["metadata_json"], row["id"]),
+            )
+            updated += 1
+    return {"updated": updated, "profiles": len(profiles)}
+
+
 def import_vrma_samples(db_path, base_dir, roots):
     kind = create_kind(db_path, "VRMA", "alicia")
+    profiles = _load_vrma_motion_profiles(base_dir)
     imported = 0
     for root_value in roots:
         root = Path(root_value)
@@ -511,6 +637,7 @@ def import_vrma_samples(db_path, base_dir, roots):
             continue
         for vrma_path in sorted(root.rglob("*.vrma")):
             rel = _rel_path(base_dir, vrma_path)
+            profile_fields = _vrma_profile_fields(profiles[vrma_path.name]) if vrma_path.name in profiles else {}
             item = create_item(
                 db_path,
                 {
@@ -518,13 +645,16 @@ def import_vrma_samples(db_path, base_dir, roots):
                     "title": vrma_path.stem,
                     "source_kind": "vrma",
                     "source_url": rel,
-                    "purpose": "VRMA sample",
+                    "purpose": profile_fields.get("purpose") or "VRMA sample",
                     "status": 2,
                     "progress": 100,
                     "status_vrma": 3,
                     "vrma_path": rel,
+                    "metadata_json": profile_fields.get("metadata_json", ""),
                 },
             )
+            if item and profile_fields:
+                update_item(db_path, item["id"], profile_fields)
             imported += 1 if item else 0
     return {"imported": imported}
 

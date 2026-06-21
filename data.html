@@ -60,7 +60,6 @@
 
     main {
       display: grid;
-      grid-template-columns: 360px minmax(0, 1fr);
       gap: 14px;
       padding: 14px;
     }
@@ -71,14 +70,6 @@
       background: var(--panel);
     }
 
-    .side {
-      position: sticky;
-      top: 92px;
-      max-height: calc(100vh - 106px);
-      overflow: auto;
-      padding: 16px;
-    }
-
     .content {
       min-width: 0;
       overflow: hidden;
@@ -86,6 +77,10 @@
 
     .toolbar,
     .filters,
+    .kindbar,
+    .kind-main,
+    .top-actions,
+    .dialog-actions,
     .form-grid {
       display: grid;
       gap: 10px;
@@ -95,8 +90,24 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .kindbar {
+      grid-template-columns: minmax(260px, 1fr) auto;
+      align-items: end;
+      padding: 14px;
+    }
+
+    .kind-main {
+      grid-template-columns: minmax(260px, 520px) auto;
+      align-items: end;
+    }
+
+    .top-actions {
+      grid-auto-flow: column;
+      align-items: end;
+    }
+
     .filters {
-      grid-template-columns: 220px minmax(220px, 1fr) 160px auto;
+      grid-template-columns: minmax(260px, 1fr) 160px auto;
       align-items: end;
       padding: 16px;
       border-bottom: 1px solid var(--line);
@@ -156,6 +167,24 @@
     button.blue { background: #174363; color: #dff1ff; }
     button:disabled { opacity: 0.55; cursor: wait; }
 
+    dialog {
+      width: min(560px, calc(100vw - 28px));
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel);
+      color: var(--text);
+      padding: 18px;
+    }
+
+    dialog::backdrop {
+      background: rgba(0, 0, 0, 0.62);
+    }
+
+    .dialog-actions {
+      grid-template-columns: 1fr 1fr;
+      margin-top: 14px;
+    }
+
     .section-title {
       margin: 0 0 12px;
       color: var(--accent);
@@ -210,6 +239,10 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
+      display: block;
+    }
+
+    a.preview {
       display: block;
     }
 
@@ -300,9 +333,13 @@
     }
 
     @media (max-width: 980px) {
-      main { grid-template-columns: 1fr; }
-      .side { position: static; max-height: none; }
-      .filters { grid-template-columns: 1fr; }
+      .kindbar,
+      .kind-main,
+      .filters,
+      .top-actions {
+        grid-template-columns: 1fr;
+        grid-auto-flow: row;
+      }
     }
   </style>
 </head>
@@ -319,68 +356,23 @@
   </header>
 
   <main>
-    <aside class="panel side">
-      <section class="block">
-        <h2 class="section-title">分類管理</h2>
-        <div class="form-grid">
-          <label>分類名稱
-            <input id="kindName" placeholder="自然站姿、單手插腰、拳擊...">
-          </label>
-          <label>角色
-            <input id="kindCharacter" value="alicia">
-          </label>
-          <button class="primary" id="createKindBtn">新增分類</button>
-        </div>
-      </section>
-
-      <section class="block">
-        <h2 class="section-title">建立素材</h2>
-        <div class="form-grid">
-          <label>分類
-            <select id="itemKind"></select>
-          </label>
-          <label>標題
-            <input id="itemTitle" placeholder="素材名稱">
-          </label>
-          <label>來源類型
-            <select id="itemSourceKind">
-              <option value="youtube">youtube</option>
-              <option value="local_mp4">local_mp4</option>
-              <option value="image">image</option>
-              <option value="vrma">vrma</option>
-              <option value="pose_json">pose_json</option>
-            </select>
-          </label>
-          <label>來源 URL / 路徑
-            <input id="itemSourceUrl" placeholder="youtube URL、mp4、image、vrma、json 路徑">
-          </label>
-          <label>姿勢用途
-            <textarea id="itemPurpose" placeholder="例如：拳擊防守、走路、自然站姿"></textarea>
-          </label>
-          <button class="primary" id="createItemBtn">建立素材</button>
-        </div>
-      </section>
-
-      <section class="block">
-        <h2 class="section-title">匯入</h2>
-        <div class="form-grid">
-          <button class="blue" id="importDemoBtn">匯入 GVHMR Demo</button>
-          <button class="blue" id="importVrmaBtn">匯入 VRMA Samples</button>
-          <p class="note">匯入會去重，已存在的 `source_kind + source_url` 不會重複建立。</p>
-        </div>
-      </section>
-
-      <section class="block">
-        <h2 class="section-title">訊息</h2>
-        <div class="log" id="messageLog">Ready.</div>
-      </section>
-    </aside>
+    <section class="panel kindbar" aria-label="分類管理">
+      <div class="kind-main">
+        <label>分類管理
+          <select id="filterKind"></select>
+        </label>
+        <span class="badge" id="kindItemCount">0 筆</span>
+      </div>
+      <div class="top-actions">
+        <button class="primary" id="openKindDialogBtn">新增分類</button>
+        <button class="warn" id="editKindBtn">編輯分類</button>
+        <button class="bad" id="deleteKindBtn">刪除分類</button>
+        <button class="blue" id="refreshBtn">重新整理</button>
+      </div>
+    </section>
 
     <section class="panel content">
       <div class="filters">
-        <label>分類
-          <select id="filterKind"></select>
-        </label>
         <label>搜尋
           <input id="filterQ" placeholder="搜尋標題、來源、用途...">
         </label>
@@ -393,7 +385,11 @@
             <option value="3">轉檔失敗</option>
           </select>
         </label>
-        <button class="primary" id="refreshBtn">重新整理</button>
+        <div class="top-actions">
+          <button class="primary" id="openItemDialogBtn">新增素材</button>
+          <button class="blue" id="importDemoBtn">匯入 GVHMR</button>
+          <button class="blue" id="importVrmaBtn">匯入 VRMA</button>
+        </div>
       </div>
 
       <div class="table-wrap">
@@ -403,6 +399,7 @@
               <th><input type="checkbox" aria-label="全選"></th>
               <th>預覽</th>
               <th>標題</th>
+              <th>用途</th>
               <th>類別</th>
               <th>來源</th>
               <th>狀態</th>
@@ -413,15 +410,66 @@
             </tr>
           </thead>
           <tbody id="itemsBody">
-            <tr><td colspan="10">載入中...</td></tr>
+            <tr><td colspan="11">載入中...</td></tr>
           </tbody>
         </table>
       </div>
     </section>
+
+    <section class="panel" aria-label="訊息">
+      <div class="log" id="messageLog">Ready.</div>
+    </section>
   </main>
 
+  <dialog id="kindDialog">
+    <h2 class="section-title" id="kindDialogTitle">新增分類</h2>
+    <div class="form-grid">
+      <label>分類名稱
+        <input id="kindName" placeholder="自然站姿、單手插腰、拳擊...">
+      </label>
+      <label>角色
+        <input id="kindCharacter" value="alicia">
+      </label>
+    </div>
+    <div class="dialog-actions">
+      <button class="primary" id="saveKindBtn">儲存分類</button>
+      <button id="closeKindDialogBtn">取消</button>
+    </div>
+  </dialog>
+
+  <dialog id="itemDialog">
+    <h2 class="section-title" id="itemDialogTitle">新增素材</h2>
+    <div class="form-grid">
+      <label>分類
+        <select id="itemKind"></select>
+      </label>
+      <label>標題
+        <input id="itemTitle" placeholder="素材名稱">
+      </label>
+      <label>來源類型
+        <select id="itemSourceKind">
+          <option value="youtube">youtube</option>
+          <option value="local_mp4">local_mp4</option>
+          <option value="image">image</option>
+          <option value="vrma">vrma</option>
+          <option value="pose_json">pose_json</option>
+        </select>
+      </label>
+      <label>來源 URL / 路徑
+        <input id="itemSourceUrl" placeholder="youtube URL、mp4、image、vrma、json 路徑">
+      </label>
+      <label>姿勢用途
+        <textarea id="itemPurpose" placeholder="例如：拳擊防守、走路、自然站姿"></textarea>
+      </label>
+    </div>
+    <div class="dialog-actions">
+      <button class="primary" id="saveItemBtn">儲存素材</button>
+      <button id="closeItemDialogBtn">取消</button>
+    </div>
+  </dialog>
+
   <script>
-    const state = { kinds: [], items: [], busy: false };
+    const state = { kinds: [], items: [], busy: false, editingKindId: null, editingItemId: null };
     const statusMap = {
       0: { label: '待處理', cls: 'queued' },
       1: { label: '轉檔中', cls: 'processing' },
@@ -437,6 +485,7 @@
     function setBusy(value) {
       state.busy = value;
       document.querySelectorAll('button').forEach((button) => { button.disabled = value; });
+      updateKindControls();
     }
 
     async function apiJson(url, options = {}) {
@@ -468,42 +517,76 @@
       }[char]));
     }
 
-    function renderSelects() {
+    function selectedKind() {
+      const id = Number(document.getElementById('filterKind').value || 0);
+      return state.kinds.find((kind) => Number(kind.id) === id) || null;
+    }
+
+    function updateKindControls() {
+      const kind = selectedKind();
+      const count = kind ? Number(kind.item_count || 0) : state.items.length;
+      document.getElementById('kindItemCount').textContent = `${count} 筆`;
+      document.getElementById('editKindBtn').disabled = state.busy || !kind;
+      document.getElementById('deleteKindBtn').disabled = state.busy || !kind || count > 0;
+    }
+
+    function renderSelects(selectedKindId = '') {
       const options = ['<option value="">全部分類</option>']
-        .concat(state.kinds.map((kind) => `<option value="${kind.id}">${escapeHtml(kind.name)} / ${escapeHtml(kind.character)}</option>`))
+        .concat(state.kinds.map((kind) => `<option value="${kind.id}">${escapeHtml(kind.name)} / ${escapeHtml(kind.character)} (${Number(kind.item_count || 0)})</option>`))
         .join('');
       document.getElementById('filterKind').innerHTML = options;
       document.getElementById('itemKind').innerHTML = ['<option value="">未分類</option>']
         .concat(state.kinds.map((kind) => `<option value="${kind.id}">${escapeHtml(kind.name)} / ${escapeHtml(kind.character)}</option>`))
         .join('');
+      document.getElementById('filterKind').value = selectedKindId;
+      updateKindControls();
+    }
+
+    function itemPreviewUrl(item) {
+      if (item.pose_json_path || item.source_kind === 'pose_json') return `pose_demo.html?id=${item.id}`;
+      if (item.vrma_path || item.source_kind === 'vrma') return vrmaPreviewUrl(item);
+      return assetUrl(item.preview_path || item.thumb_path || item.source_url);
+    }
+
+    function vrmaPreviewUrl(item) {
+      const path = item.vrma_path || (item.source_kind === 'vrma' ? item.source_url : '');
+      return path ? `demo_vrma.html?url=${encodeURIComponent(assetUrl(path))}` : '';
     }
 
     function previewHtml(item) {
       const preview = assetUrl(item.preview_path);
       const thumb = assetUrl(item.thumb_path);
+      const url = itemPreviewUrl(item);
+      let inner = `<div class="status-card">${escapeHtml(item.source_kind || 'pose')}</div>`;
       if (preview) {
-        return `<video src="${preview}" muted loop playsinline preload="metadata" onmouseenter="this.play()" onmouseleave="this.pause(); this.currentTime = 0"></video>`;
+        inner = `<video src="${preview}" muted loop playsinline preload="metadata" onmouseenter="this.play()" onmouseleave="this.pause(); this.currentTime = 0"></video>`;
+      } else if (thumb) {
+        inner = `<img src="${thumb}" alt="">`;
       }
-      if (thumb) return `<img src="${thumb}" alt="">`;
-      return `<div class="status-card">${escapeHtml(item.source_kind || 'pose')}</div>`;
+      if (!url) return inner;
+      return `<a class="preview" href="${url}" target="_blank" rel="noopener">${inner}</a>`;
     }
 
     function rowActionsHtml(item) {
       const canPreview = Boolean(item.pose_json_path || item.source_kind === 'pose_json');
+      const vrmaUrl = vrmaPreviewUrl(item);
       const buttons = [];
+      if (vrmaUrl) {
+        buttons.push(`<a class="button primary" href="${vrmaUrl}" target="_blank" rel="noopener">看 VRMA</a>`);
+      }
       if (item.source_kind === 'vrma') {
-        if (canPreview) buttons.push(`<a class="button primary" href="pose_demo.html?id=${item.id}">預覽</a>`);
+        if (canPreview) buttons.push(`<a class="button primary" href="pose_demo.html?id=${item.id}" target="_blank" rel="noopener">預覽</a>`);
         buttons.push(`<button class="blue" data-action="convert-vrma-pose-json" data-id="${item.id}">${canPreview ? '重驗 JSON' : '轉 Pose JSON'}</button>`);
-        if (canPreview) buttons.push('<button type="button" disabled title="VRMA 輸出下一階段接">轉 VRMA</button>');
       } else if (canPreview) {
-        buttons.push(`<a class="button primary" href="pose_demo.html?id=${item.id}">預覽</a>`);
+        buttons.push(`<a class="button primary" href="pose_demo.html?id=${item.id}" target="_blank" rel="noopener">預覽</a>`);
         buttons.push(`<button class="blue" data-action="queue" data-id="${item.id}">重驗 JSON</button>`);
-        buttons.push('<button type="button" disabled title="VRMA 輸出下一階段接">轉 VRMA</button>');
+        buttons.push(`<button class="blue" data-action="convert-pose-json-vrma" data-id="${item.id}">轉 VRMA</button>`);
       } else if (['youtube', 'local_mp4', 'image'].includes(item.source_kind)) {
         buttons.push('<button type="button" disabled title="下一步接背景 GVHMR queue">排入 GVHMR</button>');
       } else {
         buttons.push('<button type="button" disabled>未支援</button>');
       }
+      buttons.push(`<button class="warn" data-action="edit" data-id="${item.id}">編輯</button>`);
       buttons.push(`<button class="bad" data-action="delete" data-id="${item.id}">刪除</button>`);
       return buttons.join('');
     }
@@ -511,7 +594,7 @@
     function renderItems() {
       const body = document.getElementById('itemsBody');
       if (!state.items.length) {
-        body.innerHTML = '<tr><td colspan="10">尚無資料。可先按「匯入 GVHMR Demo」或「匯入 VRMA Samples」。</td></tr>';
+        body.innerHTML = '<tr><td colspan="11">尚無資料。可先按「新增素材」、「匯入 GVHMR」或「匯入 VRMA」。</td></tr>';
         return;
       }
       body.innerHTML = state.items.map((item) => {
@@ -520,11 +603,11 @@
         return `
           <tr>
             <td><input type="checkbox" value="${item.id}" aria-label="選取 ${escapeHtml(item.title)}"></td>
-            <td><div class="preview">${previewHtml(item)}</div></td>
+            <td>${previewHtml(item)}</td>
             <td>
               <div class="title">${escapeHtml(item.title)}</div>
-              <div class="meta">${escapeHtml(item.purpose || '')}</div>
             </td>
+            <td>${escapeHtml(item.purpose || '')}</td>
             <td>${escapeHtml(item.kind_name || '未分類')}</td>
             <td>
               <span class="badge">${escapeHtml(item.source_kind)}</span>
@@ -561,8 +644,7 @@
       ]);
       state.kinds = kindsBody.kinds || [];
       state.items = itemsBody.items || [];
-      renderSelects();
-      if (kind) document.getElementById('filterKind').value = kind;
+      renderSelects(kind);
       renderItems();
     }
 
@@ -580,31 +662,85 @@
       }
     }
 
-    document.getElementById('createKindBtn').addEventListener('click', () => runAction('新增分類', async () => {
-      await apiJson('/api/pose-db/kinds', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: document.getElementById('kindName').value,
-          character: document.getElementById('kindCharacter').value || 'alicia',
-        }),
-      });
-      document.getElementById('kindName').value = '';
-    }));
+    function openDialog(dialog) {
+      if (typeof dialog.showModal === 'function') dialog.showModal();
+      else dialog.setAttribute('open', '');
+    }
 
-    document.getElementById('createItemBtn').addEventListener('click', () => runAction('建立素材', async () => {
-      await apiJson('/api/pose-db/items', {
-        method: 'POST',
-        body: JSON.stringify({
-          kinds_id: document.getElementById('itemKind').value || null,
-          title: document.getElementById('itemTitle').value,
-          source_kind: document.getElementById('itemSourceKind').value,
-          source_url: document.getElementById('itemSourceUrl').value,
-          purpose: document.getElementById('itemPurpose').value,
-        }),
+    function closeDialog(dialog) {
+      if (typeof dialog.close === 'function') dialog.close();
+      else dialog.removeAttribute('open');
+    }
+
+    function openKindDialog(kind = null) {
+      state.editingKindId = kind ? kind.id : null;
+      document.getElementById('kindDialogTitle').textContent = kind ? '編輯分類' : '新增分類';
+      document.getElementById('kindName').value = kind ? kind.name : '';
+      document.getElementById('kindCharacter').value = kind ? kind.character : 'alicia';
+      openDialog(document.getElementById('kindDialog'));
+    }
+
+    function openItemDialog(item = null) {
+      state.editingItemId = item ? item.id : null;
+      document.getElementById('itemDialogTitle').textContent = item ? '編輯素材' : '新增素材';
+      document.getElementById('itemKind').value = item ? (item.kinds_id || '') : (document.getElementById('filterKind').value || '');
+      document.getElementById('itemTitle').value = item ? item.title : '';
+      document.getElementById('itemSourceKind').value = item ? item.source_kind : 'youtube';
+      document.getElementById('itemSourceUrl').value = item ? item.source_url : '';
+      document.getElementById('itemPurpose').value = item ? (item.purpose || '') : '';
+      document.getElementById('itemSourceKind').disabled = Boolean(item);
+      document.getElementById('itemSourceUrl').disabled = Boolean(item);
+      openDialog(document.getElementById('itemDialog'));
+    }
+
+    document.getElementById('openKindDialogBtn').addEventListener('click', () => openKindDialog());
+    document.getElementById('editKindBtn').addEventListener('click', () => {
+      const kind = selectedKind();
+      if (kind) openKindDialog(kind);
+    });
+    document.getElementById('closeKindDialogBtn').addEventListener('click', () => closeDialog(document.getElementById('kindDialog')));
+    document.getElementById('saveKindBtn').addEventListener('click', () => runAction(state.editingKindId ? '編輯分類' : '新增分類', async () => {
+      const payload = {
+        name: document.getElementById('kindName').value,
+        character: document.getElementById('kindCharacter').value || 'alicia',
+      };
+      if (state.editingKindId) {
+        await apiJson(`/api/pose-db/kinds/${state.editingKindId}`, { method: 'PATCH', body: JSON.stringify(payload) });
+      } else {
+        await apiJson('/api/pose-db/kinds', { method: 'POST', body: JSON.stringify(payload) });
+      }
+      closeDialog(document.getElementById('kindDialog'));
+    }));
+    document.getElementById('deleteKindBtn').addEventListener('click', () => {
+      const kind = selectedKind();
+      if (!kind) return;
+      if (Number(kind.item_count || 0) > 0) {
+        logMessage('分類仍有素材，不能刪除');
+        return;
+      }
+      if (!confirm(`確定刪除分類「${kind.name}」？`)) return;
+      runAction('刪除分類', async () => {
+        await apiJson(`/api/pose-db/kinds/${kind.id}`, { method: 'DELETE' });
+        document.getElementById('filterKind').value = '';
       });
-      document.getElementById('itemTitle').value = '';
-      document.getElementById('itemSourceUrl').value = '';
-      document.getElementById('itemPurpose').value = '';
+    });
+
+    document.getElementById('openItemDialogBtn').addEventListener('click', () => openItemDialog());
+    document.getElementById('closeItemDialogBtn').addEventListener('click', () => closeDialog(document.getElementById('itemDialog')));
+    document.getElementById('saveItemBtn').addEventListener('click', () => runAction(state.editingItemId ? '編輯素材' : '建立素材', async () => {
+      const payload = {
+        kinds_id: document.getElementById('itemKind').value || null,
+        title: document.getElementById('itemTitle').value,
+        purpose: document.getElementById('itemPurpose').value,
+      };
+      if (state.editingItemId) {
+        await apiJson(`/api/pose-db/items/${state.editingItemId}`, { method: 'PATCH', body: JSON.stringify(payload) });
+      } else {
+        payload.source_kind = document.getElementById('itemSourceKind').value;
+        payload.source_url = document.getElementById('itemSourceUrl').value;
+        await apiJson('/api/pose-db/items', { method: 'POST', body: JSON.stringify(payload) });
+      }
+      closeDialog(document.getElementById('itemDialog'));
     }));
 
     document.getElementById('importDemoBtn').addEventListener('click', () => runAction('匯入 GVHMR Demo', async () => {
@@ -621,7 +757,10 @@
     document.getElementById('filterQ').addEventListener('keydown', (event) => {
       if (event.key === 'Enter') runAction('搜尋', loadData);
     });
-    document.getElementById('filterKind').addEventListener('change', () => runAction('篩選分類', loadData));
+    document.getElementById('filterKind').addEventListener('change', () => {
+      updateKindControls();
+      runAction('篩選分類', loadData);
+    });
     document.getElementById('filterStatus').addEventListener('change', () => runAction('篩選狀態', loadData));
 
     document.getElementById('itemsBody').addEventListener('click', (event) => {
@@ -631,9 +770,16 @@
       const action = button.dataset.action;
       const labels = {
         delete: '刪除素材',
+        edit: '編輯素材',
         queue: '重驗 JSON',
         'convert-vrma-pose-json': '重轉 Pose JSON',
+        'convert-pose-json-vrma': '轉 VRMA',
       };
+      if (action === 'edit') {
+        const item = state.items.find((row) => Number(row.id) === Number(id));
+        if (item) openItemDialog(item);
+        return;
+      }
       if (action === 'delete' && !confirm('確定刪除這筆素材？')) return;
       runAction(labels[action] || action, async () => {
         if (action === 'delete') {

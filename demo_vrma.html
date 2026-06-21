@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Alicia VRMA Demo</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07110d;
+      --panel: #13221b;
+      --line: #385545;
+      --text: #f2fff5;
+      --muted: #9db2a3;
+      --green: #9bed91;
+      --gold: #f5cd69;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, "Microsoft JhengHei", sans-serif;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 12px;
+      height: calc(100vh - 58px);
+      padding: 12px;
+    }
+
+    #stage,
+    aside {
+      min-height: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #0d1729;
+      overflow: hidden;
+    }
+
+    #stage {
+      position: relative;
+    }
+
+    aside {
+      display: grid;
+      grid-template-rows: auto auto auto auto 1fr;
+      gap: 12px;
+      padding: 12px;
+      background: var(--panel);
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    input,
+    button {
+      width: 100%;
+      border: 1px solid #67a566;
+      border-radius: 6px;
+      background: #102018;
+      color: var(--text);
+      padding: 10px;
+      font-weight: 700;
+    }
+
+    button {
+      background: #376f37;
+      cursor: pointer;
+    }
+
+    .drop-zone {
+      display: grid;
+      place-items: center;
+      min-height: 120px;
+      padding: 16px;
+      border: 1px dashed rgba(155, 237, 145, 0.65);
+      border-radius: 8px;
+      color: var(--gold);
+      text-align: center;
+      background: rgba(155, 237, 145, 0.06);
+    }
+
+    .drop-zone.dragover {
+      border-color: var(--green);
+      background: rgba(155, 237, 145, 0.16);
+    }
+
+    .row {
+      display: grid;
+      gap: 7px;
+    }
+
+    pre,
+    output {
+      color: var(--gold);
+      font-family: Consolas, monospace;
+    }
+
+    pre {
+      margin: 0;
+      min-height: 0;
+      overflow: auto;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 980px) {
+      body {
+        overflow: auto;
+      }
+
+      main {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+
+      #stage {
+        min-height: 64vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Alicia VRMA Demo</h1>
+    <output id="status">初始化中...</output>
+  </header>
+
+  <main>
+    <section id="stage" aria-label="VRMA preview"></section>
+    <aside>
+      <div id="dropZone" class="drop-zone">拖曳 VRMA 到這裡<br>或選擇本機 .vrma 檔</div>
+      <div class="row">
+        <label for="vrmaFile">VRMA 檔案</label>
+        <input id="vrmaFile" type="file" accept=".vrma,.glb,model/gltf-binary">
+      </div>
+      <div class="row">
+        <label for="vrmaUrl">VRMA URL</label>
+        <input id="vrmaUrl" type="text" placeholder="local_assets/.../motion.vrma">
+      </div>
+      <button id="loadUrlButton" type="button">載入 URL</button>
+      <pre id="debug"></pre>
+    </aside>
+  </main>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
+      "@pixiv/three-vrm": "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3/lib/three-vrm.module.js",
+      "@pixiv/three-vrm-animation": "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm-animation@3/lib/three-vrm-animation.module.js"
+    }
+  }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
+    import { VRMAnimationLoaderPlugin, createVRMAnimationClip } from '@pixiv/three-vrm-animation';
+
+    const MODEL_URL = 'models/mascot.vrm';
+    const $ = (id) => document.getElementById(id);
+    let currentObjectUrl = '';
+
+    class VrmaPreview {
+      constructor(container) {
+        this.container = container;
+        this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color(0x0d1729);
+        this.camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+        this.camera.position.set(0, 1.25, 3.15);
+        this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+        this.container.appendChild(this.renderer.domElement);
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+        this.controls.target.set(0, 1.05, 0);
+        this.controls.enableDamping = true;
+        this.scene.add(new THREE.HemisphereLight(0xffffff, 0x334455, 1.6));
+        const keyLight = new THREE.DirectionalLight(0xffffff, 1.8);
+        keyLight.position.set(1.5, 3, 2);
+        this.scene.add(keyLight);
+        this.clock = new THREE.Clock();
+        this.vrm = null;
+        this.mixer = null;
+        this.action = null;
+        this.resizeObserver = new ResizeObserver(() => this.resize());
+        this.resizeObserver.observe(container);
+        this.resize();
+        this.animate();
+      }
+
+      async loadModel(url) {
+        const loader = new GLTFLoader();
+        loader.crossOrigin = 'anonymous';
+        loader.register((parser) => new VRMLoaderPlugin(parser));
+        const gltf = await loader.loadAsync(url);
+        this.vrm = gltf.userData.vrm;
+        VRMUtils.removeUnnecessaryVertices(this.vrm.scene);
+        this.vrm.scene.traverse((obj) => {
+          obj.frustumCulled = false;
+        });
+        this.vrm.scene.rotation.y = Math.PI;
+        this.scene.add(this.vrm.scene);
+      }
+
+      async playVrma(url) {
+        if (!this.vrm) throw new Error('Alicia 尚未載入');
+        if (this.action) this.action.stop();
+        this.mixer = null;
+        const loader = new GLTFLoader();
+        loader.register((parser) => new VRMAnimationLoaderPlugin(parser));
+        const gltf = await loader.loadAsync(url);
+        const vrmAnimation = gltf.userData.vrmAnimations?.[0];
+        if (!vrmAnimation) throw new Error(`找不到 VRMA 動畫: ${url}`);
+        const clip = createVRMAnimationClip(vrmAnimation, this.vrm);
+        this.mixer = new THREE.AnimationMixer(this.vrm.scene);
+        this.action = this.mixer.clipAction(clip);
+        this.action.setLoop(THREE.LoopRepeat, Infinity);
+        this.action.clampWhenFinished = true;
+        this.action.play();
+      }
+
+      resize() {
+        const width = Math.max(1, this.container.clientWidth);
+        const height = Math.max(1, this.container.clientHeight);
+        this.camera.aspect = width / height;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(width, height, false);
+      }
+
+      animate() {
+        requestAnimationFrame(() => this.animate());
+        const delta = Math.min(0.05, this.clock.getDelta());
+        this.mixer?.update(delta);
+        this.controls.update();
+        this.vrm?.update?.(delta);
+        this.renderer.render(this.scene, this.camera);
+      }
+    }
+
+    const preview = new VrmaPreview($('stage'));
+
+    function setStatus(text) {
+      $('status').textContent = text;
+    }
+
+    function setDebug(payload) {
+      $('debug').textContent = JSON.stringify(payload, null, 2);
+    }
+
+    async function loadVrmaUrl(url, label = url) {
+      setStatus(`載入 ${label}...`);
+      await preview.playVrma(url);
+      setDebug({ label, url, mode: 'official_vrma_preview' });
+      setStatus(`播放中 ${label}`);
+    }
+
+    async function loadFile(file) {
+      if (!file) return;
+      if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
+      currentObjectUrl = URL.createObjectURL(file);
+      await loadVrmaUrl(currentObjectUrl, file.name);
+    }
+
+    function wireDropZone() {
+      const dropZone = $('dropZone');
+      ['dragenter', 'dragover'].forEach((name) => {
+        dropZone.addEventListener(name, (event) => {
+          event.preventDefault();
+          dropZone.classList.add('dragover');
+        });
+      });
+      ['dragleave', 'drop'].forEach((name) => {
+        dropZone.addEventListener(name, (event) => {
+          event.preventDefault();
+          dropZone.classList.remove('dragover');
+        });
+      });
+      dropZone.addEventListener('drop', (event) => loadFile(event.dataTransfer?.files?.[0]).catch(showError));
+    }
+
+    function showError(error) {
+      console.error(error);
+      setStatus(`失敗：${error.message}`);
+      $('debug').textContent = error.stack || String(error);
+    }
+
+    async function init() {
+      await preview.loadModel(MODEL_URL);
+      setStatus('Ready');
+      wireDropZone();
+      $('vrmaFile').addEventListener('change', (event) => loadFile(event.target.files?.[0]).catch(showError));
+      $('loadUrlButton').addEventListener('click', () => {
+        const url = $('vrmaUrl').value.trim();
+        if (url) loadVrmaUrl(url).catch(showError);
+      });
+      const params = new URLSearchParams(location.search);
+      const url = params.get('url');
+      if (url) {
+        $('vrmaUrl').value = url;
+        await loadVrmaUrl(url);
+      }
+    }
+
+    init().catch(showError);
+  </script>
+</body>
+</html>

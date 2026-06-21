@@ -1,10 +1,14 @@
 import importlib.util
 import json
 import os
+import sys
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
 SERVER_PATH = Path("server.py")
+ROOT_DIR = SERVER_PATH.resolve().parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
 
 def load_server_module():

@@ -1838,9 +1838,12 @@ def pose_db_kinds():
         return jsonify({"ok": False, "error": str(exc)}), 400
 
 
-@app.route('/api/pose-db/kinds/<int:kind_id>', methods=['PATCH'])
+@app.route('/api/pose-db/kinds/<int:kind_id>', methods=['PATCH', 'DELETE'])
 def pose_db_kind(kind_id):
     try:
+        if request.method == 'DELETE':
+            pose_db.delete_kind(POSE_DB_PATH, kind_id)
+            return jsonify({"ok": True})
         kind = pose_db.update_kind(POSE_DB_PATH, kind_id, _pose_db_payload())
         if not kind:
             return jsonify({"ok": False, "error": "kind not found"}), 404
@@ -1905,6 +1908,19 @@ def pose_db_item_queue_vrma(item_id):
 def pose_db_item_convert_vrma_pose_json(item_id):
     try:
         item = pose_db.convert_vrma_item_to_pose_json(POSE_DB_PATH, BASE_DIR, item_id)
+        if not item:
+            return jsonify({"ok": False, "error": "item not found"}), 404
+        return jsonify({"ok": True, "item": item})
+    except ValueError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 500
+
+
+@app.route('/api/pose-db/items/<int:item_id>/convert-pose-json-vrma', methods=['POST'])
+def pose_db_item_convert_pose_json_vrma(item_id):
+    try:
+        item = pose_db.convert_pose_json_item_to_vrma(POSE_DB_PATH, BASE_DIR, item_id)
         if not item:
             return jsonify({"ok": False, "error": "item not found"}), 404
         return jsonify({"ok": True, "item": item})
@@ -1993,7 +2009,7 @@ def _process_pose_db_job(job):
 
 
 def _pose_db_worker_loop():
-    pose_db.init_db(POSE_DB_PATH)
+    _bootstrap_pose_db()
     while True:
         try:
             job = pose_db.claim_next_job(POSE_DB_PATH)
@@ -2004,6 +2020,12 @@ def _pose_db_worker_loop():
         except Exception as exc:
             print(f"[pose-db-worker] {exc}", file=sys.stderr)
             time.sleep(5)
+
+
+def _bootstrap_pose_db():
+    if not POSE_DB_PATH.exists():
+        print(f"[pose-db] creating {POSE_DB_PATH}")
+    pose_db.init_db(POSE_DB_PATH)
 
 
 def _start_pose_db_worker_once():
@@ -2491,6 +2513,7 @@ def serve_manifests(filepath):
 
 
 if __name__ == '__main__':
+    _bootstrap_pose_db()
     _start_pose_db_worker_once()
     # 保護點 1：限制本機 127.0.0.1，關閉對外綁定
     # ponytail: 日常工具頁不要開 Flask reloader，專案內有 conda/model 目錄時 Windows 會被檔案監看拖慢。
