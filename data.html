@@ -496,7 +496,7 @@
         buttons.push(`<button class="blue" data-action="queue" data-id="${item.id}">重驗 JSON</button>`);
         buttons.push('<button type="button" disabled title="VRMA 輸出下一階段接">轉 VRMA</button>');
       } else if (item.source_kind === 'vrma') {
-        buttons.push('<button type="button" disabled title="下一步接 VRMA -> Pose JSON">轉 Pose JSON</button>');
+        buttons.push(`<button class="blue" data-action="convert-vrma-pose-json" data-id="${item.id}">轉 Pose JSON</button>`);
       } else if (['youtube', 'local_mp4', 'image'].includes(item.source_kind)) {
         buttons.push('<button type="button" disabled title="下一步接背景 GVHMR queue">排入 GVHMR</button>');
       } else {
@@ -627,8 +627,13 @@
       if (!button) return;
       const id = button.dataset.id;
       const action = button.dataset.action;
+      const labels = {
+        delete: '刪除素材',
+        queue: '重驗 JSON',
+        'convert-vrma-pose-json': '轉 Pose JSON',
+      };
       if (action === 'delete' && !confirm('確定刪除這筆素材？')) return;
-      runAction(action, async () => {
+      runAction(labels[action] || action, async () => {
         if (action === 'delete') {
           await apiJson(`/api/pose-db/items/${id}`, { method: 'DELETE' });
         } else {

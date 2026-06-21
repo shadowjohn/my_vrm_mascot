@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Alicia VRMA vs Pose JSON</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07110d;
+      --panel: #13221b;
+      --line: #385545;
+      --text: #f2fff5;
+      --muted: #9db2a3;
+      --green: #9bed91;
+      --gold: #f5cd69;
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, "Microsoft JhengHei", sans-serif;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: 1fr 1fr 340px;
+      gap: 12px;
+      height: calc(100vh - 58px);
+      padding: 12px;
+      box-sizing: border-box;
+    }
+
+    .stage,
+    aside {
+      min-height: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #0d1729;
+      overflow: hidden;
+    }
+
+    .stage {
+      position: relative;
+    }
+
+    .stage-title {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 2;
+      padding: 6px 8px;
+      border: 1px solid rgba(155, 237, 145, 0.45);
+      border-radius: 6px;
+      background: rgba(7, 17, 13, 0.72);
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    aside {
+      display: grid;
+      grid-template-rows: auto auto auto 1fr;
+      gap: 12px;
+      padding: 12px;
+      background: var(--panel);
+      box-sizing: border-box;
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    select,
+    button {
+      width: 100%;
+      border: 1px solid #67a566;
+      border-radius: 6px;
+      background: #376f37;
+      color: var(--text);
+      padding: 10px;
+      font-weight: 700;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .row {
+      display: grid;
+      gap: 7px;
+    }
+
+    pre,
+    code,
+    output {
+      color: var(--gold);
+      font-family: Consolas, monospace;
+    }
+
+    pre {
+      min-height: 0;
+      margin: 0;
+      overflow: auto;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 1100px) {
+      main {
+        grid-template-columns: 1fr;
+        overflow-y: auto;
+      }
+      .stage {
+        min-height: 52vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Alicia VRMA vs Pose JSON</h1>
+    <output id="status">初始化中...</output>
+  </header>
+
+  <main>
+    <section id="vrmaStage" class="stage" aria-label="原始 VRMA">
+      <div class="stage-title">原始 VRMA <span id="vrmaTitle"></span></div>
+    </section>
+    <section id="poseStage" class="stage" aria-label="轉出 pose_json">
+      <div class="stage-title">轉出 pose_json <span id="poseTitle"></span></div>
+    </section>
+    <aside>
+      <div class="row">
+        <label for="itemSelect">VRMA row</label>
+        <select id="itemSelect"></select>
+      </div>
+      <div class="row">
+        <button id="reloadButton" type="button">重新同步播放</button>
+      </div>
+      <div class="row">
+        <label>判讀</label>
+        <code>左正右歪 = converter 問題；左右都歪 = VRMA/runtime retarget 問題。</code>
+      </div>
+      <pre id="debug"></pre>
+    </aside>
+  </main>
+
+  <script src="vendor/three.min.js"></script>
+  <script src="vendor/GLTFLoader.js"></script>
+  <script src="vendor/OrbitControls.js"></script>
+  <script src="vendor/three-vrm.min.js"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
+      "@pixiv/three-vrm": "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3/lib/three-vrm.module.js",
+      "@pixiv/three-vrm-animation": "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm-animation@3/lib/three-vrm-animation.module.js"
+    }
+  }
+  </script>
+  <script type="module">
+    import * as DirectTHREE from 'three';
+    import { GLTFLoader as DirectGLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { OrbitControls as DirectOrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import {
+      VRMLoaderPlugin as DirectVRMLoaderPlugin,
+      VRMUtils as DirectVRMUtils,
+    } from '@pixiv/three-vrm';
+    import {
+      VRMAnimationLoaderPlugin,
+      createVRMAnimationClip,
+    } from '@pixiv/three-vrm-animation';
+    import { VrmMascot } from './js/VrmMascot.js';
+
+    const MODEL_URL = 'models/mascot.vrm';
+    const REQUESTED_ID = Number(new URLSearchParams(location.search).get('id') || 0);
+    const $ = (id) => document.getElementById(id);
+    const state = {
+      rows: [],
+      vrmaPreview: null,
+      poseMascot: null,
+    };
+
+    class DirectVrmaPreview {
+      constructor(container) {
+        this.container = container;
+        this.scene = new DirectTHREE.Scene();
+        this.scene.background = new DirectTHREE.Color(0x0d1729);
+        this.camera = new DirectTHREE.PerspectiveCamera(35, 1, 0.1, 100);
+        this.camera.position.set(0, 1.25, 3.1);
+        this.renderer = new DirectTHREE.WebGLRenderer({ antialias: true, alpha: false });
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        this.renderer.outputColorSpace = DirectTHREE.SRGBColorSpace;
+        this.container.appendChild(this.renderer.domElement);
+        this.controls = new DirectOrbitControls(this.camera, this.renderer.domElement);
+        this.controls.target.set(0, 1.05, 0);
+        this.controls.enableDamping = true;
+        this.scene.add(new DirectTHREE.HemisphereLight(0xffffff, 0x334455, 1.6));
+        const keyLight = new DirectTHREE.DirectionalLight(0xffffff, 1.8);
+        keyLight.position.set(1.5, 3, 2);
+        this.scene.add(keyLight);
+        this.clock = new DirectTHREE.Clock();
+        this.vrm = null;
+        this.mixer = null;
+        this.action = null;
+        this.resizeObserver = new ResizeObserver(() => this.resize());
+        this.resizeObserver.observe(container);
+        this.resize();
+        this.animate();
+      }
+
+      async loadModel(url) {
+        const loader = new DirectGLTFLoader();
+        loader.crossOrigin = 'anonymous';
+        loader.register((parser) => new DirectVRMLoaderPlugin(parser));
+        const gltf = await loader.loadAsync(url);
+        this.vrm = gltf.userData.vrm;
+        DirectVRMUtils.removeUnnecessaryVertices(this.vrm.scene);
+        this.vrm.scene.traverse((obj) => {
+          obj.frustumCulled = false;
+        });
+        this.scene.add(this.vrm.scene);
+      }
+
+      async playVrma(url) {
+        if (!this.vrm) throw new Error('原始 VRMA 預覽尚未載入 Alicia');
+        if (this.action) this.action.stop();
+        this.mixer = null;
+        const loader = new DirectGLTFLoader();
+        loader.register((parser) => new VRMAnimationLoaderPlugin(parser));
+        const gltf = await loader.loadAsync(url);
+        const vrmAnimation = gltf.userData.vrmAnimations?.[0];
+        if (!vrmAnimation) throw new Error(`找不到 VRM Animation: ${url}`);
+        const clip = createVRMAnimationClip(vrmAnimation, this.vrm);
+        this.mixer = new DirectTHREE.AnimationMixer(this.vrm.scene);
+        this.action = this.mixer.clipAction(clip);
+        this.action.setLoop(DirectTHREE.LoopRepeat, Infinity);
+        this.action.clampWhenFinished = true;
+        this.action.play();
+      }
+
+      resize() {
+        const width = Math.max(1, this.container.clientWidth);
+        const height = Math.max(1, this.container.clientHeight);
+        this.camera.aspect = width / height;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(width, height, false);
+      }
+
+      animate() {
+        requestAnimationFrame(() => this.animate());
+        const delta = Math.min(0.05, this.clock.getDelta());
+        this.mixer?.update(delta);
+        this.controls.update();
+        this.vrm?.update?.(delta);
+        this.renderer.render(this.scene, this.camera);
+      }
+    }
+
+    function setStatus(text) {
+      $('status').textContent = text;
+    }
+
+    function assetUrl(path) {
+      return String(path || '').replace(/\\/g, '/');
+    }
+
+    function optionLabel(row) {
+      return `#${row.id} ${row.title}`;
+    }
+
+    async function fetchJson(url) {
+      const response = await fetch(url, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}: ${url}`);
+      return response.json();
+    }
+
+    async function loadRows() {
+      const body = await fetchJson('api/pose-db/items?source_kind=vrma');
+      state.rows = (body.items || []).filter((row) => row.pose_json_path && (row.vrma_path || row.source_url));
+      $('itemSelect').innerHTML = state.rows.length
+        ? state.rows.map((row) => `<option value="${row.id}">${optionLabel(row)}</option>`).join('')
+        : '<option value="">尚無已轉 pose_json 的 VRMA row</option>';
+      if (REQUESTED_ID && state.rows.some((row) => row.id === REQUESTED_ID)) {
+        $('itemSelect').value = String(REQUESTED_ID);
+      }
+    }
+
+    async function loadSelected() {
+      const id = Number($('itemSelect').value);
+      const row = state.rows.find((item) => item.id === id);
+      if (!row) {
+        setStatus('沒有可比較資料');
+        return;
+      }
+      const vrmaUrl = assetUrl(row.vrma_path || row.source_url);
+      const poseUrl = assetUrl(row.pose_json_path);
+      setStatus(`載入 #${row.id}...`);
+      $('vrmaTitle').textContent = `#${row.id} ${row.title}`;
+      $('poseTitle').textContent = `#${row.id} ${row.title}`;
+
+      const poseJson = await fetchJson(poseUrl);
+      state.poseMascot.motion.resetToNaturalPose(0);
+      await state.vrmaPreview.playVrma(vrmaUrl);
+      state.poseMascot.motion.playCustom(poseJson, { loop: true });
+
+      $('debug').textContent = JSON.stringify({
+        id: row.id,
+        title: row.title,
+        vrmaUrl,
+        poseUrl,
+        poseSource: poseJson.source,
+        retargetMode: poseJson.retarget_mode,
+        frameCount: poseJson.frame_count,
+        durationMs: poseJson.duration_ms,
+        bones: Object.keys(poseJson.bones || {}).length,
+      }, null, 2);
+      setStatus(`播放中 #${row.id}`);
+    }
+
+    async function init() {
+      state.vrmaPreview = new DirectVrmaPreview($('vrmaStage'));
+      state.poseMascot = new VrmMascot($('poseStage'), { cameraDistance: 3.1 });
+      await Promise.all([
+        state.vrmaPreview.loadModel(MODEL_URL),
+        state.poseMascot.load(MODEL_URL),
+        loadRows(),
+      ]);
+      $('itemSelect').addEventListener('change', loadSelected);
+      $('reloadButton').addEventListener('click', loadSelected);
+      await loadSelected();
+    }
+
+    init().catch((error) => {
+      console.error(error);
+      setStatus(`失敗：${error.message}`);
+      $('debug').textContent = error.stack || String(error);
+    });
+  </script>
+</body>
+</html>

@@ -7,6 +7,8 @@ from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 
+from vrma_pose_converter import convert_vrma_to_pose_json
+
 
 SOURCE_KINDS = {"youtube", "local_mp4", "image", "vrma", "pose_json"}
 ITEM_FIELDS = {
@@ -365,6 +367,29 @@ def _rel_path(base_dir, path):
         return target.as_posix()
 
 
+def _safe_file_stem(value):
+    stem = Path(str(value or "vrma")).stem
+    safe = "".join(char if char.isalnum() or char in "-_" else "_" for char in stem)
+    return (safe[:80] or "vrma").strip("._") or "vrma"
+
+
+def _resolve_local_asset(base_dir, path_value):
+    if not path_value:
+        raise ValueError("source file path is required")
+    base = Path(base_dir).resolve()
+    path = Path(str(path_value))
+    if not path.is_absolute():
+        path = base / path
+    resolved = path.resolve()
+    try:
+        resolved.relative_to(base)
+    except ValueError as exc:
+        raise ValueError("source file must be inside workspace") from exc
+    if not resolved.is_file():
+        raise ValueError(f"source file not found: {path_value}")
+    return resolved
+
+
 def _safe_json_metadata(path):
     try:
         data = json.loads(Path(path).read_text(encoding="utf-8"))
@@ -375,6 +400,57 @@ def _safe_json_metadata(path):
         frames_data = data.get("frames")
         frames = len(frames_data) if isinstance(frames_data, list) else 0
     return data, frames
+
+
+def convert_vrma_item_to_pose_json(db_path, base_dir, item_id):
+    item = get_item(db_path, item_id)
+    if not item:
+        return None
+    if item.get("source_kind") != "vrma":
+        raise ValueError("item is not a VRMA row")
+
+    update_item(
+        db_path,
+        item_id,
+        {
+            "status": 1,
+            "progress": 1,
+            "progress_log": "",
+            "process_start_datetime": _now(),
+            "process_end_datetime": None,
+            "process_ms": None,
+            "error_message": "",
+        },
+    )
+    try:
+        vrma_path = _resolve_local_asset(base_dir, item.get("vrma_path") or item.get("source_url"))
+        append_progress(db_path, item_id, "VRMA -> pose_json started", 15)
+        output_dir = Path(base_dir) / "local_assets" / "pose_db" / "vrma_converted"
+        output_path = output_dir / f"{int(item_id)}_{_safe_file_stem(vrma_path)}_pose.json"
+        pose = convert_vrma_to_pose_json(vrma_path, output_path)
+        rel_output = _rel_path(base_dir, output_path)
+        append_progress(db_path, item_id, f"pose_json written: {rel_output}", 95)
+        return finish_job(
+            db_path,
+            item_id,
+            ok=True,
+            frames=int(pose.get("frame_count") or 0),
+            duration_ms=int(pose.get("duration_ms") or 0),
+            fps=float(pose.get("fps") or 0),
+            pose_json_path=rel_output,
+            pose_json="",
+            metadata_json=json.dumps(
+                {
+                    "source": pose.get("source"),
+                    "retarget_mode": pose.get("retarget_mode"),
+                    "source_vrma": pose.get("metadata", {}).get("source_vrma"),
+                },
+                ensure_ascii=False,
+            ),
+        )
+    except Exception as exc:
+        finish_job(db_path, item_id, ok=False, error_message=str(exc))
+        raise
 
 
 def import_gvhmr_demo_outputs(db_path, base_dir, gvhmr_demo_root):

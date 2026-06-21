@@ -1901,6 +1901,19 @@ def pose_db_item_queue_vrma(item_id):
     return jsonify({"ok": True, "item": item})
 
 
+@app.route('/api/pose-db/items/<int:item_id>/convert-vrma-pose-json', methods=['POST'])
+def pose_db_item_convert_vrma_pose_json(item_id):
+    try:
+        item = pose_db.convert_vrma_item_to_pose_json(POSE_DB_PATH, BASE_DIR, item_id)
+        if not item:
+            return jsonify({"ok": False, "error": "item not found"}), 404
+        return jsonify({"ok": True, "item": item})
+    except ValueError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 500
+
+
 @app.route('/api/pose-db/import/demo', methods=['POST'])
 def pose_db_import_demo():
     result = pose_db.import_gvhmr_demo_outputs(

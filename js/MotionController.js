@@ -215,6 +215,27 @@ export function getPosePresetUrlForModel(modelUrl = '') {
   return MODEL_POSE_PRESET_URLS[key] || DEFAULT_POSE_PRESET_URL;
 }
 
+export function applyVrmaRestRotation(values, restRotation) {
+  if (!values || !restRotation || restRotation.length < 4) return values;
+  const out = new Float32Array(values.length);
+  const rx = restRotation[0] || 0;
+  const ry = restRotation[1] || 0;
+  const rz = restRotation[2] || 0;
+  const rw = restRotation[3] ?? 1;
+
+  for (let i = 0; i < values.length; i += 4) {
+    const x = values[i] || 0;
+    const y = values[i + 1] || 0;
+    const z = values[i + 2] || 0;
+    const w = values[i + 3] ?? 1;
+    out[i] = x * rw + w * rx + y * rz - z * ry;
+    out[i + 1] = y * rw + w * ry + z * rx - x * rz;
+    out[i + 2] = z * rw + w * rz + x * ry - y * rx;
+    out[i + 3] = w * rw - x * rx - y * ry - z * rz;
+  }
+  return out;
+}
+
 /** 平滑插值 */
 function lerp(a, b, t) {
   return a + (b - a) * Math.min(1, Math.max(0, t));
@@ -399,6 +420,11 @@ export class MotionController {
         const newTrackName = `${boneNode.name}.${prop}`;
         const trackConstructor = track.constructor;
         let values = track.values;
+
+        if (prop === 'quaternion') {
+          const restRotation = this.#vrm.humanoid.restPose?.[humanoidBoneName]?.rotation;
+          values = applyVrmaRestRotation(values, restRotation);
+        }
 
         // 處理 Hips 的 position 軌跡比例縮放與位移
         if (humanoidBoneName === 'hips' && prop === 'position') {
