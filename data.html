@@ -488,6 +488,24 @@
       return `<div class="status-card">${escapeHtml(item.source_kind || 'pose')}</div>`;
     }
 
+    function rowActionsHtml(item) {
+      const canPreview = Boolean(item.pose_json_path || item.source_kind === 'pose_json');
+      const buttons = [];
+      if (canPreview) {
+        buttons.push(`<a class="button primary" href="pose_demo.html?id=${item.id}">預覽</a>`);
+        buttons.push(`<button class="blue" data-action="queue" data-id="${item.id}">重驗 JSON</button>`);
+        buttons.push('<button type="button" disabled title="VRMA 輸出下一階段接">轉 VRMA</button>');
+      } else if (item.source_kind === 'vrma') {
+        buttons.push('<button type="button" disabled title="下一步接 VRMA -> Pose JSON">轉 Pose JSON</button>');
+      } else if (['youtube', 'local_mp4', 'image'].includes(item.source_kind)) {
+        buttons.push('<button type="button" disabled title="下一步接背景 GVHMR queue">排入 GVHMR</button>');
+      } else {
+        buttons.push('<button type="button" disabled>未支援</button>');
+      }
+      buttons.push(`<button class="bad" data-action="delete" data-id="${item.id}">刪除</button>`);
+      return buttons.join('');
+    }
+
     function renderItems() {
       const body = document.getElementById('itemsBody');
       if (!state.items.length) {
@@ -497,11 +515,6 @@
       body.innerHTML = state.items.map((item) => {
         const status = statusMap[item.status] || statusMap[0];
         const progress = Math.max(0, Math.min(100, Number(item.progress || 0)));
-        const demoHref = `pose_demo.html?id=${item.id}`;
-        const canPreview = Boolean(item.pose_json_path || item.source_kind === 'pose_json');
-        const previewAction = canPreview
-          ? `<a class="button primary" href="${demoHref}">預覽</a>`
-          : '<button type="button" disabled title="尚未轉成 Alicia pose JSON">未轉 JSON</button>';
         return `
           <tr>
             <td><input type="checkbox" value="${item.id}" aria-label="選取 ${escapeHtml(item.title)}"></td>
@@ -524,10 +537,7 @@
             <td>${escapeHtml(item.create_datetime || '')}</td>
             <td>
               <div class="actions">
-                ${previewAction}
-                <button class="blue" data-action="queue" data-id="${item.id}">重跑</button>
-                <button class="warn" data-action="queue-vrma" data-id="${item.id}">轉 VRMA</button>
-                <button class="bad" data-action="delete" data-id="${item.id}">刪除</button>
+                ${rowActionsHtml(item)}
               </div>
             </td>
           </tr>

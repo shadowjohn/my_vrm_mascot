@@ -386,31 +386,42 @@ def import_gvhmr_demo_outputs(db_path, base_dir, gvhmr_demo_root):
     for motion_path in sorted(root.glob("*/alicia_blender_bake_motion.json")):
         metadata, frames = _safe_json_metadata(motion_path)
         rel = _rel_path(base_dir, motion_path)
-        item = create_item(
-            db_path,
-            {
-                "kinds_id": kind["id"],
-                "title": motion_path.parent.name,
-                "source_kind": "pose_json",
-                "source_url": rel,
-                "purpose": "GVHMR baked motion",
-                "status": 2,
-                "progress": 100,
-                "frames": frames,
-                "pose_json_path": rel,
-                "preview_path": _rel_path(base_dir, motion_path.parent / "0_input_video.mp4")
-                if (motion_path.parent / "0_input_video.mp4").is_file()
-                else "",
-                "metadata_json": json.dumps(
-                    {
-                        "source": metadata.get("source"),
-                        "retargetMode": metadata.get("retargetMode"),
-                        "video": metadata.get("video"),
-                    },
-                    ensure_ascii=False,
-                ),
-            },
-        )
+        skeleton_path = motion_path.parent / "alicia_intermediate_landmarks.json"
+        video_path = motion_path.parent / "0_input_video.mp4"
+        hand_path = motion_path.parent / "mediapipe_hand_poses.json"
+        item_fields = {
+            "kinds_id": kind["id"],
+            "title": motion_path.parent.name,
+            "source_kind": "pose_json",
+            "source_url": rel,
+            "purpose": "GVHMR baked motion",
+            "status": 2,
+            "progress": 100,
+            "frames": frames,
+            "pose_json_path": rel,
+            "skeleton_json_path": _rel_path(base_dir, skeleton_path) if skeleton_path.is_file() else "",
+            "hand_pose_json_path": _rel_path(base_dir, hand_path) if hand_path.is_file() else "",
+            "preview_path": _rel_path(base_dir, video_path) if video_path.is_file() else "",
+            "metadata_json": json.dumps(
+                {
+                    "source": metadata.get("source"),
+                    "retargetMode": metadata.get("retargetMode"),
+                    "video": metadata.get("video"),
+                },
+                ensure_ascii=False,
+            ),
+        }
+        item = create_item(db_path, item_fields)
+        if item:
+            update_item(
+                db_path,
+                item["id"],
+                {
+                    key: value
+                    for key, value in item_fields.items()
+                    if key not in {"source_kind", "source_url"}
+                },
+            )
         imported += 1 if item else 0
     return {"imported": imported, "root": str(root)}
 
@@ -472,8 +483,16 @@ def _self_test():
             json.dumps({"frameCount": 3, "source": "test"}, ensure_ascii=False),
             encoding="utf-8",
         )
+        (demo_dir / "alicia_intermediate_landmarks.json").write_text(
+            json.dumps({"frames": []}, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        (demo_dir / "0_input_video.mp4").write_bytes(b"fake")
         import_result = import_gvhmr_demo_outputs(db_path, base, base / "outputs" / "demo")
         assert import_result["imported"] == 1
+        imported = list_items(db_path, {"q": "sample"})[0]
+        assert imported["skeleton_json_path"].endswith("alicia_intermediate_landmarks.json")
+        assert imported["preview_path"].endswith("0_input_video.mp4")
     print("pose_db self-test ok")
 
 
