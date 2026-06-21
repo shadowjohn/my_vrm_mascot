@@ -23,6 +23,11 @@ def quat_angle_degrees(quat):
     return math.degrees(2 * math.acos(abs(w)))
 
 
+def quat_from_degrees(degrees):
+    radians = math.radians(degrees)
+    return [math.sin(radians / 2), 0, 0, math.cos(radians / 2)]
+
+
 def minimal_landmarks(left_shoulder, right_shoulder):
     return {
         "hips": {"x": 0, "y": 1.0, "z": 0},
@@ -97,6 +102,47 @@ def main():
     assert animation["bones"]["leftUpperLeg"][0]["rot"] != animation["bones"]["rightUpperLeg"][0]["rot"]
     assert animation["ik"] == {"leftFoot": "locked", "rightFoot": "locked"}
 
+    high_knee_landmarks = {
+        "hips": {"x": 0, "y": 1.0, "z": 0},
+        "leftKnee": {"x": 0.1, "y": 1.08, "z": 0.45},
+    }
+    normal_leg_landmarks = {
+        "hips": {"x": 0, "y": 1.0, "z": 0},
+        "leftKnee": {"x": 0.1, "y": 0.55, "z": 0.1},
+    }
+    assert not module.should_use_base_leg_pose(
+        quat_from_degrees(70),
+        quat_from_degrees(125),
+        high_knee_landmarks,
+        "left",
+    )
+    assert module.should_use_direct_lifted_leg_pose(high_knee_landmarks, "left")
+    assert module.should_use_base_leg_pose(
+        quat_from_degrees(80),
+        quat_from_degrees(125),
+        normal_leg_landmarks,
+        "left",
+    )
+    assert module.should_use_base_leg_pose(
+        quat_from_degrees(91),
+        quat_from_degrees(55),
+        normal_leg_landmarks,
+        "left",
+    )
+    assert module.should_use_base_leg_pose(
+        quat_from_degrees(89),
+        quat_from_degrees(55),
+        normal_leg_landmarks,
+        "left",
+    )
+    assert module.should_use_base_leg_pose(
+        quat_from_degrees(81),
+        quat_from_degrees(43),
+        normal_leg_landmarks,
+        "right",
+    )
+    assert not module.should_use_direct_lifted_leg_pose(normal_leg_landmarks, "left")
+
     twist_payload = {
         "ok": True,
         "frames": [
@@ -150,6 +196,10 @@ def main():
     assert quat_angle_degrees(flat_foot_animation["bones"]["rightFoot"][0]["rot"]) < 8
     assert quat_angle_degrees(flat_foot_animation["bones"]["spine"][0]["rot"]) > 8
     assert quat_angle_degrees(flat_foot_animation["bones"]["hips"][0]["rot"]) < quat_angle_degrees(flat_foot_animation["bones"]["spine"][0]["rot"])
+    torso_quat = module.normalize_quat((0.2, 0.1, 0, 0.97))
+    damped_torso_quat = module.damp_torso_pitch_quat("spine", torso_quat)
+    assert abs(damped_torso_quat[0]) < abs(torso_quat[0])
+    assert module.damp_torso_pitch_quat("leftUpperLeg", torso_quat) == torso_quat
 
     toe_landmarks = module.clamp_toe_roll_landmarks({
         "leftFoot": {"x": 0, "y": 0.04, "z": 0.2},

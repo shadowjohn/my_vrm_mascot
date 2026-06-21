@@ -19,6 +19,15 @@ app = Flask(__name__, static_folder='.', static_url_path='')
 
 BASE_DIR = Path(__file__).resolve().parent
 SERVER_DIR = BASE_DIR
+
+
+def _env_int(name, default):
+    try:
+        return max(1, int(os.environ.get(name, str(default))))
+    except ValueError:
+        return default
+
+
 DEFAULT_MOTION_PROFILE_STORE_PATH = BASE_DIR / "examples" / "m6_7_vrma_samples" / "review" / "motion_profiles.json"
 DEFAULT_MOTION_MINING_LOG_STORE_PATH = BASE_DIR / "examples" / "m6_7_vrma_samples" / "review" / "mining_log.json"
 VRMA_SAMPLE_DIR = BASE_DIR / "examples" / "m6_7_vrma_samples"
@@ -28,7 +37,8 @@ YOUTUBE_CAPTURE_TIMEOUT_SEC = 180
 VIDEO_SKELETON_DEFAULT_FPS = 8
 VIDEO_SKELETON_MAX_FRAMES = 240
 MOTIONBERT_TIMEOUT_SEC = 240
-GVHMR_TIMEOUT_SEC = 600
+# ponytail: GVHMR runtime varies wildly by GPU/video; env knob beats a new settings UI.
+GVHMR_TIMEOUT_SEC = _env_int("GVHMR_TIMEOUT_SEC", 1800)
 MOTIONBERT_DEFAULT_CONFIG = "configs/pose3d/MB_ft_h36m_global_lite.yaml"
 MOTIONBERT_DEFAULT_CHECKPOINT = "checkpoint/pose3d/FT_MB_lite_MB_ft_h36m_global_lite/best_epoch.bin"
 MOTION_PROFILE_CATEGORIES = {
@@ -849,6 +859,47 @@ def _run_alicia_blender_bake(input_json, output_json):
         raise RuntimeError(f"Blender Alicia bake failed: {detail[-1200:]}")
 
 
+def _write_alicia_demo_motion_artifacts(video_path, world_motion):
+    output_dir = _gvhmr_demo_output_dir_for_video(video_path)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    skeleton_path = output_dir / "alicia_intermediate_landmarks.json"
+    motion_path = output_dir / "alicia_blender_bake_motion.json"
+    demo_video_path = output_dir / "0_input_video.mp4"
+    if not demo_video_path.is_file():
+        shutil.copy2(video_path, demo_video_path)
+    skeleton_path.write_text(json.dumps(world_motion, ensure_ascii=False, indent=2), encoding="utf-8", newline="\n")
+    _run_alicia_blender_bake(skeleton_path, motion_path)
+    return {
+        "outputDir": output_dir,
+        "videoPath": demo_video_path,
+        "skeletonPath": skeleton_path,
+        "motionPath": motion_path,
+    }
+
+
+def _list_gvhmr_demo_motions():
+    demo_root = _gvhmr_root_dir() / "outputs" / "demo"
+    if not demo_root.is_dir():
+        return []
+    motions = []
+    for item in demo_root.iterdir():
+        if not item.is_dir():
+            continue
+        motion_path = item / "alicia_blender_bake_motion.json"
+        skeleton_path = item / "alicia_intermediate_landmarks.json"
+        video_path = item / "0_input_video.mp4"
+        if not motion_path.is_file() or not skeleton_path.is_file() or not video_path.is_file():
+            continue
+        motions.append({
+            "label": f"{item.name} / Blender IK + SMPL toe",
+            "url": _local_file_url(motion_path),
+            "skeletonUrl": _local_file_url(skeleton_path),
+            "videoUrl": _local_file_url(video_path),
+            "updatedAt": datetime.fromtimestamp(motion_path.stat().st_mtime).astimezone().isoformat(timespec="seconds"),
+        })
+    return sorted(motions, key=lambda item: item["updatedAt"], reverse=True)
+
+
 def _filter_world_motion_capture_range(payload, start_ms=0, end_ms=None):
     if not isinstance(payload, dict):
         return payload
@@ -1649,6 +1700,10 @@ def capture_video_world_motion():
         step_started_at = time.time()
         world_motion = _filter_world_motion_capture_range(world_motion, start_ms, end_ms)
         finish_step("套用擷取範圍", step_started_at)
+
+        step_started_at = time.time()
+        demo_artifacts = _write_alicia_demo_motion_artifacts(video_path, world_motion)
+        finish_step("Blender IK bake Alicia demo motion", step_started_at)
     except ValueError as exc:
         return jsonify({"ok": False, "error": str(exc), "steps": steps}), 400
     except FileNotFoundError as exc:
@@ -1662,8 +1717,19 @@ def capture_video_world_motion():
         "reason": world_motion.get("reason") if isinstance(world_motion, dict) else "invalid_world_motion",
         "assetStatus": asset_status,
         "worldMotion": world_motion,
+        "motionUrl": _local_file_url(demo_artifacts["motionPath"]),
+        "skeletonUrl": _local_file_url(demo_artifacts["skeletonPath"]),
+        "videoUrl": _local_file_url(demo_artifacts["videoPath"]),
         "runtimeMs": round((time.time() - started_at) * 1000),
         "steps": steps,
+    })
+
+
+@app.route('/api/gvhmr/demo-motions', methods=['GET'])
+def gvhmr_demo_motions():
+    return jsonify({
+        "ok": True,
+        "motions": _list_gvhmr_demo_motions(),
     })
 
 

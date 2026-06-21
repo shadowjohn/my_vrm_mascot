@@ -23,6 +23,10 @@ def create_local_capture(tmp_base, filename="yt_world001.mp4"):
     return video_path
 
 
+def fake_alicia_bake(input_json, output_json):
+    Path(output_json).write_text('{"ok": true, "source": "gvhmr_blender_bake", "bones": {}}', encoding="utf-8")
+
+
 def test_video_world_motion_api_reports_missing_assets_before_runner():
     with TemporaryDirectory() as tmp_dir:
         tmp_base = Path(tmp_dir)
@@ -65,6 +69,7 @@ def test_video_world_motion_api_returns_world_motion_payload_when_ready():
         module = load_server_module()
         module.BASE_DIR = tmp_base
         module._run_gvhmr_asset_check = lambda: {"ok": True, "missing": []}
+        module._run_alicia_blender_bake = fake_alicia_bake
 
         def fake_runner(path, static_camera=True):
             assert path == video_path
@@ -93,6 +98,9 @@ def test_video_world_motion_api_returns_world_motion_payload_when_ready():
         assert body["worldMotion"]["source"] == "gvhmr"
         assert body["worldMotion"]["frames"][0]["bodyYawDegrees"] == -82.5
         assert body["assetStatus"]["ok"] is True
+        assert body["motionUrl"].endswith("/alicia_blender_bake_motion.json")
+        assert (tmp_base / body["motionUrl"]).is_file()
+        assert (tmp_base / body["skeletonUrl"]).is_file()
 
 
 def test_video_world_motion_api_filters_frames_to_capture_range():
@@ -102,6 +110,7 @@ def test_video_world_motion_api_filters_frames_to_capture_range():
         module = load_server_module()
         module.BASE_DIR = tmp_base
         module._run_gvhmr_asset_check = lambda: {"ok": True, "missing": []}
+        module._run_alicia_blender_bake = fake_alicia_bake
 
         def fake_runner(path, static_camera=True):
             assert path == video_path
@@ -133,6 +142,7 @@ def test_video_world_motion_api_filters_frames_to_capture_range():
         assert body["worldMotion"]["metadata"]["captureRange"]["startMs"] == 1000
         assert body["worldMotion"]["metadata"]["captureRange"]["endMs"] == 2500
         assert body["worldMotion"]["metadata"]["captureRange"]["filteredFrameCount"] == 2
+        assert body["motionUrl"].endswith("/alicia_blender_bake_motion.json")
 
 
 def test_video_world_motion_api_rejects_non_local_video_paths():
@@ -144,6 +154,26 @@ def test_video_world_motion_api_rejects_non_local_video_paths():
     })
     assert response.status_code == 400
     assert "local video" in response.get_json()["error"]
+
+
+def test_gvhmr_demo_motions_api_lists_baked_outputs():
+    with TemporaryDirectory() as tmp_dir:
+        tmp_base = Path(tmp_dir)
+        demo_dir = tmp_base / "conda_vm" / "gvhmr" / "GVHMR" / "outputs" / "demo" / "sample001"
+        demo_dir.mkdir(parents=True)
+        (demo_dir / "0_input_video.mp4").write_bytes(b"video")
+        (demo_dir / "alicia_intermediate_landmarks.json").write_text('{"frames":[]}', encoding="utf-8")
+        (demo_dir / "alicia_blender_bake_motion.json").write_text('{"bones":{}}', encoding="utf-8")
+
+        module = load_server_module()
+        module.BASE_DIR = tmp_base
+        client = module.app.test_client()
+
+        response = client.get("/api/gvhmr/demo-motions")
+        assert response.status_code == 200
+        body = response.get_json()
+        assert body["ok"] is True
+        assert body["motions"][0]["url"] == "conda_vm/gvhmr/GVHMR/outputs/demo/sample001/alicia_blender_bake_motion.json"
 
 
 def test_gvhmr_runtime_is_desktop_friendly_by_default():
@@ -174,11 +204,30 @@ def test_gvhmr_runtime_is_desktop_friendly_by_default():
                 os.environ[key] = value
 
 
+def test_gvhmr_timeout_is_long_and_overridable():
+    old_value = os.environ.get("GVHMR_TIMEOUT_SEC")
+    try:
+        os.environ.pop("GVHMR_TIMEOUT_SEC", None)
+        module = load_server_module()
+        assert module.GVHMR_TIMEOUT_SEC == 1800
+
+        os.environ["GVHMR_TIMEOUT_SEC"] = "42"
+        module = load_server_module()
+        assert module.GVHMR_TIMEOUT_SEC == 42
+    finally:
+        if old_value is None:
+            os.environ.pop("GVHMR_TIMEOUT_SEC", None)
+        else:
+            os.environ["GVHMR_TIMEOUT_SEC"] = old_value
+
+
 if __name__ == "__main__":
     print("Running test_video_world_motion_api.py...")
     test_video_world_motion_api_reports_missing_assets_before_runner()
     test_video_world_motion_api_returns_world_motion_payload_when_ready()
     test_video_world_motion_api_filters_frames_to_capture_range()
     test_video_world_motion_api_rejects_non_local_video_paths()
+    test_gvhmr_demo_motions_api_lists_baked_outputs()
     test_gvhmr_runtime_is_desktop_friendly_by_default()
+    test_gvhmr_timeout_is_long_and_overridable()
     print("test_video_world_motion_api: ok")

@@ -180,6 +180,7 @@
 
     pre {
       white-space: pre-wrap;
+      overflow-wrap: anywhere;
       color: var(--muted);
       font-size: 12px;
       line-height: 1.45;
@@ -325,6 +326,28 @@
 
     function setStatus(text) {
       $('status').textContent = text;
+    }
+
+    function escapeHtml(value) {
+      return String(value || '').replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[char]);
+    }
+
+    async function loadMotionExamples() {
+      try {
+        const body = await fetch('api/gvhmr/demo-motions').then((response) => response.json());
+        if (body.ok && Array.isArray(body.motions) && body.motions.length) {
+          return body.motions;
+        }
+      } catch (error) {
+        console.warn(error);
+      }
+      return MOTION_EXAMPLES;
     }
 
     function skeletonUrlFor(url) {
@@ -537,8 +560,9 @@
     }
 
     async function init() {
-      $('motionSelect').innerHTML = MOTION_EXAMPLES
-        .map((item) => `<option value="${item.url}">${item.label}</option>`)
+      const examples = await loadMotionExamples();
+      $('motionSelect').innerHTML = examples
+        .map((item) => `<option value="${escapeHtml(item.url)}">${escapeHtml(item.label)}</option>`)
         .join('');
       $('motionSelect').addEventListener('change', () => loadMotion($('motionSelect').value));
       $('skeletonToggle').addEventListener('change', async () => {
@@ -569,7 +593,7 @@
 
       state.mascot = new VrmMascot($('stage'), { cameraDistance: 3.2 });
       await state.mascot.load(MODEL_URL);
-      await loadMotion(MOTION_EXAMPLES[0].url);
+      await loadMotion(examples[0].url);
       requestAnimationFrame(tick);
     }
 

@@ -15,6 +15,8 @@ assert.match(html, /id="skeletonCanvas"/);
 assert.match(html, /id="sourceVideoOverlay"/);
 assert.match(html, /id="sourceVideo"/);
 assert.match(html, /const MOTION_EXAMPLES = \[/);
+assert.match(html, /api\/gvhmr\/demo-motions/);
+assert.match(html, /loadMotionExamples/);
 assert.match(html, /motionSelect'\)\.addEventListener\('change'/);
 assert.match(html, /drawGvhmrSkeleton/);
 assert.match(html, /skeletonUrlFor/);

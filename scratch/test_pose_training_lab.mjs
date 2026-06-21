@@ -125,6 +125,8 @@ assert.match(html, /option\.textContent = `\$\{index \+ 1\}\. \$\{item\.label\} 
 assert.match(html, /class="bone-offset-slider"[\s\S]*?min="-180" max="180"/);
 assert.match(html, /trainingBoneSelect'\)\.addEventListener\('change', renderBoneOffsetSliders/);
 assert.match(html, /btnTrainingInferCalibration'\)\.addEventListener\('click', applyInferredCalibration/);
+assert.match(html, /#gvhmrProgressBar[\s\S]*?background:\s*linear-gradient\(90deg,\s*var\(--accent\),\s*var\(--accent-2\)\)/);
+assert.doesNotMatch(html, /var\(--warn\)/);
 
 assert.doesNotMatch(html, /姿勢資料庫/);
 assert.doesNotMatch(html, /Motion Quality Tuner/);

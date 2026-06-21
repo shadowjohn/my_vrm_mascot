@@ -124,6 +124,12 @@ FOOT_CONTACT_THRESHOLD = 0.06
 FOOT_ROLL_LIMIT = 0.04
 TOE_FORWARD_MIN_REACH = 0.035
 SMOOTH_BONES = {"leftLowerLeg", "leftFoot", "rightLowerLeg", "rightFoot"}
+LEG_LOWER_FALLBACK_LIMIT_DEGREES = 75
+LEG_UPPER_FALLBACK_LIMIT_DEGREES = 100
+HIGH_KNEE_UPPER_FALLBACK_LIMIT_DEGREES = 155
+HIGH_KNEE_MIN_RISE = 0.02
+TORSO_PITCH_BONES = {"spine", "chest"}
+TORSO_PITCH_SCALE = 0.55
 
 TOE_PROXY_SCALE = 0.55
 
@@ -385,9 +391,42 @@ def normalize_quat(q):
     return tuple(round(float(v) / size, 6) for v in q)
 
 
+def damp_torso_pitch_quat(bone_name, quat):
+    if bone_name not in TORSO_PITCH_BONES:
+        return quat
+    # Alicia 的身形會放大 SMPL/GVHMR 的軀幹後仰感，壓低 X pitch 避免走路挺肚子。
+    return normalize_quat((quat[0] * TORSO_PITCH_SCALE, quat[1], quat[2], quat[3]))
+
+
 def quat_angle_degrees(q):
     w = max(-1.0, min(1.0, float(q[3])))
     return math.degrees(2 * math.acos(abs(w)))
+
+
+def is_high_knee_pose(landmarks, side):
+    if not has_point(landmarks, "hips") or not has_point(landmarks, f"{side}Knee"):
+        return False
+    hips = point(landmarks, "hips")
+    knee = point(landmarks, f"{side}Knee")
+    return knee[1] >= hips[1] + HIGH_KNEE_MIN_RISE
+
+
+def should_use_base_leg_pose(lower_quat, upper_quat, landmarks, side):
+    if not lower_quat or not upper_quat:
+        return True
+    upper_limit = (
+        HIGH_KNEE_UPPER_FALLBACK_LIMIT_DEGREES
+        if is_high_knee_pose(landmarks, side)
+        else LEG_UPPER_FALLBACK_LIMIT_DEGREES
+    )
+    return (
+        quat_angle_degrees(lower_quat) > LEG_LOWER_FALLBACK_LIMIT_DEGREES
+        or quat_angle_degrees(upper_quat) > upper_limit
+    )
+
+
+def should_use_direct_lifted_leg_pose(landmarks, side):
+    return is_high_knee_pose(landmarks, side)
 
 
 def estimate_source_forward_xz(landmarks):
@@ -511,8 +550,11 @@ def bone_quat(landmarks, bone_name, rest_dirs, parent_world_quat=None):
         current_forward = project_on_plane(rotate_vec(base_quat, rest_forward), target)
         desired_forward = project_on_plane(desired_forward, target)
         if length(current_forward) > 0.000001 and length(desired_forward) > 0.000001:
-            return normalize_quat(quat_mul(quat_between(current_forward, desired_forward), base_quat))
-    return normalize_quat(base_quat)
+            return damp_torso_pitch_quat(
+                bone_name,
+                normalize_quat(quat_mul(quat_between(current_forward, desired_forward), base_quat)),
+            )
+    return damp_torso_pitch_quat(bone_name, normalize_quat(base_quat))
 
 
 def build_blender_space_mapper(frames, armature):
@@ -674,14 +716,10 @@ def build_animation_with_blender_ik(payload, fps, armature, facing_alignment):
             }
             lower = candidate.get(f"{side}LowerLeg")
             upper = candidate.get(f"{side}UpperLeg")
-            use_base = (
-                not lower
-                or not upper
-                or quat_angle_degrees(lower) > 95
-                or quat_angle_degrees(upper) > 100
-            )
+            use_direct_lifted_leg = should_use_direct_lifted_leg_pose(landmarks, side)
+            use_base = should_use_base_leg_pose(lower, upper, landmarks, side)
             for bone_name in side_bones:
-                if use_base:
+                if use_direct_lifted_leg or use_base:
                     bones[bone_name].append(dict(base_animation["bones"][bone_name][index]))
                 elif candidate.get(bone_name):
                     bones[bone_name].append({"time_ms": time_ms, "rot": list(candidate[bone_name])})
