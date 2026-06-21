@@ -491,12 +491,14 @@
     function rowActionsHtml(item) {
       const canPreview = Boolean(item.pose_json_path || item.source_kind === 'pose_json');
       const buttons = [];
-      if (canPreview) {
+      if (item.source_kind === 'vrma') {
+        if (canPreview) buttons.push(`<a class="button primary" href="pose_demo.html?id=${item.id}">預覽</a>`);
+        buttons.push(`<button class="blue" data-action="convert-vrma-pose-json" data-id="${item.id}">${canPreview ? '重驗 JSON' : '轉 Pose JSON'}</button>`);
+        if (canPreview) buttons.push('<button type="button" disabled title="VRMA 輸出下一階段接">轉 VRMA</button>');
+      } else if (canPreview) {
         buttons.push(`<a class="button primary" href="pose_demo.html?id=${item.id}">預覽</a>`);
         buttons.push(`<button class="blue" data-action="queue" data-id="${item.id}">重驗 JSON</button>`);
         buttons.push('<button type="button" disabled title="VRMA 輸出下一階段接">轉 VRMA</button>');
-      } else if (item.source_kind === 'vrma') {
-        buttons.push(`<button class="blue" data-action="convert-vrma-pose-json" data-id="${item.id}">轉 Pose JSON</button>`);
       } else if (['youtube', 'local_mp4', 'image'].includes(item.source_kind)) {
         buttons.push('<button type="button" disabled title="下一步接背景 GVHMR queue">排入 GVHMR</button>');
       } else {
@@ -630,7 +632,7 @@
       const labels = {
         delete: '刪除素材',
         queue: '重驗 JSON',
-        'convert-vrma-pose-json': '轉 Pose JSON',
+        'convert-vrma-pose-json': '重轉 Pose JSON',
       };
       if (action === 'delete' && !confirm('確定刪除這筆素材？')) return;
       runAction(labels[action] || action, async () => {
