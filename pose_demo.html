@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Alicia Pose Demo</title>
+  <style>
+    body {
+      margin: 0;
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      background: #07110d;
+      color: #edf7ef;
+      font-family: "Segoe UI", "Noto Sans TC", sans-serif;
+    }
+
+    a {
+      color: #92e68e;
+    }
+  </style>
+</head>
+<body>
+  <p id="message">正在開啟 Alicia Pose Demo...</p>
+  <script>
+    const id = new URLSearchParams(location.search).get('id');
+    const message = document.getElementById('message');
+    if (!id) {
+      message.innerHTML = '缺少 id，請從 <a href="data.html">Pose Library</a> 開啟。';
+    } else {
+      location.replace(`demo.html?poseId=${encodeURIComponent(id)}`);
+    }
+  </script>
+</body>
+</html>

@@ -229,7 +229,7 @@
       </section>
     </section>
     <aside>
-      <div class="row">
+      <div class="row" id="exampleRow">
         <label for="motionSelect">範例</label>
         <select id="motionSelect"></select>
       </div>
@@ -292,8 +292,11 @@
     ];
 
     const $ = (id) => document.getElementById(id);
+    const POSE_ID = new URLSearchParams(location.search).get('poseId');
     const state = {
       playing: true,
+      examples: [],
+      currentExample: null,
       motion: null,
       skeleton: null,
       skeletonUrl: '',
@@ -352,11 +355,37 @@
       return MOTION_EXAMPLES;
     }
 
+    async function loadPoseDbExample(id) {
+      const body = await fetch(`api/pose-db/items/${encodeURIComponent(id)}`, { cache: 'no-store' }).then((response) => response.json());
+      if (!body.ok || !body.item) {
+        throw new Error(body.error || `Pose item ${id} not found`);
+      }
+      const item = body.item;
+      const url = item.pose_json_path || item.source_url;
+      if (!url) {
+        throw new Error(`Pose item ${id} has no pose_json_path`);
+      }
+      return {
+        label: `#${item.id} ${item.title}`,
+        url,
+        skeletonUrl: item.skeleton_json_path || '',
+        videoUrl: item.preview_path || '',
+        item,
+      };
+    }
+
+    function selectedExampleFor(url) {
+      return state.examples.find((item) => item.url === url) || { url };
+    }
+
     function skeletonUrlFor(url) {
+      if (state.currentExample?.skeletonUrl) return state.currentExample.skeletonUrl;
       return url.replace('alicia_blender_bake_motion.json', 'alicia_intermediate_landmarks.json');
     }
 
     function videoUrlFor(url) {
+      if (state.currentExample?.videoUrl) return state.currentExample.videoUrl;
+      if (state.motion?.video) return state.motion.video;
       return url.replace('alicia_blender_bake_motion.json', '0_input_video.mp4');
     }
 
@@ -566,7 +595,8 @@
       }
     }
 
-    async function loadMotion(url) {
+    async function loadMotion(url, example = null) {
+      state.currentExample = example || selectedExampleFor(url);
       setStatus('載入 motion...');
       $('sourcePath').textContent = url;
       state.motion = await fetch(url, { cache: 'no-store' }).then((response) => response.json());
@@ -584,11 +614,17 @@
     }
 
     async function init() {
-      const examples = await loadMotionExamples();
+      const examples = POSE_ID ? [await loadPoseDbExample(POSE_ID)] : await loadMotionExamples();
+      state.examples = examples;
+      if (POSE_ID) {
+        document.title = `Alicia Pose Demo #${POSE_ID}`;
+        document.querySelector('h1').textContent = `Alicia Pose Demo #${POSE_ID}`;
+        $('exampleRow').style.display = 'none';
+      }
       $('motionSelect').innerHTML = examples
         .map((item) => `<option value="${escapeHtml(item.url)}">${escapeHtml(item.label)}</option>`)
         .join('');
-      $('motionSelect').addEventListener('change', () => loadMotion($('motionSelect').value));
+      $('motionSelect').addEventListener('change', () => loadMotion($('motionSelect').value, selectedExampleFor($('motionSelect').value)));
       $('skeletonToggle').addEventListener('change', async () => {
         $('previewArea').classList.toggle('show-skeleton', $('skeletonToggle').checked);
         await loadSkeletonFor($('motionSelect').value);
@@ -617,7 +653,7 @@
 
       state.mascot = new VrmMascot($('stage'), { cameraDistance: 3.2 });
       await state.mascot.load(MODEL_URL);
-      await loadMotion(examples[0].url);
+      await loadMotion(examples[0].url, examples[0]);
       requestAnimationFrame(tick);
     }
 
