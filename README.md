@@ -38,11 +38,20 @@ http://127.0.0.1:8765/mascot_runtime.html
 http://127.0.0.1:8765/motion_template_lab.html
 ```
 
+開啟 Pose Library DB：
+
+```text
+http://127.0.0.1:8765/data.html
+```
+
 ## 目錄結構
 
 ```
 ./
   index.html                  # Workbench 正式入口 / Alicia Motion Studio
+  data.html                   # Pose Library DB 素材管理台
+  pose_demo.html              # pose_demo.html?id=xxx DB 姿勢展示入口
+  db.sqlite                   # 本機 SQLite 姿勢素材庫，首次使用自動建立
   mascot_runtime.html         # 原 Agent Runtime + VRM 主展示頁
   portal.html                 # Workbench 相容入口
   run_server.bat              # 啟動本機 server.py
@@ -64,6 +73,33 @@ http://127.0.0.1:8765/motion_template_lab.html
   models/                     # VRM 模型
   motions/                    # Phase 2 用：VRMA / FBX 動畫檔
 ```
+
+## Pose Library DB (M20.7)
+
+`data.html` 是本機姿勢素材庫管理台，集中管理 GVHMR baked motion、VRMA、圖片、影片與 pose JSON。
+
+主要入口：
+
+```text
+http://127.0.0.1:8765/data.html
+```
+
+單筆展示：
+
+```text
+http://127.0.0.1:8765/pose_demo.html?id=1
+```
+
+`db.sqlite` 使用 SQLite，自動建立於專案根目錄。大型影片、VRMA、縮圖與 motion JSON 仍保留為檔案，DB 只保存 metadata 與路徑。
+
+狀態碼：
+
+```text
+status      0 待處理 / 1 轉檔中 / 2 已轉檔 / 3 轉檔失敗
+status_vrma 0 不處理 / 1 待轉 / 2 轉檔中 / 3 完成 / 4 失敗
+```
+
+目前 M20.7 worker 只自動驗證既有 `pose_json` / `vrma` 登錄；GVHMR、圖片轉姿勢與手型偵測仍透過既有 Lab 頁面生成，再匯入 Pose Library。
 
 ## API
 

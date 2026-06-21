@@ -1,5 +1,13 @@
 # My VRM Mascot — 開發歷程
 
+## 2026-06-21
+
+- 新增 M20.7 Pose Library DB 設計與實作計畫，將 YouTube / local mp4 / image / VRMA / pose JSON 素材收斂到本機 SQLite 管理層。
+- 新增 `pose_db.py`，提供 `db.sqlite` schema init、分類 CRUD、素材 CRUD、queue claim、progress log、GVHMR demo 匯入與 VRMA sample 匯入；自測可建立 temp DB、claim job 並完成匯入驗證。
+- `server.py` 新增 `/api/pose-db/*` API、GVHMR demo / VRMA 匯入端點，以及安全版背景 worker；目前 worker 僅驗證既有 `pose_json` / `vrma`，避免一啟動 server 就跑重型 GVHMR。
+- 新增 `data.html` Pose Library 管理台，可建立分類、建立素材、搜尋篩選、匯入既有 GVHMR demo 與 172 筆 VRMA samples，並從列表開啟單筆預覽。
+- 新增 `pose_demo.html?id=...` 入口，並讓 `demo.html?poseId=...` 支援 DB item 模式，隱藏原本範例下拉，沿用既有 Alicia GVHMR JSON 播放器避免雙份 3D runtime 分叉。
+
 ## 2026-06-18
 
 - 新增 M20.4 World-Grounded Orientation Adapter 設計規格：
