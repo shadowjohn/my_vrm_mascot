@@ -13,12 +13,15 @@ from pathlib import Path
 from urllib.parse import urlparse, urlunparse
 from flask import Flask, request, jsonify, send_from_directory
 
+import pose_db
+
 mimetypes.add_type('text/html', '.php')
 
 app = Flask(__name__, static_folder='.', static_url_path='')
 
 BASE_DIR = Path(__file__).resolve().parent
 SERVER_DIR = BASE_DIR
+POSE_DB_PATH = BASE_DIR / "db.sqlite"
 
 
 @app.after_request
@@ -1808,6 +1811,112 @@ def vrma_samples():
         "localBase": "local_assets/vrma",
         "samples": _list_vrma_samples(),
     })
+
+
+def _pose_db_payload():
+    data = request.get_json(silent=True) or {}
+    if not isinstance(data, dict):
+        raise ValueError("payload 必須是 JSON 物件")
+    return data
+
+
+@app.route('/api/pose-db/kinds', methods=['GET', 'POST'])
+def pose_db_kinds():
+    try:
+        if request.method == 'GET':
+            return jsonify({"ok": True, "kinds": pose_db.list_kinds(POSE_DB_PATH)})
+        data = _pose_db_payload()
+        kind = pose_db.create_kind(
+            POSE_DB_PATH,
+            data.get("name"),
+            data.get("character") or data.get("charactor") or "alicia",
+        )
+        return jsonify({"ok": True, "kind": kind})
+    except ValueError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+
+
+@app.route('/api/pose-db/kinds/<int:kind_id>', methods=['PATCH'])
+def pose_db_kind(kind_id):
+    try:
+        kind = pose_db.update_kind(POSE_DB_PATH, kind_id, _pose_db_payload())
+        if not kind:
+            return jsonify({"ok": False, "error": "kind not found"}), 404
+        return jsonify({"ok": True, "kind": kind})
+    except ValueError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+
+
+@app.route('/api/pose-db/items', methods=['GET', 'POST'])
+def pose_db_items():
+    try:
+        if request.method == 'GET':
+            items = pose_db.list_items(
+                POSE_DB_PATH,
+                {
+                    "kinds_id": request.args.get("kinds_id"),
+                    "status": request.args.get("status"),
+                    "source_kind": request.args.get("source_kind"),
+                    "q": request.args.get("q"),
+                },
+            )
+            return jsonify({"ok": True, "items": items})
+        item = pose_db.create_item(POSE_DB_PATH, _pose_db_payload())
+        return jsonify({"ok": True, "item": item})
+    except ValueError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+
+
+@app.route('/api/pose-db/items/<int:item_id>', methods=['GET', 'PATCH', 'DELETE'])
+def pose_db_item(item_id):
+    try:
+        if request.method == 'GET':
+            item = pose_db.get_item(POSE_DB_PATH, item_id)
+        elif request.method == 'DELETE':
+            item = pose_db.soft_delete_item(POSE_DB_PATH, item_id)
+        else:
+            item = pose_db.update_item(POSE_DB_PATH, item_id, _pose_db_payload())
+        if not item:
+            return jsonify({"ok": False, "error": "item not found"}), 404
+        return jsonify({"ok": True, "item": item})
+    except ValueError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+
+
+@app.route('/api/pose-db/items/<int:item_id>/queue', methods=['POST'])
+def pose_db_item_queue(item_id):
+    item = pose_db.queue_item(POSE_DB_PATH, item_id)
+    if not item:
+        return jsonify({"ok": False, "error": "item not found"}), 404
+    return jsonify({"ok": True, "item": item})
+
+
+@app.route('/api/pose-db/items/<int:item_id>/queue-vrma', methods=['POST'])
+def pose_db_item_queue_vrma(item_id):
+    item = pose_db.queue_vrma(POSE_DB_PATH, item_id)
+    if not item:
+        return jsonify({"ok": False, "error": "item not found"}), 404
+    return jsonify({"ok": True, "item": item})
+
+
+@app.route('/api/pose-db/import/demo', methods=['POST'])
+def pose_db_import_demo():
+    result = pose_db.import_gvhmr_demo_outputs(
+        POSE_DB_PATH,
+        BASE_DIR,
+        _gvhmr_root_dir() / "outputs" / "demo",
+    )
+    return jsonify({"ok": True, "result": result})
+
+
+@app.route('/api/pose-db/import/vrma', methods=['POST'])
+def pose_db_import_vrma():
+    result = pose_db.import_vrma_samples(
+        POSE_DB_PATH,
+        BASE_DIR,
+        [VRMA_SAMPLE_DIR, LOCAL_VRMA_SAMPLE_DIR],
+    )
+    return jsonify({"ok": True, "result": result})
 
 
 @app.route('/api/motion-profiles', methods=['GET', 'POST'])
