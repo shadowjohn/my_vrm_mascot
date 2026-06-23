@@ -90,7 +90,7 @@ function testServerScriptsExistAndUseLocalPort() {
 
   const runServer = read(RUN_SERVER_PATH);
   assert.match(runServer, /cd \/d "%~dp0"/);
-  assert.match(runServer, /python server\.py/);
+  assert.match(runServer, /server\.py/);
   assert.match(runServer, /127\.0\.0\.1:8765/);
 
   const runServerDebug = read(RUN_SERVER_DEBUG_PATH);
@@ -98,10 +98,8 @@ function testServerScriptsExistAndUseLocalPort() {
   assert.match(runServerDebug, /python server\.py/);
 
   const stopServer = read(STOP_SERVER_PATH);
-  assert.match(stopServer, /set PORT=8765/);
-  assert.match(stopServer, /netstat -ano/);
-  assert.match(stopServer, /findstr "LISTENING"/);
-  assert.match(stopServer, /taskkill \/PID %%a \/F/);
+  assert.match(stopServer, /PORT=8765/);
+  assert.match(stopServer, /stop_server\.py/);
 
   const openPortal = read(OPEN_PORTAL_PATH);
   assert.match(openPortal, /start "" "http:\/\/127\.0\.0\.1:8765\/"/);

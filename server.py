@@ -254,7 +254,7 @@ def _download_youtube_capture(url):
     output_template = str(capture_dir / "%(id)s.%(ext)s")
     started_at = time.time()
 
-    command = [
+    base_args = [
         sys.executable,
         "-m",
         "yt_dlp",
@@ -275,28 +275,73 @@ def _download_youtube_capture(url):
         "after_move:%(filepath)s",
         "-o",
         output_template,
-        normalized_url,
     ]
 
-    try:
-        result = subprocess.run(
-            command,
-            cwd=str(BASE_DIR),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=YOUTUBE_CAPTURE_TIMEOUT_SEC,
-        )
-    except subprocess.TimeoutExpired as exc:
-        raise RuntimeError(f"YouTube 下載逾時，請稍後重試或改用較短影片。({YOUTUBE_CAPTURE_TIMEOUT_SEC}s)") from exc
+    # 優先檢查手動導出的 cookies.txt
+    cookies_path = BASE_DIR / "cookies.txt"
+    if not cookies_path.is_file():
+        cookies_path = BASE_DIR / "local_assets" / "cookies.txt"
 
+    def run_ytdlp(extra_args):
+        command = base_args + extra_args + [normalized_url]
+        try:
+            return subprocess.run(
+                command,
+                cwd=str(BASE_DIR),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=YOUTUBE_CAPTURE_TIMEOUT_SEC,
+            )
+        except subprocess.TimeoutExpired as exc:
+            raise RuntimeError(f"YouTube 下載逾時，請稍後重試。({YOUTUBE_CAPTURE_TIMEOUT_SEC}s)") from exc
+
+    # 第一步：如果有 cookies.txt 則優先使用；否則先不使用 cookies 下載（避開瀏覽器鎖定問題）
+    if cookies_path.is_file():
+        result = run_ytdlp(["--cookies", str(cookies_path)])
+    else:
+        result = run_ytdlp([])
+
+    # 第二步：如果下載失敗
     if result.returncode != 0:
         stderr = (result.stderr or "").strip()
-        if "No module named yt_dlp" in stderr or "yt_dlp" in stderr and "No module named" in stderr:
-            raise RuntimeError("找不到 yt-dlp，請先執行 pip install -r requirements.txt")
-        raise RuntimeError(stderr[-800:] or "YouTube 下載失敗")
+        
+        # 判斷是否為年齡限制影片
+        is_age_restricted = any(kw in stderr.lower() for kw in ["confirm your age", "inappropriate for some users", "sign in"])
+        
+        if is_age_restricted and not cookies_path.is_file():
+            # 偵測本機 Chrome 是否存在
+            chrome_cookies_exist = False
+            local_appdata = os.environ.get("LOCALAPPDATA")
+            if local_appdata:
+                chrome_path = Path(local_appdata) / "Google" / "Chrome" / "User Data"
+                if chrome_path.is_dir():
+                    chrome_cookies_exist = True
+            
+            browser = "chrome" if chrome_cookies_exist else "edge"
+            
+            # 使用瀏覽器 cookies 重試
+            result_retry = run_ytdlp(["--cookies-from-browser", browser])
+            if result_retry.returncode == 0:
+                result = result_retry
+            else:
+                retry_stderr = (result_retry.stderr or "").strip()
+                if "Could not copy" in retry_stderr and "cookie database" in retry_stderr:
+                    raise RuntimeError(
+                        f"此影片有年齡限制，且無法讀取 {browser.upper()} 的 Cookie 資料庫（因為 {browser.upper()} 正在運行並鎖定了資料庫）。\n\n"
+                        f"解決方案：\n"
+                        f"1. 請匯出 cookies.txt 並放在專案根目錄下；或\n"
+                        f"2. 先完全關閉 {browser.upper()} 瀏覽器再試；或\n"
+                        f"3. 另外下載此影片的 .mp4 檔案並透過介面上傳。"
+                    )
+                else:
+                    raise RuntimeError(retry_stderr[-800:] or "YouTube 下載失敗 (年齡限制且無法透過瀏覽器驗證)")
+        else:
+            if "No module named yt_dlp" in stderr or "yt_dlp" in stderr and "No module named" in stderr:
+                raise RuntimeError("找不到 yt-dlp，請先執行 pip install -r requirements.txt")
+            raise RuntimeError(stderr[-800:] or "YouTube 下載失敗")
 
     resolved_capture_dir = capture_dir.resolve()
     candidate_paths = []
@@ -1731,6 +1776,46 @@ def capture_video_skeleton():
     return jsonify(result)
 
 
+def _clip_video_ffmpeg(video_path, start_ms, end_ms):
+    ffmpeg_exe = _ffmpeg_executable_path()
+    start_sec = start_ms / 1000.0
+
+    suffix = Path(video_path).suffix or ".mp4"
+    temp_dir = tempfile.gettempdir()
+    temp_clip_path = Path(temp_dir) / f"gvhmr_clip_{uuid.uuid4().hex}{suffix}"
+
+    command = [
+        str(ffmpeg_exe),
+        "-y",
+        "-ss", f"{start_sec:.3f}"
+    ]
+
+    if end_ms is not None:
+        duration_sec = (end_ms - start_ms) / 1000.0
+        command.extend(["-t", f"{duration_sec:.3f}"])
+
+    command.extend([
+        "-i", str(video_path),
+        "-c:v", "libx264",
+        "-c:a", "aac",
+        "-avoid_negative_ts", "1",
+        str(temp_clip_path)
+    ])
+
+    result = subprocess.run(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        creationflags=_gvhmr_subprocess_creationflags(),
+        check=False
+    )
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout or b"").decode("utf-8", errors="replace").strip()
+        raise RuntimeError(f"FFmpeg clipping failed: {detail[-1200:]}")
+
+    return temp_clip_path
+
+
 @app.route('/api/capture/video/world-motion', methods=['POST'])
 def capture_video_world_motion():
     data = request.get_json() or {}
@@ -1762,10 +1847,28 @@ def capture_video_world_motion():
             })
 
         step_started_at = time.time()
-        world_motion = _run_gvhmr_world_motion(
-            video_path,
-            static_camera=data.get("staticCamera") is not False,
-        )
+        clipped_video_path = None
+        run_video_path = video_path
+        if start_ms > 0 or end_ms is not None:
+            clipped_video_path = _clip_video_ffmpeg(video_path, start_ms, end_ms)
+            run_video_path = clipped_video_path
+
+        try:
+            world_motion = _run_gvhmr_world_motion(
+                run_video_path,
+                static_camera=data.get("staticCamera") is not False,
+            )
+            if clipped_video_path is not None and isinstance(world_motion, dict) and "frames" in world_motion:
+                offset_sec = start_ms / 1000.0
+                for frame in world_motion["frames"]:
+                    if isinstance(frame, dict) and "t" in frame:
+                        frame["t"] = round(float(frame["t"]) + offset_sec, 3)
+        finally:
+            if clipped_video_path is not None:
+                try:
+                    os.unlink(clipped_video_path)
+                except Exception:
+                    pass
         finish_step("執行 GVHMR World Motion", step_started_at)
 
         step_started_at = time.time()

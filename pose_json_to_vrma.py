@@ -97,6 +97,34 @@ def _add_track(gltf, blob, node_index, path, keys, value_getter):
 
 def convert_pose_json_to_vrma(pose_json, output_path):
     pose = _load_pose(pose_json)
+    
+    # 找出所有訊號點中的最小時間點，將時間軸對齊至 0 秒起點
+    min_time_ms = None
+    for bone, keys in (pose.get("bones") or {}).items():
+        for key in keys:
+            t = _time_ms(key)
+            if min_time_ms is None or t < min_time_ms:
+                min_time_ms = t
+    if pose.get("hips_position"):
+        for key in pose["hips_position"]:
+            t = _time_ms(key)
+            if min_time_ms is None or t < min_time_ms:
+                min_time_ms = t
+
+    if min_time_ms is not None and min_time_ms > 0:
+        for bone, keys in (pose.get("bones") or {}).items():
+            for key in keys:
+                for key_name in ("time_ms", "timeMs"):
+                    if key_name in key:
+                        key[key_name] = max(0, _time_ms(key) - min_time_ms)
+        if pose.get("hips_position"):
+            for key in pose["hips_position"]:
+                for key_name in ("time_ms", "timeMs"):
+                    if key_name in key:
+                        key[key_name] = max(0, _time_ms(key) - min_time_ms)
+        if "duration_ms" in pose:
+            pose["duration_ms"] = max(0, int(pose["duration_ms"]) - min_time_ms)
+
     output_path = Path(output_path)
     animated = set((pose.get("bones") or {}).keys())
     if pose.get("hips_position"):
@@ -118,6 +146,8 @@ def convert_pose_json_to_vrma(pose_json, output_path):
             },
         },
         "nodes": [{"name": bone} for bone in bone_names],
+        "scenes": [{"nodes": list(range(len(bone_names)))}],
+        "scene": 0,
         "buffers": [{"byteLength": 0}],
         "bufferViews": [],
         "accessors": [],
