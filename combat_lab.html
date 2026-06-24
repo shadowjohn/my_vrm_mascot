@@ -435,10 +435,11 @@
         <div class="group">
           <span class="group-label">戰鬥操作指南 (CS Mode)</span>
           <p class="sub" style="margin: 0; line-height: 1.5; color: var(--accent);">
+            • <b>1 / 2 / 3 鍵</b>：切換武器 (1 拳頭 / 2 短槍 / 3 長槍)。<br>
             • <b>W / A / S / D</b>：控制 Alicia 移動。<br>
             • <b>Shift + WASD</b>：加速跑步。<br>
             • <b>R 鍵</b>：執行槍枝裝填 (Reload) 動畫與音效。<br>
-            • <b>滑鼠左鍵</b>：開槍射擊（點擊單發，按住可連射）。<br>
+            • <b>滑鼠左鍵</b>：開槍射擊/出拳（點擊單發，按住可連射/連揍）。<br>
             • <b>滑鼠右鍵拖曳</b>：旋轉/平移 3D 視角。
           </p>
         </div>
@@ -503,11 +504,13 @@
     const PISTOL_URL = 'models/pistol.glb';
 
     const VRMA_URLS = {
-      walk:   'motions/showcase/davinci2_walking.vrma',
-      run:    'motions/showcase/davinci3_standardRun.vrma',
-      aim:    'motions/showcase/davinci4_aimingGun.vrma',
-      shoot:  'motions/showcase/shoot_pose_190.vrma',
-      reload: 'motions/showcase/davinci4_reloading.vrma',
+      walk:        'motions/showcase/davinci2_walking.vrma',
+      run:         'motions/showcase/davinci3_standardRun.vrma',
+      aim:         'motions/showcase/davinci4_aimingGun.vrma',
+      shoot:       'motions/showcase/shoot_pose_190.vrma',
+      reload:      'motions/showcase/davinci4_reloading.vrma',
+      punch_left:  'motions/showcase/punch_left.vrma',
+      punch_right: 'motions/showcase/punch_right.vrma',
     };
 
     // VRM 1.0 人型骨骼分類
@@ -583,7 +586,13 @@
     let isReloading = false;
     let shootInterval = null;
     let lastShootTime = 0;
-    const shootCooldown = 150; // 步槍開火間隔 150ms
+
+    function getShootCooldown() {
+      if (currentWeaponType === 'none') {
+        return 400; // 拳頭出拳間隔 400ms
+      }
+      return 150;   // 步槍/手槍開火間隔 150ms
+    }
 
     // 頭部追蹤
     const lookAtState = { yaw: 0, pitch: 0 };
@@ -858,9 +867,27 @@
         actions.reload.weight = 1;
       }
 
+      // 左拳 (上半身)
+      if (fullClips.punch_left) {
+        const punchLeftUpper = filterClipByBones(fullClips.punch_left, UPPER_BONES, nodeToHumanBone, '_upper');
+        actions.punch_left = mixer.clipAction(punchLeftUpper);
+        actions.punch_left.setLoop(THREE.LoopOnce);
+        actions.punch_left.clampWhenFinished = true;
+        actions.punch_left.weight = 1;
+      }
+
+      // 右拳 (上半身)
+      if (fullClips.punch_right) {
+        const punchRightUpper = filterClipByBones(fullClips.punch_right, UPPER_BONES, nodeToHumanBone, '_upper');
+        actions.punch_right = mixer.clipAction(punchRightUpper);
+        actions.punch_right.setLoop(THREE.LoopOnce);
+        actions.punch_right.clampWhenFinished = true;
+        actions.punch_right.weight = 1;
+      }
+
       // 監聽動畫完成事件
       mixer.addEventListener('finished', (e) => {
-        if (e.action === actions.shoot) {
+        if (e.action === actions.shoot || e.action === actions.punch_left || e.action === actions.punch_right) {
           if (!shootInterval) {
             isShooting = false;
             // 回到瞄準
@@ -895,11 +922,21 @@
     // ═══════════════════════════════════════════════════════════════
 
     async function loadWeapon(type) {
+      // 停止開槍與裝填狀態，清除正在播放的動作
+      stopShooting();
+      if (actions.reload) actions.reload.stop();
+      if (actions.shoot) actions.shoot.stop();
+      if (actions.punch_left) actions.punch_left.stop();
+      if (actions.punch_right) actions.punch_right.stop();
+      isShooting = false;
+      isReloading = false;
+      if (actions.aim) playAimStatic(0.1);
+
       removeCurrentWeapon();
       currentWeaponType = type;
 
       if (type === 'none') {
-        setStatus('已卸載武器。');
+        setStatus('已卸載武器。使用 [1] 拳頭、[2] 手槍、[3] 步槍切換。');
         updateLabels();
         return;
       }
@@ -1022,25 +1059,43 @@
     }
 
     /**
-     * 觸發開槍
+     * 觸發開槍/出拳
      */
     function triggerShoot() {
       if (isReloading) return;
       const now = performance.now();
-      if (now - lastShootTime < shootCooldown) return;
+      const cd = getShootCooldown();
+      if (now - lastShootTime < cd) return;
       lastShootTime = now;
 
       stats.shots++;
       isShooting = true;
 
-      // 上半身切到開槍動畫
-      if (actions.shoot) {
-        if (actions.aim) actions.aim.fadeOut(0.05);
-        actions.shoot.reset().fadeIn(0.05).play();
-      }
+      if (currentWeaponType === 'none') {
+        // 拳頭：隨機左右拳
+        const isLeft = Math.random() < 0.5;
+        const punchAction = isLeft ? actions.punch_left : actions.punch_right;
+        const otherAction = isLeft ? actions.punch_right : actions.punch_left;
 
-      // 音效
-      playAudioEffect('laser');
+        if (otherAction) otherAction.stop();
+        if (actions.aim) actions.aim.fadeOut(0.05);
+
+        if (punchAction) {
+          punchAction.reset().fadeIn(0.05).play();
+        }
+
+        // 揮拳音效
+        playAudioEffect('punch');
+      } else {
+        // 上半身切到開槍動畫
+        if (actions.shoot) {
+          if (actions.aim) actions.aim.fadeOut(0.05);
+          actions.shoot.reset().fadeIn(0.05).play();
+        }
+
+        // 槍枝射擊音效
+        playAudioEffect('laser');
+      }
 
       // 射擊邏輯 (Raycast)
       doShootLogic();
@@ -1048,24 +1103,27 @@
       // 更新面板
       updateStatsPanel();
 
-      // 如果沒有 shoot action，直接恢復
-      if (!actions.shoot) {
+      // 如果沒有 shoot/punch action，直接恢復
+      if (currentWeaponType !== 'none' && !actions.shoot) {
         isShooting = false;
         triggerRecoilJerk();
+      } else if (currentWeaponType === 'none' && !actions.punch_left && !actions.punch_right) {
+        isShooting = false;
       }
     }
 
     function startShooting() {
       if (isReloading) return;
       
-      // 立即射擊第一發
+      // 立即射擊第一發/出拳
       triggerShoot();
       
-      // 啟動連射定時器
+      // 啟動連射/連揍定時器
       if (shootInterval) clearInterval(shootInterval);
+      const cd = getShootCooldown();
       shootInterval = setInterval(() => {
         triggerShoot();
-      }, shootCooldown);
+      }, cd);
     }
 
     function stopShooting() {
@@ -1074,17 +1132,20 @@
         shootInterval = null;
       }
       
-      // 停止開槍後，延遲回到瞄準姿勢（讓開槍動畫稍微播放一下）
+      // 停止開槍後，延遲回到瞄準姿勢（讓開槍/出拳動畫稍微播放一下）
       if (isShooting) {
+        const cd = getShootCooldown();
         setTimeout(() => {
           if (!shootInterval && isShooting) {
             isShooting = false;
-            if (actions.aim && actions.shoot) {
-              actions.shoot.fadeOut(0.15);
+            if (actions.aim) {
+              if (actions.shoot) actions.shoot.fadeOut(0.15);
+              if (actions.punch_left) actions.punch_left.fadeOut(0.15);
+              if (actions.punch_right) actions.punch_right.fadeOut(0.15);
               playAimStatic(0.15);
             }
           }
-        }, shootCooldown);
+        }, cd);
       }
     }
 
@@ -1092,7 +1153,7 @@
      * 觸發裝填
      */
     function triggerReload() {
-      if (isReloading) return;
+      if (isReloading || currentWeaponType === 'none') return;
       isReloading = true;
       setStatus('正在裝填彈藥 (Reloading)...');
       playAudioEffect('reload');
@@ -1121,7 +1182,7 @@
       const raycaster = new THREE.Raycaster();
       raycaster.setFromCamera(new THREE.Vector2(mouse.nx, mouse.ny), camera);
 
-      // 槍口位置
+      // 槍口/出拳位置
       let muzzleWorldPos = new THREE.Vector3();
       const rightHand = vrm?.humanoid?.getRawBoneNode('rightHand');
 
@@ -1136,8 +1197,10 @@
         muzzleWorldPos.set(0, 1.2, 0);
       }
 
-      // 火花
-      createMuzzleFlash(muzzleWorldPos);
+      // 火花：拳頭不顯示
+      if (currentWeaponType !== 'none') {
+        createMuzzleFlash(muzzleWorldPos);
+      }
 
       // 命中偵測
       const intersects = raycaster.intersectObjects(targetGroup.children);
@@ -1148,7 +1211,11 @@
         targetPoint.copy(hitInfo.point);
         stats.hits++;
 
-        playAudioEffect('explosion');
+        if (currentWeaponType === 'none') {
+          playAudioEffect('punch_hit');
+        } else {
+          playAudioEffect('explosion');
+        }
         createHitExplosion(targetPoint);
 
         // 移除被擊中球體
@@ -1165,8 +1232,10 @@
         setStatus(`未擊中。命中率: ${stats.shots > 0 ? ((stats.hits / stats.shots) * 100).toFixed(1) : '0.0'}%`);
       }
 
-      // 彈道軌跡
-      createBulletTracer(muzzleWorldPos, targetPoint);
+      // 彈道軌跡：拳頭不顯示
+      if (currentWeaponType !== 'none') {
+        createBulletTracer(muzzleWorldPos, targetPoint);
+      }
 
       updateStatsPanel();
     }
@@ -1455,6 +1524,30 @@
             gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.16);
             osc2.start(); osc2.stop(audioContext.currentTime + 0.16);
           }, 220);
+        } else if (type === 'punch') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(150, audioContext.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.18);
+          gain.gain.setValueAtTime(0.4, audioContext.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.18);
+          osc.start(); osc.stop(audioContext.currentTime + 0.18);
+        } else if (type === 'punch_hit') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(180, audioContext.currentTime);
+          osc.frequency.linearRampToValueAtTime(30, audioContext.currentTime + 0.15);
+          gain.gain.setValueAtTime(0.5, audioContext.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+          osc.start(); osc.stop(audioContext.currentTime + 0.15);
+
+          const osc2 = audioContext.createOscillator();
+          const gain2 = audioContext.createGain();
+          osc2.connect(gain2); gain2.connect(audioContext.destination);
+          osc2.type = 'sawtooth';
+          osc2.frequency.setValueAtTime(250, audioContext.currentTime);
+          osc2.frequency.linearRampToValueAtTime(80, audioContext.currentTime + 0.08);
+          gain2.gain.setValueAtTime(0.2, audioContext.currentTime);
+          gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.08);
+          osc2.start(); osc2.stop(audioContext.currentTime + 0.08);
         }
       } catch (err) {
         console.warn('音效錯誤:', err);
@@ -1469,7 +1562,7 @@
       // ── 鍵盤 ──
       window.addEventListener('keydown', (e) => {
         if (['INPUT', 'SELECT'].includes(document.activeElement?.tagName)) return;
-        if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyR', 'ShiftLeft', 'ShiftRight'].includes(e.code)) {
+        if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyR', 'ShiftLeft', 'ShiftRight', 'Digit1', 'Digit2', 'Digit3'].includes(e.code)) {
           e.preventDefault();
         }
 
@@ -1480,6 +1573,17 @@
         if (e.code === 'KeyD' && !keys.d) { keys.d = true; changed = true; }
         if ((e.code === 'ShiftLeft' || e.code === 'ShiftRight') && !keys.shift) {
           keys.shift = true; changed = true;
+        }
+
+        if (e.code === 'Digit1') {
+          $('weaponSelect').value = 'none';
+          loadWeapon('none');
+        } else if (e.code === 'Digit2') {
+          $('weaponSelect').value = 'pistol';
+          loadWeapon('pistol');
+        } else if (e.code === 'Digit3') {
+          $('weaponSelect').value = 'rifle';
+          loadWeapon('rifle');
         }
 
         if (e.code === 'KeyR' && !e.repeat) triggerReload();
