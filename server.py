@@ -2613,6 +2613,17 @@ def serve_manifests(filepath):
     if release_path.is_file():
         return send_from_directory(release_path.parent, release_path.name)
     return "File not found", 404
+@app.route('/api/log', methods=['POST'])
+def api_log():
+    try:
+        data = request.json or {}
+        log_type = data.get('type', 'INFO')
+        message = data.get('message', '')
+        with open(BASE_DIR / "browser_console.log", "a", encoding="utf-8") as f:
+            f.write(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [{log_type}] {message}\n")
+        return jsonify(success=True)
+    except Exception as e:
+        return jsonify(success=False, error=str(e)), 500
 
 
 if __name__ == '__main__':

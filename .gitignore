@@ -29,3 +29,4 @@ conda_vm/*
 !conda_vm/*_requirements.txt
 *.vrma
 *.vrm
+sounds/
