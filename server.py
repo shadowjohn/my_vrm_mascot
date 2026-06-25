@@ -47,6 +47,7 @@ DEFAULT_MOTION_PROFILE_STORE_PATH = BASE_DIR / "examples" / "m6_7_vrma_samples" 
 DEFAULT_MOTION_MINING_LOG_STORE_PATH = BASE_DIR / "examples" / "m6_7_vrma_samples" / "review" / "mining_log.json"
 VRMA_SAMPLE_DIR = BASE_DIR / "examples" / "m6_7_vrma_samples"
 LOCAL_VRMA_SAMPLE_DIR = BASE_DIR / "local_assets" / "vrma"
+CHARACTER_POOL_DIR = BASE_DIR / "local_assets" / "characters"
 YOUTUBE_CAPTURE_MAX_FILE_SIZE_MB = 500
 YOUTUBE_CAPTURE_TIMEOUT_SEC = 180
 VIDEO_SKELETON_DEFAULT_FPS = 8
@@ -222,6 +223,52 @@ def _local_file_url(path):
     if not _path_is_inside(resolved, BASE_DIR):
         raise ValueError("local file must be inside project root")
     return resolved.relative_to(BASE_DIR.resolve()).as_posix()
+
+
+def _safe_character_id(raw_value):
+    text = str(raw_value or "").strip().lower().replace(" ", "_")
+    safe = "".join(ch for ch in text if ch.isascii() and (ch.isalnum() or ch in {"_", "-"})).strip("_-")
+    return safe or f"character_{uuid.uuid4().hex[:8]}"
+
+
+def _bool_form_value(name):
+    return str(request.form.get(name, "")).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _character_json_path(character_id):
+    safe_id = _safe_character_id(character_id)
+    return CHARACTER_POOL_DIR / safe_id / "character.json"
+
+
+def _read_character_file(path):
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    data["modelUrl"] = _local_file_url(path.parent / data.get("model", "model.vrm"))
+    thumbnail = data.get("thumbnail") or ""
+    if thumbnail and (path.parent / thumbnail).is_file():
+        data["thumbnailUrl"] = _local_file_url(path.parent / thumbnail)
+    else:
+        data["thumbnailUrl"] = ""
+    return data
+
+
+def _list_characters():
+    if not CHARACTER_POOL_DIR.is_dir():
+        return []
+    characters = []
+    for path in sorted(CHARACTER_POOL_DIR.glob("*/character.json")):
+        try:
+            characters.append(_read_character_file(path))
+        except (OSError, json.JSONDecodeError, ValueError):
+            continue
+    return characters
+
+
+def _write_character(character_dir, data):
+    character_dir.mkdir(parents=True, exist_ok=True)
+    with open(character_dir / "character.json", "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+        f.write("\n")
 
 
 def _normalize_youtube_url(raw_url):
@@ -1916,6 +1963,76 @@ def vrma_samples():
         "localBase": "local_assets/vrma",
         "samples": _list_vrma_samples(),
     })
+
+
+@app.route('/api/characters', methods=['GET'])
+def characters_list():
+    return jsonify({"ok": True, "characters": _list_characters()})
+
+
+@app.route('/api/characters/import', methods=['POST'])
+def characters_import():
+    model_file = request.files.get("model")
+    if not model_file or not model_file.filename:
+        return jsonify({"ok": False, "error": "請選擇 VRM 檔"}), 400
+    if not model_file.filename.lower().endswith(".vrm"):
+        return jsonify({"ok": False, "error": "只支援 .vrm 檔"}), 400
+
+    character_id = _safe_character_id(request.form.get("id") or Path(model_file.filename).stem)
+    character_dir = CHARACTER_POOL_DIR / character_id
+    if (character_dir / "character.json").exists():
+        return jsonify({"ok": False, "error": f"角色已存在: {character_id}"}), 409
+
+    character_dir.mkdir(parents=True, exist_ok=True)
+    model_file.save(character_dir / "model.vrm")
+    character = {
+        "id": character_id,
+        "name": request.form.get("name") or character_id,
+        "model": "model.vrm",
+        "thumbnail": "thumbnail.png" if (character_dir / "thumbnail.png").is_file() else "",
+        "sourceUrl": request.form.get("sourceUrl") or "",
+        "author": request.form.get("author") or "",
+        "license": request.form.get("license") or "",
+        "allowCommercialUse": _bool_form_value("allowCommercialUse"),
+        "allowRedistribution": _bool_form_value("allowRedistribution"),
+        "allowModification": _bool_form_value("allowModification"),
+        "motionProfile": request.form.get("motionProfile") or "vrm_humanoid_v1",
+        "status": request.form.get("status") or "testing",
+        "testResults": {},
+        "createdAt": _now_iso(),
+    }
+    _write_character(character_dir, character)
+    return jsonify({"ok": True, "character": _read_character_file(character_dir / "character.json")})
+
+
+@app.route('/api/characters/<character_id>', methods=['PATCH'])
+def characters_update(character_id):
+    path = _character_json_path(character_id)
+    if not path.is_file():
+        return jsonify({"ok": False, "error": "character not found"}), 404
+    payload = request.get_json(silent=True) or {}
+    if not isinstance(payload, dict):
+        return jsonify({"ok": False, "error": "payload 必須是 JSON 物件"}), 400
+    character = _read_character_file(path)
+    for key in (
+        "name",
+        "sourceUrl",
+        "author",
+        "license",
+        "allowCommercialUse",
+        "allowRedistribution",
+        "allowModification",
+        "motionProfile",
+        "status",
+        "testResults",
+    ):
+        if key in payload:
+            character[key] = payload[key]
+    character.pop("modelUrl", None)
+    character.pop("thumbnailUrl", None)
+    character["updatedAt"] = _now_iso()
+    _write_character(path.parent, character)
+    return jsonify({"ok": True, "character": _read_character_file(path)})
 
 
 def _pose_db_payload():

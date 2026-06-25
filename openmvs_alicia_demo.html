@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenMVS Alicia Demo</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #070b10;
+      --panel: rgba(11, 20, 28, 0.86);
+      --line: rgba(148, 181, 215, 0.32);
+      --text: #f3f8ff;
+      --muted: #aebac8;
+      --accent: #9fed91;
+      --gold: #ffd76a;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, "Microsoft JhengHei", sans-serif;
+    }
+
+    #stage {
+      position: fixed;
+      inset: 0;
+    }
+
+    header {
+      position: fixed;
+      top: 14px;
+      left: 16px;
+      z-index: 5;
+      display: grid;
+      gap: 4px;
+      max-width: 520px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel);
+      backdrop-filter: blur(10px);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: 0;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    aside {
+      position: fixed;
+      top: 14px;
+      right: 16px;
+      z-index: 5;
+      display: grid;
+      gap: 10px;
+      width: min(280px, calc(100vw - 32px));
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel);
+      backdrop-filter: blur(10px);
+    }
+
+    button {
+      width: 100%;
+      border: 1px solid rgba(159, 237, 145, 0.65);
+      border-radius: 7px;
+      background: rgba(61, 130, 58, 0.95);
+      color: var(--text);
+      padding: 10px 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: rgba(14, 28, 40, 0.95);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    output, pre {
+      color: var(--gold);
+      font-family: Consolas, monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    pre {
+      max-height: 170px;
+      margin: 0;
+      overflow: auto;
+      color: var(--muted);
+    }
+
+    @media (max-width: 760px) {
+      header {
+        right: 16px;
+      }
+
+      aside {
+        top: auto;
+        bottom: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="stage"></div>
+  <header>
+    <h1>OpenMVS Alicia Demo</h1>
+    <div class="muted">WASD 移動，Shift 加速，Space 跳一下。右側按鈕可直接套同一組 VRMA 動作。</div>
+    <output id="status">初始化中...</output>
+  </header>
+  <aside>
+    <div class="grid">
+      <button data-motion="idle" class="secondary">Idle</button>
+      <button data-motion="walk" class="secondary">Walk</button>
+      <button data-motion="run" class="secondary">Run</button>
+      <button data-motion="dance">跳舞</button>
+      <button data-motion="punch">揮拳</button>
+      <button data-motion="shoot">射擊姿勢</button>
+    </div>
+    <button id="resetButton" class="secondary" type="button">回到場景中心</button>
+    <pre id="debug"></pre>
+  </aside>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
+      "@pixiv/three-vrm": "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3/lib/three-vrm.module.js",
+      "@pixiv/three-vrm-animation": "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm-animation@3/lib/three-vrm-animation.module.js"
+    }
+  }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
+    import { VRMAnimationLoaderPlugin, createVRMAnimationClip } from '@pixiv/three-vrm-animation';
+
+    const MODEL_URL = 'models/mascot.vrm';
+    const SCENE_URL = 'data/model.glb';
+    const MOTIONS = {
+      idle: 'local_assets/vrma/external/davinci_3dchat/davinci_idle.vrma',
+      walk: 'motions/showcase/davinci2_walking.vrma',
+      run: 'motions/showcase/davinci3_standardRun.vrma',
+      dance: 'local_assets/vrma/external/davinci_3dchat_batch3/davinci3_twistDance.vrma',
+      punch: 'motions/showcase/punch_right.vrma',
+      shoot: 'motions/showcase/shoot_pose_190.vrma'
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const keys = { w: false, a: false, s: false, d: false, shift: false };
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x070b10);
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 500);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    $('stage').appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.enablePan = false;
+    controls.minDistance = 2.2;
+    controls.maxDistance = 18;
+    controls.minPolarAngle = 0.22;
+    controls.maxPolarAngle = Math.PI * 0.48;
+
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x334455, 1.25));
+    const sun = new THREE.DirectionalLight(0xffffff, 2.2);
+    sun.position.set(4, 8, 5);
+    scene.add(sun);
+
+    const clock = new THREE.Clock();
+    let vrm = null;
+    let mixer = null;
+    let action = null;
+    let currentMotion = '';
+    let sceneCenter = new THREE.Vector3();
+    let floorY = 0;
+    let velocityY = 0;
+    let onGround = true;
+
+    function setStatus(text) {
+      $('status').textContent = text;
+    }
+
+    function setDebug(payload) {
+      $('debug').textContent = JSON.stringify(payload, null, 2);
+    }
+
+    function resize() {
+      const width = Math.max(1, window.innerWidth);
+      const height = Math.max(1, window.innerHeight);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height, false);
+    }
+
+    function sanitizeClip(clip) {
+      // ponytail: 先移除 root XZ 位移，避免 VRMA 把 Alicia 拖離 OpenMVS 場景中心。
+      const tracks = clip.tracks.filter((track) => {
+        if (!track.name.endsWith('.position')) return true;
+        if (!/(hips|J_Bip_C_Hips|Hips)/i.test(track.name)) return true;
+        for (let i = 0; i < track.values.length; i += 3) {
+          track.values[i] = 0;
+          track.values[i + 2] = 0;
+        }
+        return true;
+      });
+      return new THREE.AnimationClip(clip.name, clip.duration, tracks);
+    }
+
+    async function loadOpenMvsScene() {
+      setStatus('載入 OpenMVS model.glb...');
+      const loader = new GLTFLoader();
+      const gltf = await loader.loadAsync(SCENE_URL);
+      const root = gltf.scene;
+      // ponytail: 這批 OpenMVS GLB 是倒著匯出，先用 X 軸 180 度轉回 Three.js 的 Y-up 視覺。
+      root.rotation.x = Math.PI;
+      root.traverse((obj) => {
+        if (obj.isMesh) {
+          obj.frustumCulled = false;
+          obj.castShadow = false;
+          obj.receiveShadow = true;
+        }
+      });
+      scene.add(root);
+
+      const box = new THREE.Box3().setFromObject(root);
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+      const scale = 12 / Math.max(size.x, size.z, 0.001);
+      root.position.sub(center).multiplyScalar(scale);
+      root.scale.setScalar(scale);
+
+      const scaledBox = new THREE.Box3().setFromObject(root);
+      sceneCenter.copy(scaledBox.getCenter(new THREE.Vector3()));
+      // ponytail: OpenMVS 的 bbox min.y 常是破片/牆面底部，不是可走地板；用中心平面先穩住展示。
+      sceneCenter.y = 0;
+      floorY = 0;
+
+      setDebug({
+        scene: SCENE_URL,
+        originalSize: size.toArray().map((v) => Number(v.toFixed(3))),
+        scale: Number(scale.toFixed(4)),
+        sceneUpFix: 'rotate-x-180',
+        bboxY: [Number(scaledBox.min.y.toFixed(3)), Number(scaledBox.max.y.toFixed(3))],
+        floorMode: 'center-y-plane',
+        floorY: Number(floorY.toFixed(3))
+      });
+    }
+
+    async function loadAlicia() {
+      setStatus('載入 Alicia...');
+      const loader = new GLTFLoader();
+      loader.crossOrigin = 'anonymous';
+      loader.register((parser) => new VRMLoaderPlugin(parser));
+      const gltf = await loader.loadAsync(MODEL_URL);
+      vrm = gltf.userData.vrm;
+      VRMUtils.removeUnnecessaryVertices(vrm.scene);
+      vrm.scene.traverse((obj) => { obj.frustumCulled = false; });
+      vrm.scene.position.set(sceneCenter.x, floorY + 0.02, sceneCenter.z);
+      vrm.scene.rotation.y = Math.PI;
+      scene.add(vrm.scene);
+      camera.position.copy(vrm.scene.position).add(new THREE.Vector3(0, 2.0, 5.5));
+      controls.target.copy(vrm.scene.position).add(new THREE.Vector3(0, 1.05, 0));
+      await playMotion('idle');
+    }
+
+    async function playMotion(name) {
+      if (!vrm) return;
+      if (currentMotion === name && action) return;
+      currentMotion = name;
+      if (action) action.fadeOut(0.12);
+      const url = MOTIONS[name];
+      if (!url) return;
+      const loader = new GLTFLoader();
+      loader.register((parser) => new VRMAnimationLoaderPlugin(parser));
+      const gltf = await loader.loadAsync(url);
+      const animation = gltf.userData.vrmAnimations?.[0];
+      if (!animation) throw new Error(`找不到 VRMA: ${url}`);
+      const clip = sanitizeClip(createVRMAnimationClip(animation, vrm));
+      mixer ||= new THREE.AnimationMixer(vrm.scene);
+      action = mixer.clipAction(clip);
+      action.reset().fadeIn(0.12).play();
+      action.setLoop(THREE.LoopRepeat, Infinity);
+      setStatus(`${name} / ${url}`);
+    }
+
+    function resetPlayer() {
+      if (!vrm) return;
+      vrm.scene.position.set(sceneCenter.x, floorY + 0.02, sceneCenter.z);
+      velocityY = 0;
+      onGround = true;
+    }
+
+    function updateMovement(dt) {
+      if (!vrm) return;
+      const forward = new THREE.Vector3();
+      camera.getWorldDirection(forward);
+      forward.y = 0;
+      if (forward.lengthSq() < 0.0001) forward.set(0, 0, -1);
+      forward.normalize();
+
+      const right = new THREE.Vector3(-forward.z, 0, forward.x).normalize();
+      const move = new THREE.Vector3();
+      if (keys.w) move.add(forward);
+      if (keys.s) move.sub(forward);
+      if (keys.a) move.sub(right);
+      if (keys.d) move.add(right);
+
+      const isMoving = move.lengthSq() > 0.0001;
+      if (isMoving) {
+        move.normalize();
+        const speed = keys.shift ? 3.2 : 1.7;
+        vrm.scene.position.addScaledVector(move, speed * dt);
+        vrm.scene.rotation.y = Math.atan2(move.x, move.z) + Math.PI;
+        playMotion(keys.shift ? 'run' : 'walk').catch(showError);
+      } else if (currentMotion === 'walk' || currentMotion === 'run') {
+        playMotion('idle').catch(showError);
+      }
+
+      const ground = floorY + 0.02;
+      if (!onGround) {
+        velocityY -= 7.8 * dt;
+        vrm.scene.position.y += velocityY * dt;
+        if (vrm.scene.position.y <= ground) {
+          vrm.scene.position.y = ground;
+          velocityY = 0;
+          onGround = true;
+        }
+      } else {
+        vrm.scene.position.y = ground;
+      }
+    }
+
+    function showError(error) {
+      console.error(error);
+      setStatus(`失敗：${error.message}`);
+      $('debug').textContent = error.stack || String(error);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(0.05, clock.getDelta());
+      updateMovement(dt);
+      mixer?.update(dt);
+      vrm?.update?.(dt);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    function bindEvents() {
+      window.addEventListener('resize', resize);
+      window.addEventListener('keydown', (event) => {
+        const key = event.key.toLowerCase();
+        if (key in keys) keys[key] = true;
+        if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') keys.shift = true;
+        if (event.code === 'Space' && onGround) {
+          velocityY = 3.2;
+          onGround = false;
+        }
+      });
+      window.addEventListener('keyup', (event) => {
+        const key = event.key.toLowerCase();
+        if (key in keys) keys[key] = false;
+        if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') keys.shift = false;
+      });
+      document.querySelectorAll('[data-motion]').forEach((button) => {
+        button.addEventListener('click', () => playMotion(button.dataset.motion).catch(showError));
+      });
+      $('resetButton').addEventListener('click', resetPlayer);
+    }
+
+    async function init() {
+      resize();
+      bindEvents();
+      await loadOpenMvsScene();
+      await loadAlicia();
+      animate();
+      setStatus('Ready');
+    }
+
+    init().catch(showError);
+  </script>
+</body>
+</html>
