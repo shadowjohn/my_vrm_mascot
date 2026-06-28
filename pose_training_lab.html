@@ -486,6 +486,15 @@
       touch-action: none;
     }
 
+    .bone-quick-select {
+      display: grid;
+      gap: 6px;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
     .preview-controls {
       display: grid;
       grid-template-columns: minmax(90px, auto) repeat(3, minmax(120px, 1fr));
@@ -912,13 +921,13 @@
       <div class="group">
         <h3>手型</h3>
         <div class="row">
-          <label for="trainingLeftHandPose">
-            左手
-            <select id="trainingLeftHandPose"></select>
-          </label>
           <label for="trainingRightHandPose">
             右手
             <select id="trainingRightHandPose"></select>
+          </label>
+          <label for="trainingLeftHandPose">
+            左手
+            <select id="trainingLeftHandPose"></select>
           </label>
         </div>
       </div>
@@ -989,6 +998,7 @@
     const $ = (id) => document.getElementById(id);
     const DEFAULT_VRM_MODEL_URL = 'models/mascot.vrm';
     const DEFAULT_PROFILE_STORAGE_KEY = 'alicia.gvhmr.defaultProfile.v1';
+    const TRAINING_DRAFT_STORAGE_PREFIX = 'alicia.poseTraining.postDraft.v1.';
     const ALICIA_GROUND_Y = -0.95;
     const DEG = Math.PI / 180;
 
@@ -1227,6 +1237,18 @@
       } catch {
         return null;
       }
+    }
+
+    function currentPoseTrainingPostId() {
+      return state.source?.postId
+        || new URLSearchParams(location.search).get('postId')
+        || new URLSearchParams(location.search).get('id')
+        || '';
+    }
+
+    function currentPoseTrainingDraftKey() {
+      const postId = currentPoseTrainingPostId();
+      return postId ? `${TRAINING_DRAFT_STORAGE_PREFIX}${postId}` : '';
     }
 
     function updateDefaultProfileSummary() {
@@ -1623,6 +1645,17 @@
       }
       state.selectedBone = bone;
       const offsets = state.boneOffsets[bone] || { x: 0, y: 0, z: 0 };
+      const handSide = handSideFromBone(bone);
+      const handShapeHtml = handSide ? `
+        <label class="bone-quick-select">
+          形狀
+          <select id="boneQuickHandPose">
+            ${HAND_POSE_OPTIONS.map((option) => `
+              <option value="${option.value}" ${state.handPoseOverride[handSide] === option.value ? 'selected' : ''}>${option.label}</option>
+            `).join('')}
+          </select>
+        </label>
+      ` : '';
       $('boneQuickTitle').textContent = `${BONE_LABELS[bone] || bone} ${bone}`;
       $('boneQuickSliders').innerHTML = BONE_OFFSET_AXES.map((axis) => `
         <div class="bone-mini-slider">
@@ -1630,7 +1663,7 @@
           <input class="bone-quick-slider" data-axis="${axis}" type="range" min="-180" max="180" value="${finiteNumber(offsets[axis])}" step="1">
           <output>${Math.round(finiteNumber(offsets[axis]))}°</output>
         </div>
-      `).join('');
+      `).join('') + handShapeHtml;
       $('boneQuickSliders').querySelectorAll('.bone-quick-slider').forEach((slider) => {
         slider.addEventListener('input', () => {
           const axis = slider.dataset.axis;
@@ -1647,6 +1680,18 @@
           applyTrainingCalibration({ keepQuickEditorPosition: true });
         });
       });
+      const handSelect = $('boneQuickHandPose');
+      if (handSelect && handSide) {
+        handSelect.addEventListener('change', (event) => {
+          setTrainingHandPoseOverride({
+            ...state.handPoseOverride,
+            [handSide]: event.target.value
+          });
+          renderBoneQuickEditor({ keepPosition: true });
+          applyTrainingCalibration({ refreshJson: false, keepQuickEditorPosition: true });
+          scheduleTrainingJsonRefresh();
+        });
+      }
       editor.classList.add('visible');
       if (!options.keepPosition) {
         positionBoneQuickEditor();
@@ -1835,6 +1880,12 @@
         normalized[side] = valid.has(value) ? value : '';
       }
       return normalized;
+    }
+
+    function handSideFromBone(boneName = '') {
+      if (boneName === 'leftHand') return 'left';
+      if (boneName === 'rightHand') return 'right';
+      return '';
     }
 
     function buildTrainingHandPoseOverride() {
@@ -2126,6 +2177,7 @@
       state.keyframes.splice(finiteNumber(index), 1);
       renderCalibrationTrack();
       refreshTrainingJson();
+      savePoseTrainingDraft();
       setStatus('已刪除校正影格。');
     }
 
@@ -2256,7 +2308,8 @@
       $('trainingKeyframeSummary').textContent = String(state.keyframes.length);
       renderCalibrationTrack();
       refreshTrainingJson();
-      setStatus(`已儲存 ${formatSeconds(frame.timeMs)} 的對齊影格。`);
+      const draftSaved = savePoseTrainingDraft();
+      setStatus(`已儲存 ${formatSeconds(frame.timeMs)} 的對齊影格。${draftSaved ? '' : '（本機草稿保存失敗）'}`);
     }
 
     function correctedFrameForExport(frame, index) {
@@ -2305,38 +2358,96 @@
       return handPoses;
     }
 
-    function buildCorrectedPoseJson() {
-      const captureRange = readCaptureRange();
-      const frames = state.frames.map(correctedFrameForExport);
+    function buildManualCorrections() {
       return {
-        kind: 'gvhmr_alicia_corrected_pose_json_v1',
-        schemaVersion: 1,
-        createdAt: new Date().toISOString(),
-        source: {
-          id: state.source?.id || 'pose_training_session',
-          type: state.source?.type || 'unknown',
-          title: state.source?.title || '',
-          youtubeUrl: state.source?.youtubeUrl || $('trainingYoutubeUrl').value.trim(),
-          videoUrl: state.currentVideoUrl || '',
-          captureRange
-        },
-        frameCount: state.frames.length,
-        durationMs: state.frames.length
-          ? Math.max(0, finiteNumber(state.frames.at(-1).timeMs) - finiteNumber(state.frames[0].timeMs))
-          : 0,
-        hand_poses: buildCorrectedHandPoses(frames),
-        keyframes: cloneJson(state.keyframes),
-        frames
+        version: 1,
+        sourcePostId: state.source?.postId || null,
+        policy: 'interpolate_bone_nearest_hand',
+        keyframes: state.keyframes.map((keyframe) => ({
+          timeMs: Math.round(finiteNumber(keyframe.timeMs)),
+          frameIndex: keyframe.frameIndex ?? null,
+          calibration: cloneJson(keyframe.calibration || {}),
+          boneOffsets: cloneJson(keyframe.boneOffsets || {}),
+          handPoseOverride: cloneJson(keyframe.handPoseOverride || {})
+        }))
       };
     }
 
-    function downloadCorrectedPoseJson() {
+    function applyManualCorrectionsFromPoseMotion() {
+      const keys = state.poseMotion?.manualCorrections?.keyframes;
+      if (!Array.isArray(keys) || !keys.length) return false;
+      state.keyframes = keys.map((keyframe) => ({
+        timeMs: Math.round(finiteNumber(keyframe.timeMs ?? keyframe.time_ms)),
+        frameIndex: keyframe.frameIndex ?? null,
+        calibration: cloneJson(keyframe.calibration || {}),
+        boneOffsets: cloneJson(keyframe.boneOffsets || {}),
+        handPoseOverride: cloneJson(keyframe.handPoseOverride || {})
+      }));
+      const last = state.keyframes.at(-1) || {};
+      state.boneOffsets = cloneJson(last.boneOffsets || {});
+      setTrainingHandPoseOverride(last.handPoseOverride || {});
+      writeCalibration(last.calibration || {});
+      return true;
+    }
+
+    function buildCorrectedPoseJson() {
+      const captureRange = readCaptureRange();
+      const baseMotion = state.poseMotion ? cloneJson(state.poseMotion) : {
+        version: 1,
+        source: 'pose_training_lab',
+        retarget_mode: 'manual_corrections_only',
+        name: state.source?.title || 'corrected_pose',
+        fps: 30,
+        duration_ms: state.frames.length
+          ? Math.max(0, finiteNumber(state.frames.at(-1).timeMs) - finiteNumber(state.frames[0].timeMs))
+          : 0,
+        frame_count: state.frames.length,
+        bones: {},
+        hips_position: [],
+        hand_poses: {}
+      };
+      baseMotion.manualCorrections = buildManualCorrections();
+      baseMotion.poseTraining = {
+        correctedAt: new Date().toISOString(),
+        sourcePostId: state.source?.postId || null,
+        sourceTitle: state.source?.title || '',
+        videoUrl: state.currentVideoUrl || '',
+        captureRange
+      };
+      return baseMotion;
+    }
+
+    async function saveCorrectedPoseJsonToPoseDb(documentData) {
+      const postId = state.source?.postId;
+      if (!postId) return null;
+      const response = await fetch(`api/pose-db/items/${encodeURIComponent(postId)}/corrected-pose-json`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(documentData)
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok || !result?.ok) {
+        throw new Error(result?.error || `HTTP ${response.status}`);
+      }
+      state.source.poseJsonPath = result.item?.pose_json_path || result.path || state.source.poseJsonPath;
+      return result;
+    }
+
+    async function downloadCorrectedPoseJson() {
       if (!state.frames.length) {
         setStatus('目前沒有可輸出的 GVHMR 影格。', 'error');
         return;
       }
       const documentData = buildCorrectedPoseJson();
-      const slug = (documentData.source.title || documentData.source.id || 'gvhmr_alicia')
+      savePoseTrainingDraft();
+      let saveResult = null;
+      let saveError = '';
+      try {
+        saveResult = await saveCorrectedPoseJsonToPoseDb(documentData);
+      } catch (error) {
+        saveError = error.message || String(error);
+      }
+      const slug = (state.source?.title || state.source?.id || documentData.name || 'gvhmr_alicia')
         .replace(/[^\w.-]+/g, '_')
         .replace(/^_+|_+$/g, '')
         .slice(0, 80) || 'gvhmr_alicia';
@@ -2349,7 +2460,14 @@
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      setStatus(`已輸出修正版 pose_json：${a.download}。`);
+      if (saveResult) {
+        clearPoseTrainingDraft();
+        setStatus(`已寫回素材 #${state.source.postId}，並下載備份：${a.download}。`);
+      } else if (saveError) {
+        setStatus(`已下載備份，但寫回資料庫失敗：${saveError}`, 'error');
+      } else {
+        setStatus(`已輸出修正版 pose_json：${a.download}。`);
+      }
     }
 
     async function saveGvhmrResultToPoseDb(body, captureRange) {
@@ -2406,10 +2524,14 @@
         id: state.source?.id || 'pose_training_session',
         createdAt: new Date().toISOString(),
         source: {
+          postId: state.source?.postId || null,
           type: state.source?.type || 'youtube',
           youtubeUrl: state.source?.youtubeUrl || $('trainingYoutubeUrl').value.trim(),
+          sourceUrl: state.source?.sourceUrl || '',
           videoUrl: state.currentVideoUrl || '',
           title: state.source?.title || '',
+          poseJsonPath: state.source?.poseJsonPath || '',
+          skeletonJsonPath: state.source?.skeletonJsonPath || '',
           captureRange
         },
         profile,
@@ -2419,6 +2541,41 @@
         keyframes: cloneJson(state.keyframes),
         worldMotion: state.worldMotion || null
       };
+    }
+
+    function savePoseTrainingDraft() {
+      const key = currentPoseTrainingDraftKey();
+      if (!key) return false;
+      try {
+        const documentData = buildPoseTrainingDocument();
+        documentData.savedAt = new Date().toISOString();
+        documentData.worldMotion = null;
+        documentData.worldMotionSource = 'pose_db_existing_asset';
+        localStorage.setItem(key, JSON.stringify(documentData));
+        return true;
+      } catch (error) {
+        console.warn(error);
+        return false;
+      }
+    }
+
+    function loadPoseTrainingDraft() {
+      const key = currentPoseTrainingDraftKey();
+      if (!key) return false;
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return false;
+        loadPoseTrainingJson(JSON.parse(raw));
+        return true;
+      } catch (error) {
+        console.warn(error);
+        return false;
+      }
+    }
+
+    function clearPoseTrainingDraft() {
+      const key = currentPoseTrainingDraftKey();
+      if (key) localStorage.removeItem(key);
     }
 
     function refreshTrainingJson() {
@@ -2512,9 +2669,13 @@
         setStatus('不支援的校正 JSON。', 'error');
         return;
       }
-      state.source = documentData.source || null;
-      state.currentVideoUrl = documentData.source?.videoUrl || '';
-      state.worldMotion = documentData.worldMotion || null;
+      const previousSource = state.source || {};
+      state.source = { ...previousSource, ...(documentData.source || {}) };
+      if (!state.source.postId && previousSource.postId) {
+        state.source.postId = previousSource.postId;
+      }
+      state.currentVideoUrl = state.source?.videoUrl || state.currentVideoUrl || '';
+      state.worldMotion = documentData.worldMotion || state.worldMotion || null;
       state.keyframes = Array.isArray(documentData.keyframes) ? documentData.keyframes : [];
       state.recommendedKeyframes = [];
       const profile = documentData.profile || {};
@@ -2609,11 +2770,19 @@
         state.captureRange.durationMs = endMs;
         setCaptureRange(startMs, endMs);
       }
+      const restoredPoseJsonCorrections = applyManualCorrectionsFromPoseMotion();
       updateFrameSlider(0);
       applyTrainingCalibration();
+      const restoredDraft = loadPoseTrainingDraft();
       await loadRecommendedKeyframes(keyframesReportUrlFromItem(item));
       refreshTrainingJson();
-      setStatus(`已載入素材 #${item.id}：${state.frames.length} 個 GVHMR 影格。`);
+      if (restoredDraft) {
+        setStatus(`已載入素材 #${item.id}，並套用本機校正草稿：${state.keyframes.length} 格。`);
+      } else if (restoredPoseJsonCorrections) {
+        setStatus(`已載入素材 #${item.id}，並套用 pose_json 校正軌：${state.keyframes.length} 格。`);
+      } else {
+        setStatus(`已載入素材 #${item.id}：${state.frames.length} 個 GVHMR 影格。`);
+      }
     }
 
     function syncFrameToVideo() {
@@ -2889,6 +3058,7 @@
             ...state.handPoseOverride,
             [side]: event.target.value
           };
+          renderBoneQuickEditor({ keepPosition: true });
           applyTrainingCalibration({ refreshJson: false, keepQuickEditorPosition: true });
           scheduleTrainingJsonRefresh();
         });

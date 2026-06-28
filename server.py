@@ -2196,6 +2196,38 @@ def pose_db_item(item_id):
         return jsonify({"ok": False, "error": str(exc)}), 400
 
 
+@app.route('/api/pose-db/items/<int:item_id>/corrected-pose-json', methods=['POST'])
+def pose_db_item_corrected_pose_json(item_id):
+    try:
+        item = pose_db.get_item(POSE_DB_PATH, item_id)
+        if not item:
+            return jsonify({"ok": False, "error": "item not found"}), 404
+        document = _pose_db_payload()
+        if not isinstance(document.get("manualCorrections"), dict):
+            return jsonify({"ok": False, "error": "manualCorrections is required"}), 400
+
+        target_dir = BASE_DIR / "local_assets" / "pose_db" / "corrected"
+        target_dir.mkdir(parents=True, exist_ok=True)
+        target_path = target_dir / _safe_upload_filename(f"pose_{item_id}_corrected_pose.json")
+        target_path.write_text(json.dumps(document, ensure_ascii=False, indent=2), encoding="utf-8")
+
+        rel_path = _local_file_url(target_path)
+        updated = pose_db.update_item(POSE_DB_PATH, item_id, {
+            "pose_json": "",
+            "pose_json_path": rel_path,
+            "frames": int(document.get("frame_count") or document.get("frameCount") or item.get("frames") or 0),
+            "duration_ms": int(document.get("duration_ms") or document.get("durationMs") or item.get("duration_ms") or 0),
+            "status": 2,
+            "progress": 100,
+            "error_message": "",
+        })
+        return jsonify({"ok": True, "item": updated, "path": rel_path})
+    except ValueError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 500
+
+
 @app.route('/api/pose-db/items/<int:item_id>/queue', methods=['POST'])
 def pose_db_item_queue(item_id):
     item = pose_db.queue_item(POSE_DB_PATH, item_id)

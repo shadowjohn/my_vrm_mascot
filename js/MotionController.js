@@ -215,6 +215,73 @@ function normalizeHandPoseOverride(handPoseOverride = {}) {
   return normalized;
 }
 
+function correctionTimeMs(keyframe = {}) {
+  return finiteNumber(keyframe.timeMs ?? keyframe.time_ms, 0);
+}
+
+function mergeRotationOffsets(...items) {
+  const merged = {};
+  for (const item of items) {
+    for (const [bone, axes] of Object.entries(item || {})) {
+      merged[bone] ||= { x: 0, y: 0, z: 0 };
+      for (const axis of AXES) {
+        merged[bone][axis] += finiteNumber(axes?.[axis], 0);
+      }
+    }
+  }
+  return merged;
+}
+
+function sampleManualCorrection(manualCorrections = {}, timeMs = 0) {
+  const keys = Array.isArray(manualCorrections.keyframes) ? manualCorrections.keyframes : [];
+  if (!keys.length) return null;
+  const sorted = keys
+    .filter((item) => item && Number.isFinite(correctionTimeMs(item)))
+    .sort((a, b) => correctionTimeMs(a) - correctionTimeMs(b));
+  if (!sorted.length) return null;
+
+  const exact = sorted.find((item) => Math.abs(correctionTimeMs(item) - timeMs) <= 5);
+  if (exact) {
+    return {
+      boneOffsets: normalizeRotationOffsets(exact.boneOffsets || exact.additiveRotation || {}),
+      handPoseOverride: normalizeHandPoseOverride(exact.handPoseOverride || {}),
+    };
+  }
+
+  const previous = sorted.filter((item) => correctionTimeMs(item) <= timeMs).at(-1) || null;
+  const next = sorted.find((item) => correctionTimeMs(item) >= timeMs) || null;
+  const nearest = !previous ? next : !next ? previous
+    : Math.abs(timeMs - correctionTimeMs(previous)) <= Math.abs(correctionTimeMs(next) - timeMs) ? previous : next;
+  if (!previous || !next || correctionTimeMs(previous) === correctionTimeMs(next)) {
+    return {
+      boneOffsets: normalizeRotationOffsets(nearest?.boneOffsets || nearest?.additiveRotation || {}),
+      handPoseOverride: normalizeHandPoseOverride(nearest?.handPoseOverride || {}),
+    };
+  }
+
+  const ratio = Math.max(0, Math.min(1, (timeMs - correctionTimeMs(previous)) / (correctionTimeMs(next) - correctionTimeMs(previous))));
+  const boneOffsets = {};
+  const bones = new Set([
+    ...Object.keys(previous.boneOffsets || {}),
+    ...Object.keys(next.boneOffsets || {}),
+  ]);
+  for (const bone of bones) {
+    boneOffsets[bone] = {};
+    for (const axis of AXES) {
+      boneOffsets[bone][axis] = lerp(
+        finiteNumber(previous.boneOffsets?.[bone]?.[axis], 0),
+        finiteNumber(next.boneOffsets?.[bone]?.[axis], 0),
+        ratio
+      );
+    }
+  }
+  const handSource = ratio < 0.5 ? previous : next;
+  return {
+    boneOffsets,
+    handPoseOverride: normalizeHandPoseOverride(handSource?.handPoseOverride || {}),
+  };
+}
+
 function fingerNameFromBone(boneName = '') {
   if (boneName.includes('Thumb')) return 'thumb';
   if (boneName.includes('Index')) return 'index';
@@ -303,6 +370,7 @@ export class MotionController {
   #customPoseTimeMs = 0;
   #customPoseAdditiveRotation = {};
   #customPoseHandOverride = {};
+  #customManualCorrection = null;
   #tempQ1 = null;
   #tempQ2 = null;
   #posePreset = normalizePosePreset(DEFAULT_POSE_PRESET);
@@ -859,6 +927,7 @@ export class MotionController {
     this.#customPoseTimeMs = 0;
     this.#customPoseAdditiveRotation = {};
     this.#customPoseHandOverride = {};
+    this.#customManualCorrection = null;
   }
 
   /**
@@ -879,6 +948,7 @@ export class MotionController {
     this.#customPoseTimeMs = Math.max(0, finiteNumber(options.timeMs, 0));
     this.#customPoseAdditiveRotation = normalizeRotationOffsets(options.additiveRotation || {});
     this.#customPoseHandOverride = normalizeHandPoseOverride(options.handPoseOverride || {});
+    this.#customManualCorrection = null;
     this.#applyCustomAtTime(this.#customPoseTimeMs);
   }
 
@@ -1449,6 +1519,7 @@ export class MotionController {
   #applyCustomAtTime(timeMs) {
     this.#applyNaturalPose(this.#elapsed);
     this.#lazyInitTempQ();
+    this.#customManualCorrection = sampleManualCorrection(this.#customAnimData?.manualCorrections, timeMs);
 
     // 1. 骨骼旋轉插值 (Slerp)
     const bonesData = this.#customAnimData.bones || {};
@@ -1521,10 +1592,15 @@ export class MotionController {
     }
     this.#applyCustomHandPoses(timeMs);
     this.#applyCustomPoseAdditiveRotation();
+    this.#customManualCorrection = null;
   }
 
   #applyCustomPoseAdditiveRotation() {
-    for (const [boneName, axes] of Object.entries(this.#customPoseAdditiveRotation || {})) {
+    const rotation = mergeRotationOffsets(
+      this.#customManualCorrection?.boneOffsets,
+      this.#customPoseAdditiveRotation
+    );
+    for (const [boneName, axes] of Object.entries(rotation)) {
       const bone = this.#bones[boneName];
       if (!bone) continue;
       for (const axis of AXES) {
@@ -1568,7 +1644,7 @@ export class MotionController {
   #applyCustomHandPoses(timeMs) {
     for (const side of ['left', 'right']) {
       const sampled = this.#sampleHandPose(side, timeMs);
-      const override = this.#customPoseHandOverride?.[side] || null;
+      const override = this.#customPoseHandOverride?.[side] || this.#customManualCorrection?.handPoseOverride?.[side] || null;
       const pose = override || sampled;
       if (!pose) continue;
       const sign = side === 'left' ? 1 : -1;
@@ -1609,6 +1685,7 @@ export class MotionController {
     this.#customPoseTimeMs = 0;
     this.#customPoseAdditiveRotation = {};
     this.#customPoseHandOverride = {};
+    this.#customManualCorrection = null;
     this.#activeClip = null;
   }
 }

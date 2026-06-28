@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 const motionController = fs.readFileSync('js/MotionController.js', 'utf8');
 const poseTraining = fs.readFileSync('pose_training_lab.html', 'utf8');
+const server = fs.readFileSync('server.py', 'utf8');
 
 assert.match(motionController, /HAND_POSE_CURL_PRESETS[\s\S]*trigger[\s\S]*peace[\s\S]*thumbsUp/);
 assert.match(motionController, /fingerNameFromBone/);
@@ -10,8 +11,30 @@ assert.match(motionController, /#customPoseHandOverride/);
 assert.match(motionController, /fingerCurlByFinger/);
 assert.match(poseTraining, /trainingLeftHandPose/);
 assert.match(poseTraining, /trainingRightHandPose/);
+assert.ok(poseTraining.indexOf('for="trainingRightHandPose"') < poseTraining.indexOf('for="trainingLeftHandPose"'));
+assert.match(poseTraining, /boneQuickHandPose/);
+assert.match(poseTraining, /handSideFromBone/);
 assert.match(poseTraining, /handPoseOverride:\s*buildTrainingHandPoseOverride\(\)/);
 assert.match(poseTraining, /handPoseOverride:\s*cloneJson\(state\.handPoseOverride\)/);
 assert.match(poseTraining, /buildCorrectedHandPoses/);
+assert.match(poseTraining, /TRAINING_DRAFT_STORAGE_PREFIX/);
+assert.match(poseTraining, /function savePoseTrainingDraft\(\)/);
+assert.match(poseTraining, /function loadPoseTrainingDraft\(\)/);
+assert.match(poseTraining, /documentData\.worldMotion = null/);
+assert.match(poseTraining, /worldMotionSource = 'pose_db_existing_asset'/);
+assert.match(poseTraining, /const draftSaved = savePoseTrainingDraft\(\)/);
+assert.match(poseTraining, /本機草稿保存失敗/);
+assert.match(poseTraining, /const restoredDraft = loadPoseTrainingDraft\(\)/);
+assert.match(poseTraining, /if \(!state\.source\.postId && previousSource\.postId\)/);
+assert.match(motionController, /sampleManualCorrection/);
+assert.match(motionController, /manualCorrections/);
+assert.match(motionController, /#customManualCorrection/);
+assert.match(motionController, /mergeRotationOffsets/);
+assert.match(motionController, /customManualCorrection\?\.handPoseOverride/);
+assert.match(poseTraining, /function buildManualCorrections\(\)/);
+assert.match(poseTraining, /baseMotion\.manualCorrections = buildManualCorrections\(\)/);
+assert.match(poseTraining, /corrected-pose-json/);
+assert.match(server, /corrected-pose-json/);
+assert.match(server, /manualCorrections is required/);
 
 console.log('PASS test_pose_training_hand_presets');
