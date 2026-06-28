@@ -910,6 +910,20 @@
       </div>
 
       <div class="group">
+        <h3>手型</h3>
+        <div class="row">
+          <label for="trainingLeftHandPose">
+            左手
+            <select id="trainingLeftHandPose"></select>
+          </label>
+          <label for="trainingRightHandPose">
+            右手
+            <select id="trainingRightHandPose"></select>
+          </label>
+        </div>
+      </div>
+
+      <div class="group">
         <h3>姿勢校正軌</h3>
         <div id="trainingCalibrationFrameStatus" class="hint">目前影格：--</div>
         <p class="hint">單格校正用來記住目前影格；整套 pose_json 會套用校正軌輸出完整動作。</p>
@@ -1060,6 +1074,15 @@
       rightFoot: ['rightFoot', 'rightToes']
     });
     const CALIBRATION_NUMERIC_FIELDS = Object.freeze(['scale', 'offsetX', 'offsetY', 'offsetZ', 'yawDegrees']);
+    const HAND_POSE_OPTIONS = Object.freeze([
+      { value: '', label: '沿用 JSON' },
+      { value: 'open', label: '開掌' },
+      { value: 'relaxed', label: '半握拳（自然）' },
+      { value: 'fist', label: '握拳' },
+      { value: 'trigger', label: '扣扳機' },
+      { value: 'peace', label: '比 YA' },
+      { value: 'thumbsUp', label: '比讚' }
+    ]);
 
     const state = {
       source: null,
@@ -1071,6 +1094,7 @@
       keyframes: [],
       recommendedKeyframes: [],
       boneOffsets: {},
+      handPoseOverride: { left: '', right: '' },
       mascot: null,
       previewAdapter: null,
       skeletonGroup: null,
@@ -1802,6 +1826,45 @@
       });
     }
 
+    function normalizeTrainingHandPoseOverride(input = {}) {
+      const valid = new Set(HAND_POSE_OPTIONS.map((option) => option.value));
+      const normalized = { left: '', right: '' };
+      for (const side of ['left', 'right']) {
+        const raw = input?.[side];
+        const value = typeof raw === 'string' ? raw : raw?.gesture;
+        normalized[side] = valid.has(value) ? value : '';
+      }
+      return normalized;
+    }
+
+    function buildTrainingHandPoseOverride() {
+      const output = {};
+      for (const side of ['left', 'right']) {
+        const gesture = state.handPoseOverride?.[side] || '';
+        if (gesture) {
+          output[side] = { gesture };
+        }
+      }
+      return output;
+    }
+
+    function setTrainingHandPoseOverride(input = {}) {
+      state.handPoseOverride = normalizeTrainingHandPoseOverride(input);
+      const left = $('trainingLeftHandPose');
+      const right = $('trainingRightHandPose');
+      if (left) left.value = state.handPoseOverride.left;
+      if (right) right.value = state.handPoseOverride.right;
+    }
+
+    function renderHandPoseControls() {
+      const html = HAND_POSE_OPTIONS
+        .map((option) => `<option value="${option.value}">${option.label}</option>`)
+        .join('');
+      $('trainingLeftHandPose').innerHTML = html;
+      $('trainingRightHandPose').innerHTML = html;
+      setTrainingHandPoseOverride(state.handPoseOverride);
+    }
+
     function loadBoneOffsetsIntoMascot() {
       if (!state.mascot?.motion) {
         return;
@@ -1850,7 +1913,8 @@
         loadBasePoseIntoMascot();
         state.mascot.motion.holdCustomPose(state.poseMotion, {
           timeMs: targetTimeMs,
-          additiveRotation: state.boneOffsets
+          additiveRotation: state.boneOffsets,
+          handPoseOverride: buildTrainingHandPoseOverride()
         });
         if (refreshJson) {
           refreshTrainingJson();
@@ -1921,7 +1985,8 @@
           previous: exact,
           next: exact,
           calibration: cloneJson(exact.calibration || {}),
-          boneOffsets: cloneJson(exact.boneOffsets || {})
+          boneOffsets: cloneJson(exact.boneOffsets || {}),
+          handPoseOverride: cloneJson(exact.handPoseOverride || {})
         };
       }
 
@@ -1933,7 +1998,8 @@
           previous,
           next,
           calibration: cloneJson(nearest?.calibration || {}),
-          boneOffsets: cloneJson(nearest?.boneOffsets || {})
+          boneOffsets: cloneJson(nearest?.boneOffsets || {}),
+          handPoseOverride: cloneJson(nearest?.handPoseOverride || {})
         };
       }
 
@@ -1964,7 +2030,17 @@
         }
       }
 
-      return { ok: true, mode: 'interpolated', previous, next, ratio, calibration, boneOffsets };
+      const handSource = ratio < 0.5 ? previous : next;
+      return {
+        ok: true,
+        mode: 'interpolated',
+        previous,
+        next,
+        ratio,
+        calibration,
+        boneOffsets,
+        handPoseOverride: cloneJson(handSource?.handPoseOverride || {})
+      };
     }
 
     function applyCalibrationKeyframe(index) {
@@ -1973,6 +2049,7 @@
         return;
       }
       state.boneOffsets = cloneJson(keyframe.boneOffsets || {});
+      setTrainingHandPoseOverride(keyframe.handPoseOverride || {});
       writeCalibration(keyframe.calibration || {});
       renderBoneOffsetSliders();
       applyTrainingCalibration();
@@ -2067,7 +2144,8 @@
         timeMs: frame?.timeMs ?? null,
         frameIndex: frame?.frameIndex ?? null,
         calibration: readCalibration(),
-        boneOffsets: cloneJson(state.boneOffsets)
+        boneOffsets: cloneJson(state.boneOffsets),
+        handPoseOverride: cloneJson(state.handPoseOverride)
       };
     }
 
@@ -2077,6 +2155,7 @@
         return;
       }
       state.boneOffsets = cloneJson(state.inferenceBackup.boneOffsets || {});
+      setTrainingHandPoseOverride(state.inferenceBackup.handPoseOverride || {});
       writeCalibration(state.inferenceBackup.calibration || {});
       renderBoneOffsetSliders();
       applyTrainingCalibration();
@@ -2093,6 +2172,7 @@
       }
       rememberInferenceBackup(frame);
       state.boneOffsets = cloneJson(inferred.boneOffsets || {});
+      setTrainingHandPoseOverride(inferred.handPoseOverride || {});
       writeCalibration(inferred.calibration || {});
       renderBoneOffsetSliders();
       applyTrainingCalibration();
@@ -2163,7 +2243,8 @@
         timeMs: frame.timeMs,
         frameIndex: frame.frameIndex,
         calibration: readCalibration(),
-        boneOffsets: cloneJson(state.boneOffsets)
+        boneOffsets: cloneJson(state.boneOffsets),
+        handPoseOverride: cloneJson(state.handPoseOverride)
       };
       const existing = state.keyframes.findIndex((item) => Math.abs(item.timeMs - keyframe.timeMs) <= 5);
       if (existing >= 0) {
@@ -2186,7 +2267,8 @@
             ok: true,
             mode: 'current',
             calibration: readCalibration(),
-            boneOffsets: cloneJson(state.boneOffsets)
+            boneOffsets: cloneJson(state.boneOffsets),
+            handPoseOverride: cloneJson(state.handPoseOverride)
           };
       return {
         frameIndex: frame.frameIndex ?? index,
@@ -2195,12 +2277,37 @@
         interpolationRatio: correction.ratio ?? null,
         calibration: cloneJson(correction.calibration || {}),
         boneOffsets: cloneJson(correction.boneOffsets || {}),
+        handPoseOverride: cloneJson(correction.handPoseOverride || {}),
         landmarks: cloneJson(frame.landmarks || {})
       };
     }
 
+    function buildCorrectedHandPoses(frames) {
+      const handPoses = cloneJson(state.poseMotion?.hand_poses || {});
+      const corrected = { left: [], right: [] };
+      for (const frame of frames) {
+        for (const side of ['left', 'right']) {
+          const gesture = frame.handPoseOverride?.[side] || '';
+          if (gesture) {
+            corrected[side].push({
+              time_ms: Math.round(finiteNumber(frame.timeMs)),
+              source: 'pose_training_manual',
+              gesture
+            });
+          }
+        }
+      }
+      for (const side of ['left', 'right']) {
+        if (corrected[side].length) {
+          handPoses[side] = corrected[side];
+        }
+      }
+      return handPoses;
+    }
+
     function buildCorrectedPoseJson() {
       const captureRange = readCaptureRange();
+      const frames = state.frames.map(correctedFrameForExport);
       return {
         kind: 'gvhmr_alicia_corrected_pose_json_v1',
         schemaVersion: 1,
@@ -2217,8 +2324,9 @@
         durationMs: state.frames.length
           ? Math.max(0, finiteNumber(state.frames.at(-1).timeMs) - finiteNumber(state.frames[0].timeMs))
           : 0,
+        hand_poses: buildCorrectedHandPoses(frames),
         keyframes: cloneJson(state.keyframes),
-        frames: state.frames.map(correctedFrameForExport)
+        frames
       };
     }
 
@@ -2284,7 +2392,8 @@
         schemaVersion: 1,
         updatedAt: new Date().toISOString(),
         calibration: readCalibration(),
-        boneOffsets: cloneJson(state.boneOffsets)
+        boneOffsets: cloneJson(state.boneOffsets),
+        handPoseOverride: cloneJson(state.handPoseOverride)
       };
     }
 
@@ -2306,6 +2415,7 @@
         profile,
         calibration: profile.calibration,
         boneOffsets: profile.boneOffsets,
+        handPoseOverride: profile.handPoseOverride,
         keyframes: cloneJson(state.keyframes),
         worldMotion: state.worldMotion || null
       };
@@ -2359,6 +2469,7 @@
         return false;
       }
       state.boneOffsets = profile.boneOffsets || {};
+      setTrainingHandPoseOverride(profile.handPoseOverride || {});
       writeCalibration(profile.calibration || {});
       renderBoneOffsetSliders();
       applyTrainingCalibration();
@@ -2408,6 +2519,7 @@
       state.recommendedKeyframes = [];
       const profile = documentData.profile || {};
       state.boneOffsets = profile.boneOffsets || documentData.boneOffsets || state.keyframes.at(-1)?.boneOffsets || {};
+      setTrainingHandPoseOverride(profile.handPoseOverride || documentData.handPoseOverride || state.keyframes.at(-1)?.handPoseOverride || {});
       writeCalibration(profile.calibration || documentData.calibration || state.keyframes.at(-1)?.calibration || {});
 
       const range = documentData.source?.captureRange || { startMs: 0, endMs: 0, durationMs: 0 };
@@ -2771,6 +2883,16 @@
         renderBoneQuickEditor();
         updateBoneMapActive();
       });
+      for (const [id, side] of [['trainingLeftHandPose', 'left'], ['trainingRightHandPose', 'right']]) {
+        $(id).addEventListener('change', (event) => {
+          state.handPoseOverride = {
+            ...state.handPoseOverride,
+            [side]: event.target.value
+          };
+          applyTrainingCalibration({ refreshJson: false, keepQuickEditorPosition: true });
+          scheduleTrainingJsonRefresh();
+        });
+      }
       $('trainingBoneMap').addEventListener('click', (event) => {
         const item = event.target.closest('[data-bone]');
         if (item) selectTrainingBone(item.dataset.bone);
@@ -2809,6 +2931,7 @@
       updateCalibrationLabels();
       updateSkeletonViewOffsetLabels();
       renderTrainingBoneSelect();
+      renderHandPoseControls();
       renderBoneOffsetSliders();
       updateBoneMapActive();
       setCaptureRange(0, 0);

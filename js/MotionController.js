@@ -145,6 +145,15 @@ const FINGER_BONES = {
   ],
 };
 
+const HAND_POSE_CURL_PRESETS = Object.freeze({
+  open: { thumb: 0.08, index: 0.08, middle: 0.08, ring: 0.08, little: 0.08 },
+  relaxed: { thumb: 0.45, index: 0.52, middle: 0.56, ring: 0.58, little: 0.6 },
+  fist: { thumb: 0.78, index: 0.9, middle: 0.92, ring: 0.92, little: 0.92 },
+  trigger: { thumb: 0.55, index: 0.2, middle: 0.86, ring: 0.9, little: 0.92 },
+  peace: { thumb: 0.45, index: 0.08, middle: 0.08, ring: 0.9, little: 0.92 },
+  thumbsUp: { thumb: 0.06, index: 0.88, middle: 0.9, ring: 0.9, little: 0.9 },
+});
+
 function cloneJson(value) {
   return JSON.parse(JSON.stringify(value));
 }
@@ -189,6 +198,34 @@ function normalizeRotationOffsets(rotation = {}) {
     normalized[bone] = normalizeAxes(axes);
   }
   return normalized;
+}
+
+function normalizeHandPoseOverride(handPoseOverride = {}) {
+  const normalized = {};
+  for (const side of ['left', 'right']) {
+    const raw = handPoseOverride?.[side];
+    const gesture = typeof raw === 'string' ? raw : raw?.gesture;
+    const preset = HAND_POSE_CURL_PRESETS[gesture];
+    if (!preset) continue;
+    normalized[side] = {
+      gesture,
+      fingerCurlByFinger: { ...preset },
+    };
+  }
+  return normalized;
+}
+
+function fingerNameFromBone(boneName = '') {
+  if (boneName.includes('Thumb')) return 'thumb';
+  if (boneName.includes('Index')) return 'index';
+  if (boneName.includes('Middle')) return 'middle';
+  if (boneName.includes('Ring')) return 'ring';
+  if (boneName.includes('Little')) return 'little';
+  return '';
+}
+
+function normalizedCurl(value, fallback = 0) {
+  return Math.max(0, Math.min(1, finiteNumber(value, fallback)));
 }
 
 function assertAxis(axis) {
@@ -265,6 +302,7 @@ export class MotionController {
   #customOptions = {};
   #customPoseTimeMs = 0;
   #customPoseAdditiveRotation = {};
+  #customPoseHandOverride = {};
   #tempQ1 = null;
   #tempQ2 = null;
   #posePreset = normalizePosePreset(DEFAULT_POSE_PRESET);
@@ -820,6 +858,7 @@ export class MotionController {
     this.#customOptions = options;
     this.#customPoseTimeMs = 0;
     this.#customPoseAdditiveRotation = {};
+    this.#customPoseHandOverride = {};
   }
 
   /**
@@ -828,6 +867,7 @@ export class MotionController {
    * @param {object} [options]
    * @param {number} [options.timeMs=0]
    * @param {object} [options.additiveRotation] - 每幀在 baked pose 後疊加的校正角度（degree）
+   * @param {object} [options.handPoseOverride] - 每幀覆蓋手型 preset，例如 { left: 'fist' }
    */
   holdCustomPose(animData, options = {}) {
     this.#stopActiveVrma();
@@ -838,6 +878,7 @@ export class MotionController {
     this.#customOptions = {};
     this.#customPoseTimeMs = Math.max(0, finiteNumber(options.timeMs, 0));
     this.#customPoseAdditiveRotation = normalizeRotationOffsets(options.additiveRotation || {});
+    this.#customPoseHandOverride = normalizeHandPoseOverride(options.handPoseOverride || {});
     this.#applyCustomAtTime(this.#customPoseTimeMs);
   }
 
@@ -1516,17 +1557,29 @@ export class MotionController {
     const alpha = denom > 0 ? (timeMs - kA.time_ms) / denom : 0;
     const fallback = kA.gesture === 'fist' ? 0.85 : kA.gesture === 'open' ? 0.1 : 0.45;
     const curl = lerp(finiteNumber(kA.fingerCurl, fallback), finiteNumber(kB.fingerCurl, fallback), alpha);
-    return (kA.gesture === 'relaxed' || kB.gesture === 'relaxed') ? Math.max(0.52, curl) : curl;
+    const gesture = alpha < 0.5 ? kA.gesture : kB.gesture;
+    return {
+      gesture,
+      fingerCurl: (kA.gesture === 'relaxed' || kB.gesture === 'relaxed') ? Math.max(0.52, curl) : curl,
+      fingerCurlByFinger: HAND_POSE_CURL_PRESETS[gesture] || null,
+    };
   }
 
   #applyCustomHandPoses(timeMs) {
     for (const side of ['left', 'right']) {
-      const curl = this.#sampleHandPose(side, timeMs);
-      if (curl === null) continue;
+      const sampled = this.#sampleHandPose(side, timeMs);
+      const override = this.#customPoseHandOverride?.[side] || null;
+      const pose = override || sampled;
+      if (!pose) continue;
       const sign = side === 'left' ? 1 : -1;
       for (const name of FINGER_BONES[side]) {
         const bone = this.#bones[name];
         if (!bone) continue;
+        const fingerName = fingerNameFromBone(name);
+        const fallbackCurl = normalizedCurl(pose.fingerCurl, sampled?.fingerCurl ?? 0);
+        const curl = pose.fingerCurlByFinger
+          ? normalizedCurl(pose.fingerCurlByFinger[fingerName], fallbackCurl)
+          : fallbackCurl;
         const isThumb = name.includes('Thumb');
         const isDistal = name.includes('Distal');
         const amount = curl * (isThumb ? 38 : isDistal ? 34 : 64) * DEG;
@@ -1555,6 +1608,7 @@ export class MotionController {
     this.#customOptions = {};
     this.#customPoseTimeMs = 0;
     this.#customPoseAdditiveRotation = {};
+    this.#customPoseHandOverride = {};
     this.#activeClip = null;
   }
 }
