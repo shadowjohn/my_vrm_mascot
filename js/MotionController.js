@@ -183,6 +183,14 @@ function normalizePosePreset(preset = {}) {
   return normalized;
 }
 
+function normalizeRotationOffsets(rotation = {}) {
+  const normalized = {};
+  for (const [bone, axes] of Object.entries(rotation || {})) {
+    normalized[bone] = normalizeAxes(axes);
+  }
+  return normalized;
+}
+
 function assertAxis(axis) {
   if (!AXES.includes(axis)) {
     throw new Error(`Invalid pose axis: ${axis}`);
@@ -256,6 +264,7 @@ export class MotionController {
   #customAnimData = null;
   #customOptions = {};
   #customPoseTimeMs = 0;
+  #customPoseAdditiveRotation = {};
   #tempQ1 = null;
   #tempQ2 = null;
   #posePreset = normalizePosePreset(DEFAULT_POSE_PRESET);
@@ -810,6 +819,7 @@ export class MotionController {
     this.#customAnimData = animData;
     this.#customOptions = options;
     this.#customPoseTimeMs = 0;
+    this.#customPoseAdditiveRotation = {};
   }
 
   /**
@@ -817,6 +827,7 @@ export class MotionController {
    * @param {object} animData
    * @param {object} [options]
    * @param {number} [options.timeMs=0]
+   * @param {object} [options.additiveRotation] - 每幀在 baked pose 後疊加的校正角度（degree）
    */
   holdCustomPose(animData, options = {}) {
     this.#stopActiveVrma();
@@ -826,6 +837,7 @@ export class MotionController {
     this.#customAnimData = animData;
     this.#customOptions = {};
     this.#customPoseTimeMs = Math.max(0, finiteNumber(options.timeMs, 0));
+    this.#customPoseAdditiveRotation = normalizeRotationOffsets(options.additiveRotation || {});
     this.#applyCustomAtTime(this.#customPoseTimeMs);
   }
 
@@ -1467,6 +1479,20 @@ export class MotionController {
       this.#bones.hips.position.z = pz;
     }
     this.#applyCustomHandPoses(timeMs);
+    this.#applyCustomPoseAdditiveRotation();
+  }
+
+  #applyCustomPoseAdditiveRotation() {
+    for (const [boneName, axes] of Object.entries(this.#customPoseAdditiveRotation || {})) {
+      const bone = this.#bones[boneName];
+      if (!bone) continue;
+      for (const axis of AXES) {
+        const value = axes[axis];
+        if (Number.isFinite(value)) {
+          bone.rotation[axis] += value * DEG;
+        }
+      }
+    }
   }
 
   #sampleHandPose(side, timeMs) {
@@ -1528,6 +1554,7 @@ export class MotionController {
     this.#customAnimData = null;
     this.#customOptions = {};
     this.#customPoseTimeMs = 0;
+    this.#customPoseAdditiveRotation = {};
     this.#activeClip = null;
   }
 }

@@ -1,11 +1,13 @@
 import importlib.util
 import os
 import subprocess
+import sys
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
 
 SERVER_PATH = Path("server.py")
+sys.path.insert(0, str(SERVER_PATH.resolve().parent))
 
 
 def load_server_module():
@@ -46,7 +48,7 @@ def test_video_world_motion_api_reports_missing_assets_before_runner():
             client = module.app.test_client()
 
             response = client.post("/api/capture/video/world-motion", json={
-                "videoUrl": "capture/youtube/yt_world001.mp4"
+                "videoUrl": "local_assets/capture/youtube/yt_world001.mp4"
             })
         finally:
             if old_root is None:
@@ -101,7 +103,7 @@ def test_video_world_motion_api_returns_world_motion_payload_when_ready():
         client = module.app.test_client()
 
         response = client.post("/api/capture/video/world-motion", json={
-            "videoUrl": "capture/youtube/yt_world001.mp4"
+            "videoUrl": "local_assets/capture/youtube/yt_world001.mp4"
         })
         assert response.status_code == 200
         body = response.get_json()
@@ -126,8 +128,15 @@ def test_video_world_motion_api_filters_frames_to_capture_range():
         module._run_mediapipe_hand_pass = lambda *args, **kwargs: None
         module._run_alicia_blender_bake = fake_alicia_bake
 
+        def fake_clip(path, start_ms, end_ms):
+            clip_path = tmp_base / "clip.mp4"
+            clip_path.write_bytes(b"fake clipped video")
+            return clip_path
+
+        module._clip_video_ffmpeg = fake_clip
+
         def fake_runner(path, static_camera=True):
-            assert path == video_path
+            assert path.name == "clip.mp4"
             assert static_camera is True
             return {
                 "ok": True,
@@ -144,7 +153,7 @@ def test_video_world_motion_api_filters_frames_to_capture_range():
         client = module.app.test_client()
 
         response = client.post("/api/capture/video/world-motion", json={
-            "videoUrl": "capture/youtube/yt_world001.mp4",
+            "videoUrl": "local_assets/capture/youtube/yt_world001.mp4",
             "startMs": 1000,
             "endMs": 2500,
         })
@@ -152,7 +161,7 @@ def test_video_world_motion_api_filters_frames_to_capture_range():
         assert response.status_code == 200
         body = response.get_json()
         assert body["ok"] is True
-        assert [frame["t"] for frame in body["worldMotion"]["frames"]] == [1.5, 2.4]
+        assert [frame["t"] for frame in body["worldMotion"]["frames"]] == [1.4, 2.5]
         assert body["worldMotion"]["metadata"]["captureRange"]["startMs"] == 1000
         assert body["worldMotion"]["metadata"]["captureRange"]["endMs"] == 2500
         assert body["worldMotion"]["metadata"]["captureRange"]["filteredFrameCount"] == 2
@@ -188,6 +197,37 @@ def test_gvhmr_demo_motions_api_lists_baked_outputs():
         body = response.get_json()
         assert body["ok"] is True
         assert body["motions"][0]["url"] == "conda_vm/gvhmr/GVHMR/outputs/demo/sample001/alicia_blender_bake_motion.json"
+
+
+def test_existing_demo_video_rerun_reuses_parent_output_dir():
+    with TemporaryDirectory() as tmp_dir:
+        tmp_base = Path(tmp_dir)
+        demo_dir = tmp_base / "conda_vm" / "gvhmr" / "GVHMR" / "outputs" / "demo" / "sample001"
+        video_path = demo_dir / "0_input_video.mp4"
+        demo_dir.mkdir(parents=True)
+        video_path.write_bytes(b"video")
+
+        module = load_server_module()
+        module.BASE_DIR = tmp_base
+
+        assert module._gvhmr_demo_output_dir_for_video(video_path) == demo_dir
+
+
+def test_gvhmr_artifact_backup_copies_existing_json_outputs():
+    with TemporaryDirectory() as tmp_dir:
+        output_dir = Path(tmp_dir) / "demo001"
+        output_dir.mkdir()
+        (output_dir / "alicia_blender_bake_motion.json").write_text('{"old":true}', encoding="utf-8")
+        (output_dir / "alicia_intermediate_landmarks.json").write_text('{"frames":[1]}', encoding="utf-8")
+        (output_dir / "0_input_video.mp4").write_bytes(b"large video")
+
+        module = load_server_module()
+        backup_dir = module._backup_existing_gvhmr_artifacts(output_dir)
+
+        assert backup_dir is not None
+        assert (backup_dir / "alicia_blender_bake_motion.json").read_text(encoding="utf-8") == '{"old":true}'
+        assert (backup_dir / "alicia_intermediate_landmarks.json").read_text(encoding="utf-8") == '{"frames":[1]}'
+        assert not (backup_dir / "0_input_video.mp4").exists()
 
 
 def test_gvhmr_runtime_is_desktop_friendly_by_default():
@@ -242,6 +282,8 @@ if __name__ == "__main__":
     test_video_world_motion_api_filters_frames_to_capture_range()
     test_video_world_motion_api_rejects_non_local_video_paths()
     test_gvhmr_demo_motions_api_lists_baked_outputs()
+    test_existing_demo_video_rerun_reuses_parent_output_dir()
+    test_gvhmr_artifact_backup_copies_existing_json_outputs()
     test_gvhmr_runtime_is_desktop_friendly_by_default()
     test_gvhmr_timeout_is_long_and_overridable()
     print("test_video_world_motion_api: ok")

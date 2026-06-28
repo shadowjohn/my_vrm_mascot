@@ -162,9 +162,12 @@
       background: #3f873b;
     }
 
-    button.warn { background: #634c13; color: #ffe8a3; }
-    button.bad { background: #692325; color: #ffe1e1; }
-    button.blue { background: #174363; color: #dff1ff; }
+    button.warn,
+    .button.warn { background: #634c13; color: #ffe8a3; }
+    button.bad,
+    .button.bad { background: #692325; color: #ffe1e1; }
+    button.blue,
+    .button.blue { background: #174363; color: #dff1ff; }
     button:disabled { opacity: 0.55; cursor: wait; }
 
     dialog {
@@ -304,6 +307,46 @@
       display: block;
       height: 100%;
       background: linear-gradient(90deg, #82e68c, #ffd166);
+    }
+
+    .upload-box {
+      display: none;
+      gap: 8px;
+      padding: 10px;
+      border: 1px dashed rgba(166, 244, 197, 0.45);
+      border-radius: 8px;
+      background: rgba(146, 230, 142, 0.06);
+      color: var(--muted);
+    }
+
+    .upload-box.active { display: grid; }
+    .upload-box.dragover { border-color: var(--accent); background: rgba(146, 230, 142, 0.14); }
+    .upload-box input { padding: 6px; }
+
+    .source-preview {
+      display: none;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #081510;
+    }
+
+    .source-preview.active { display: grid; }
+
+    .source-preview video,
+    .source-preview img {
+      width: 100%;
+      max-height: 220px;
+      object-fit: contain;
+      border-radius: 6px;
+      background: #020604;
+    }
+
+    .range-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
     }
 
     .actions {
@@ -467,6 +510,29 @@
       <label>來源 URL / 路徑
         <input id="itemSourceUrl" placeholder="youtube URL、mp4、image、vrma、json 路徑">
       </label>
+      <div id="itemUploadBox" class="upload-box">
+        <strong>選擇 / 拖移 / 貼上檔案</strong>
+        <input id="itemUploadFile" type="file">
+        <div id="itemUploadHint">支援 local_mp4、image、vrma、pose_json。</div>
+        <div class="progress"><span id="itemUploadProgressBar" style="width:0%"></span></div>
+        <div class="meta" id="itemUploadProgressText">尚未選擇檔案</div>
+      </div>
+      <div id="itemSourcePreview" class="source-preview">
+        <video id="itemPreviewVideo" controls muted playsinline></video>
+        <img id="itemPreviewImage" alt="">
+        <label>截切範圍
+          <input id="itemPreviewRangeStart" type="range" min="0" max="0" value="0" step="100">
+          <input id="itemPreviewRangeEnd" type="range" min="0" max="0" value="0" step="100">
+        </label>
+        <div class="range-row">
+          <label>開始 ms
+            <input id="itemSourceStartMs" type="number" min="0" value="0" step="100">
+          </label>
+          <label>結束 ms
+            <input id="itemSourceEndMs" type="number" min="0" value="0" step="100">
+          </label>
+        </div>
+      </div>
       <label>姿勢用途
         <textarea id="itemPurpose" placeholder="例如：拳擊防守、走路、自然站姿"></textarea>
       </label>
@@ -478,7 +544,7 @@
   </dialog>
 
   <script>
-    const state = { kinds: [], items: [], busy: false, editingKindId: null, editingItemId: null };
+    const state = { kinds: [], items: [], busy: false, editingKindId: null, editingItemId: null, uploadFile: null, uploadObjectUrl: '' };
     const statusMap = {
       0: { label: '待處理', cls: 'queued' },
       1: { label: '轉檔中', cls: 'processing' },
@@ -514,6 +580,120 @@
       if (!path) return '';
       if (/^https?:\/\//.test(path) || path.startsWith('/')) return path;
       return encodeURI(path).replace(/#/g, '%23');
+    }
+
+    function sourceKindAccept(kind) {
+      return {
+        local_mp4: 'video/*,.mp4,.mov,.webm,.mkv',
+        image: 'image/*,.png,.jpg,.jpeg,.webp',
+        vrma: '.vrma',
+        pose_json: '.json,application/json',
+      }[kind] || '';
+    }
+
+    function sourceKindCanUpload(kind) {
+      return Boolean(sourceKindAccept(kind));
+    }
+
+    function setUploadProgress(percent, text) {
+      const value = Math.max(0, Math.min(100, Number(percent || 0)));
+      document.getElementById('itemUploadProgressBar').style.width = `${value}%`;
+      document.getElementById('itemUploadProgressText').textContent = text || `${value.toFixed(0)}%`;
+    }
+
+    function clearSourcePreview() {
+      if (state.uploadObjectUrl) URL.revokeObjectURL(state.uploadObjectUrl);
+      state.uploadObjectUrl = '';
+      document.getElementById('itemSourcePreview').classList.remove('active');
+      document.getElementById('itemPreviewVideo').removeAttribute('src');
+      document.getElementById('itemPreviewImage').removeAttribute('src');
+      document.getElementById('itemPreviewVideo').style.display = 'none';
+      document.getElementById('itemPreviewImage').style.display = 'none';
+      setCaptureInputs(0, 0, 0);
+    }
+
+    function setCaptureInputs(startMs, endMs, durationMs) {
+      const duration = Math.max(0, Number(durationMs || endMs || 0));
+      const start = Math.max(0, Math.min(duration, Number(startMs || 0)));
+      const end = Math.max(start, Math.min(duration, Number(endMs || duration || 0)));
+      for (const id of ['itemPreviewRangeStart', 'itemPreviewRangeEnd']) {
+        document.getElementById(id).max = String(duration);
+      }
+      document.getElementById('itemPreviewRangeStart').value = String(start);
+      document.getElementById('itemPreviewRangeEnd').value = String(end);
+      document.getElementById('itemSourceStartMs').value = String(Math.round(start));
+      document.getElementById('itemSourceEndMs').value = String(Math.round(end));
+    }
+
+    function syncCaptureInputs(changed) {
+      const duration = Number(document.getElementById('itemPreviewRangeEnd').max || 0);
+      let start = Number(document.getElementById('itemSourceStartMs').value || document.getElementById('itemPreviewRangeStart').value || 0);
+      let end = Number(document.getElementById('itemSourceEndMs').value || document.getElementById('itemPreviewRangeEnd').value || duration);
+      if (changed === 'start') start = Number(document.getElementById('itemPreviewRangeStart').value || start);
+      if (changed === 'end') end = Number(document.getElementById('itemPreviewRangeEnd').value || end);
+      setCaptureInputs(start, end, duration);
+    }
+
+    function previewUploadFile(file) {
+      clearSourcePreview();
+      if (!file) return;
+      const kind = document.getElementById('itemSourceKind').value;
+      if (!['local_mp4', 'image'].includes(kind)) return;
+      state.uploadObjectUrl = URL.createObjectURL(file);
+      document.getElementById('itemSourcePreview').classList.add('active');
+      if (kind === 'local_mp4') {
+        const video = document.getElementById('itemPreviewVideo');
+        video.style.display = 'block';
+        video.src = state.uploadObjectUrl;
+        video.onloadedmetadata = () => setCaptureInputs(0, Math.round((video.duration || 0) * 1000), Math.round((video.duration || 0) * 1000));
+      } else {
+        const image = document.getElementById('itemPreviewImage');
+        image.style.display = 'block';
+        image.src = state.uploadObjectUrl;
+      }
+    }
+
+    function setUploadFile(file) {
+      state.uploadFile = file || null;
+      document.getElementById('itemUploadHint').textContent = file
+        ? `${file.name} / ${(file.size / 1024 / 1024).toFixed(2)} MB`
+        : '支援 local_mp4、image、vrma、pose_json。';
+      setUploadProgress(0, file ? '等待儲存時上傳' : '尚未選擇檔案');
+      previewUploadFile(file);
+    }
+
+    function syncUploadUi() {
+      const kind = document.getElementById('itemSourceKind').value;
+      const enabled = sourceKindCanUpload(kind) && !state.editingItemId;
+      document.getElementById('itemUploadBox').classList.toggle('active', enabled);
+      document.getElementById('itemUploadFile').accept = sourceKindAccept(kind);
+      if (!enabled) setUploadFile(null);
+      if (enabled && state.uploadFile) previewUploadFile(state.uploadFile);
+    }
+
+    function uploadPoseDbFile(file, sourceKind) {
+      const form = new FormData();
+      form.append('file', file);
+      form.append('source_kind', sourceKind);
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/pose-db/upload');
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) setUploadProgress((event.loaded / event.total) * 100, `上傳中 ${Math.round((event.loaded / event.total) * 100)}%`);
+        };
+        xhr.onload = () => {
+          let body = null;
+          try { body = JSON.parse(xhr.responseText || '{}'); } catch (error) {}
+          if (xhr.status >= 200 && xhr.status < 300 && body?.ok) {
+            setUploadProgress(100, '上傳完成');
+            resolve(body);
+          } else {
+            reject(new Error(body?.error || `HTTP ${xhr.status}`));
+          }
+        };
+        xhr.onerror = () => reject(new Error('upload failed'));
+        xhr.send(form);
+      });
     }
 
     function escapeHtml(value) {
@@ -588,10 +768,13 @@
         buttons.push(`<button class="blue" data-action="convert-vrma-pose-json" data-id="${item.id}">${canPreview ? '重驗 JSON' : '轉 Pose JSON'}</button>`);
       } else if (canPreview) {
         buttons.push(`<a class="button primary" href="pose_demo.html?id=${item.id}" target="_blank" rel="noopener">預覽</a>`);
+        if (item.skeleton_json_path) {
+          buttons.push(`<a class="button warn" href="pose_training_lab.html?postId=${item.id}" target="_blank" rel="noopener">校正姿勢</a>`);
+        }
         buttons.push(`<button class="blue" data-action="queue" data-id="${item.id}">重驗 JSON</button>`);
         buttons.push(`<button class="blue" data-action="convert-pose-json-vrma" data-id="${item.id}">轉 VRMA</button>`);
       } else if (['youtube', 'local_mp4', 'image'].includes(item.source_kind)) {
-        buttons.push('<button type="button" disabled title="下一步接背景 GVHMR queue">排入 GVHMR</button>');
+        buttons.push(`<a class="button warn" href="pose_training_lab.html?postId=${item.id}" target="_blank" rel="noopener">校正/轉檔</a>`);
       } else {
         buttons.push('<button type="button" disabled>未支援</button>');
       }
@@ -700,6 +883,9 @@
       document.getElementById('itemPurpose').value = item ? (item.purpose || '') : '';
       document.getElementById('itemSourceKind').disabled = Boolean(item);
       document.getElementById('itemSourceUrl').disabled = Boolean(item);
+      setUploadFile(null);
+      syncUploadUi();
+      setCaptureInputs(item?.source_start_ms || 0, item?.source_end_ms || 0, item?.source_end_ms || 0);
       openDialog(document.getElementById('itemDialog'));
     }
 
@@ -737,17 +923,49 @@
 
     document.getElementById('openItemDialogBtn').addEventListener('click', () => openItemDialog());
     document.getElementById('closeItemDialogBtn').addEventListener('click', () => closeDialog(document.getElementById('itemDialog')));
+    document.getElementById('itemSourceKind').addEventListener('change', syncUploadUi);
+    document.getElementById('itemUploadFile').addEventListener('change', (event) => setUploadFile(event.target.files[0]));
+    document.getElementById('itemPreviewRangeStart').addEventListener('input', () => syncCaptureInputs('start'));
+    document.getElementById('itemPreviewRangeEnd').addEventListener('input', () => syncCaptureInputs('end'));
+    document.getElementById('itemSourceStartMs').addEventListener('change', () => syncCaptureInputs());
+    document.getElementById('itemSourceEndMs').addEventListener('change', () => syncCaptureInputs());
+    document.getElementById('itemUploadBox').addEventListener('dragover', (event) => {
+      event.preventDefault();
+      document.getElementById('itemUploadBox').classList.add('dragover');
+    });
+    document.getElementById('itemUploadBox').addEventListener('dragleave', () => {
+      document.getElementById('itemUploadBox').classList.remove('dragover');
+    });
+    document.getElementById('itemUploadBox').addEventListener('drop', (event) => {
+      event.preventDefault();
+      document.getElementById('itemUploadBox').classList.remove('dragover');
+      setUploadFile(event.dataTransfer.files[0]);
+    });
+    document.getElementById('itemDialog').addEventListener('paste', (event) => {
+      const file = [...(event.clipboardData?.files || [])][0];
+      if (file && sourceKindCanUpload(document.getElementById('itemSourceKind').value)) setUploadFile(file);
+    });
     document.getElementById('saveItemBtn').addEventListener('click', () => runAction(state.editingItemId ? '編輯素材' : '建立素材', async () => {
       const payload = {
         kinds_id: document.getElementById('itemKind').value || null,
         title: document.getElementById('itemTitle').value,
         purpose: document.getElementById('itemPurpose').value,
+        source_start_ms: Number(document.getElementById('itemSourceStartMs').value || 0) || null,
+        source_end_ms: Number(document.getElementById('itemSourceEndMs').value || 0) || null,
       };
       if (state.editingItemId) {
         await apiJson(`/api/pose-db/items/${state.editingItemId}`, { method: 'PATCH', body: JSON.stringify(payload) });
       } else {
         payload.source_kind = document.getElementById('itemSourceKind').value;
-        payload.source_url = document.getElementById('itemSourceUrl').value;
+        payload.source_url = document.getElementById('itemSourceUrl').value.trim();
+        if (!payload.source_url && !state.uploadFile) {
+          throw new Error('請填來源 URL / 路徑，或選擇一個檔案');
+        }
+        if (state.uploadFile) {
+          const uploaded = await uploadPoseDbFile(state.uploadFile, payload.source_kind);
+          payload.source_url = uploaded.path;
+          if (!payload.title) payload.title = state.uploadFile.name.replace(/\.[^.]+$/, '');
+        }
         await apiJson('/api/pose-db/items', { method: 'POST', body: JSON.stringify(payload) });
       }
       closeDialog(document.getElementById('itemDialog'));

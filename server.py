@@ -11,7 +11,7 @@ import time
 import uuid
 from datetime import datetime
 from pathlib import Path
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import unquote, urlparse, urlunparse
 from flask import Flask, request, jsonify, send_from_directory
 
 import pose_db
@@ -48,6 +48,7 @@ DEFAULT_MOTION_MINING_LOG_STORE_PATH = BASE_DIR / "examples" / "m6_7_vrma_sample
 VRMA_SAMPLE_DIR = BASE_DIR / "examples" / "m6_7_vrma_samples"
 LOCAL_VRMA_SAMPLE_DIR = BASE_DIR / "local_assets" / "vrma"
 CHARACTER_POOL_DIR = BASE_DIR / "local_assets" / "characters"
+POSE_DB_UPLOAD_DIR = BASE_DIR / "local_assets" / "pose_db" / "uploads"
 YOUTUBE_CAPTURE_MAX_FILE_SIZE_MB = 500
 YOUTUBE_CAPTURE_TIMEOUT_SEC = 180
 VIDEO_SKELETON_DEFAULT_FPS = 8
@@ -223,6 +224,13 @@ def _local_file_url(path):
     if not _path_is_inside(resolved, BASE_DIR):
         raise ValueError("local file must be inside project root")
     return resolved.relative_to(BASE_DIR.resolve()).as_posix()
+
+
+def _safe_upload_filename(filename):
+    suffix = Path(filename or "").suffix.lower()
+    stem = Path(filename or "upload").stem
+    safe_stem = "".join(ch for ch in stem if ch.isascii() and (ch.isalnum() or ch in {"_", "-"})).strip("_-")
+    return f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}_{safe_stem or 'upload'}{suffix}"
 
 
 def _safe_character_id(raw_value):
@@ -496,17 +504,14 @@ def _resolve_local_video_url(video_url):
     if parsed.scheme or parsed.netloc:
         raise ValueError("videoUrl 必須是本機 local video URL")
 
-    normalized = raw_url.replace("\\", "/").lstrip("/")
-    if not normalized.startswith("capture/youtube/"):
-        raise ValueError("目前只支援 local video URL，例如 capture/youtube/demo.mp4")
-
-    filename = os.path.basename(normalized)
-    if not filename or normalized != f"capture/youtube/{filename}":
-        raise ValueError("不合法的 local video URL")
-
-    video_path = _youtube_capture_dir() / filename
-    if not video_path.is_file() or not _path_is_inside(video_path, _youtube_capture_dir()):
-        raise FileNotFoundError("找不到本機影片檔，請先載入 YouTube 影片")
+    normalized = unquote(raw_url).replace("\\", "/").lstrip("/")
+    video_path = (BASE_DIR / normalized).resolve()
+    if video_path.suffix.lower() not in {".mp4", ".mov", ".webm", ".mkv"}:
+        raise ValueError("videoUrl 必須是本機影片檔")
+    if not _path_is_inside(video_path, BASE_DIR):
+        raise ValueError("videoUrl 必須在專案目錄內")
+    if not video_path.is_file():
+        raise FileNotFoundError("找不到本機影片檔")
 
     return video_path
 
@@ -780,7 +785,31 @@ def _blender_executable_path():
 
 
 def _gvhmr_demo_output_dir_for_video(video_path):
-    return _gvhmr_root_dir() / "outputs" / "demo" / Path(video_path).stem
+    path = Path(video_path)
+    demo_root = _gvhmr_root_dir() / "outputs" / "demo"
+    if path.name.startswith("0_input_video") and path.parent.parent.resolve() == demo_root.resolve():
+        return path.parent
+    return demo_root / path.stem
+
+
+def _backup_existing_gvhmr_artifacts(output_dir):
+    files = [
+        "alicia_blender_bake_motion.json",
+        "alicia_image_pose.json",
+        "alicia_intermediate_landmarks.json",
+        "mediapipe_hand_poses.json",
+        "keyframes_report.json",
+        "motion_analysis.json",
+        "motion_quality_report.json",
+    ]
+    existing = [output_dir / name for name in files if (output_dir / name).is_file()]
+    if not existing:
+        return None
+    backup_dir = output_dir / "backup" / datetime.now().strftime("%Y%m%d_%H%M%S")
+    backup_dir.mkdir(parents=True, exist_ok=True)
+    for source in existing:
+        shutil.copy2(source, backup_dir / source.name)
+    return backup_dir
 
 
 def _run_gvhmr_asset_check():
@@ -972,6 +1001,28 @@ def _run_mediapipe_hand_pass(video_path, skeleton_json, output_json):
     return Path(output_json)
 
 
+def _run_gvhmr_keyframe_picker(output_dir):
+    sidecar = SERVER_DIR / "scripts" / "gvhmr_keyframe_picker.py"
+    output_dir = Path(output_dir)
+    if not sidecar.is_file() or not (output_dir / "hmr4d_results.pt").is_file():
+        return None
+    result = subprocess.run(
+        [str(_gvhmr_python_path()), str(sidecar), str(output_dir)],
+        cwd=str(SERVER_DIR),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=90,
+        env=_gvhmr_runtime_env(),
+        creationflags=_gvhmr_subprocess_creationflags(),
+        check=False,
+    )
+    report = output_dir / "keyframes_report.json"
+    return report if result.returncode == 0 and report.is_file() else None
+
+
 def _run_alicia_blender_bake(input_json, output_json, hand_json=None):
     blender_path = _blender_executable_path()
     bake_script = SERVER_DIR / "scripts" / "gvhmr_to_alicia_blender_bake.py"
@@ -1018,6 +1069,7 @@ def _run_alicia_blender_bake(input_json, output_json, hand_json=None):
 def _write_alicia_demo_motion_artifacts(video_path, world_motion):
     output_dir = _gvhmr_demo_output_dir_for_video(video_path)
     output_dir.mkdir(parents=True, exist_ok=True)
+    backup_dir = _backup_existing_gvhmr_artifacts(output_dir)
     skeleton_path = output_dir / "alicia_intermediate_landmarks.json"
     motion_path = output_dir / "alicia_blender_bake_motion.json"
     demo_video_path = output_dir / "0_input_video.mp4"
@@ -1026,12 +1078,15 @@ def _write_alicia_demo_motion_artifacts(video_path, world_motion):
     skeleton_path.write_text(json.dumps(world_motion, ensure_ascii=False, indent=2), encoding="utf-8", newline="\n")
     hand_path = _run_mediapipe_hand_pass(demo_video_path, skeleton_path, output_dir / "mediapipe_hand_poses.json")
     _run_alicia_blender_bake(skeleton_path, motion_path, hand_json=hand_path)
+    keyframes_path = _run_gvhmr_keyframe_picker(output_dir)
     return {
         "outputDir": output_dir,
         "videoPath": demo_video_path,
         "skeletonPath": skeleton_path,
         "motionPath": motion_path,
         "handPath": hand_path,
+        "keyframesPath": keyframes_path,
+        "backupDir": backup_dir,
     }
 
 
@@ -1942,6 +1997,8 @@ def capture_video_world_motion():
         "skeletonUrl": _local_file_url(demo_artifacts["skeletonPath"]),
         "videoUrl": _local_file_url(demo_artifacts["videoPath"]),
         "handPoseUrl": _local_file_url(demo_artifacts["handPath"]) if demo_artifacts.get("handPath") else "",
+        "keyframesUrl": _local_file_url(demo_artifacts["keyframesPath"]) if demo_artifacts.get("keyframesPath") else "",
+        "backupUrl": _local_file_url(demo_artifacts["backupDir"]) if demo_artifacts.get("backupDir") else "",
         "runtimeMs": round((time.time() - started_at) * 1000),
         "steps": steps,
     })
@@ -2090,6 +2147,37 @@ def pose_db_items():
         return jsonify({"ok": True, "item": item})
     except ValueError as exc:
         return jsonify({"ok": False, "error": str(exc)}), 400
+
+
+@app.route('/api/pose-db/upload', methods=['POST'])
+def pose_db_upload():
+    uploaded = request.files.get("file")
+    source_kind = str(request.form.get("source_kind") or "").strip()
+    allowed = {
+        "local_mp4": {".mp4", ".mov", ".webm", ".mkv"},
+        "image": {".png", ".jpg", ".jpeg", ".webp"},
+        "vrma": {".vrma"},
+        "pose_json": {".json"},
+    }
+    if source_kind not in allowed:
+        return jsonify({"ok": False, "error": "source_kind does not support upload"}), 400
+    if not uploaded or not uploaded.filename:
+        return jsonify({"ok": False, "error": "file is required"}), 400
+    suffix = Path(uploaded.filename).suffix.lower()
+    if suffix not in allowed[source_kind]:
+        return jsonify({"ok": False, "error": f"{source_kind} does not accept {suffix or 'this file'}"}), 400
+
+    target_dir = POSE_DB_UPLOAD_DIR / source_kind
+    target_dir.mkdir(parents=True, exist_ok=True)
+    target_path = target_dir / _safe_upload_filename(uploaded.filename)
+    uploaded.save(target_path)
+    return jsonify({
+        "ok": True,
+        "path": _local_file_url(target_path),
+        "url": _local_file_url(target_path),
+        "filename": uploaded.filename,
+        "size": target_path.stat().st_size,
+    })
 
 
 @app.route('/api/pose-db/items/<int:item_id>', methods=['GET', 'PATCH', 'DELETE'])

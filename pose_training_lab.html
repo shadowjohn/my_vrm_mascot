@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Alicia GVHMR 姿勢校正台</title>
   <link rel="icon" href="data:,">
+  <script>
+    if (new URLSearchParams(location.search).get('postId') || new URLSearchParams(location.search).get('id')) {
+      document.documentElement.classList.add('pose-db-mode');
+    }
+  </script>
   <style>
     :root {
       color-scheme: dark;
@@ -20,6 +25,8 @@
     }
 
     * { box-sizing: border-box; }
+
+    [hidden] { display: none !important; }
 
     html,
     body {
@@ -69,7 +76,8 @@
     main {
       min-height: 0;
       display: grid;
-      grid-template-columns: minmax(330px, 0.82fr) minmax(520px, 1.3fr) minmax(360px, 0.88fr);
+      grid-template-columns: minmax(560px, 1.35fr) minmax(380px, 0.9fr);
+      grid-template-rows: minmax(0, auto) minmax(0, 1fr);
       gap: 10px;
       padding: 10px;
       overflow: hidden;
@@ -77,6 +85,7 @@
 
     .panel {
       min-height: 0;
+      min-width: 0;
       overflow: auto;
       border: 1px solid var(--line);
       border-radius: 8px;
@@ -124,6 +133,27 @@
       display: grid;
       gap: 10px;
       margin-bottom: 16px;
+      min-width: 0;
+    }
+
+    details.group {
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(8, 15, 13, 0.35);
+      min-width: 0;
+    }
+
+    details.group[open] {
+      gap: 10px;
+    }
+
+    summary {
+      cursor: pointer;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 800;
+      user-select: none;
     }
 
     label {
@@ -139,6 +169,7 @@
     textarea,
     button {
       font: inherit;
+      min-width: 0;
     }
 
     input,
@@ -228,6 +259,54 @@
       color: var(--danger);
     }
 
+    .gvhmr-progress-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: none;
+      place-items: center;
+      padding: 24px;
+      background: rgba(0, 0, 0, 0.72);
+    }
+
+    .gvhmr-progress-modal.active {
+      display: grid;
+    }
+
+    .gvhmr-progress-dialog {
+      width: min(760px, calc(100vw - 48px));
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+      border: 1px solid rgba(158, 228, 147, 0.46);
+      border-radius: 10px;
+      background: #0a1610;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+      padding: 14px;
+    }
+
+    .gvhmr-progress-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .gvhmr-progress-title h3 {
+      margin: 0;
+      color: var(--accent);
+      font-size: 16px;
+    }
+
+    #btnCloseGvhmrProgress {
+      min-height: 32px;
+      padding: 5px 10px;
+    }
+
+    .gvhmr-progress-modal #gvhmrProgressLog {
+      max-height: min(58vh, 520px);
+    }
+
     @keyframes progressPulse {
       from { background-position: 0 0; }
       to { background-position: 200% 0; }
@@ -305,26 +384,190 @@
     }
 
     .preview-wrap {
+      grid-column: 1;
+      grid-row: 1 / span 2;
+      position: relative;
       display: grid;
-      grid-template-rows: auto 1fr auto;
+      grid-template-rows: auto minmax(420px, 1fr) auto auto auto;
       min-height: 0;
+      min-width: 0;
+      overflow: auto;
     }
 
     #aliciaPreview {
       min-height: 0;
-      height: min(68vh, 720px);
+      height: clamp(420px, 58vh, 680px);
       border: 1px solid rgba(90, 110, 151, 0.78);
       border-radius: 8px;
       background: #101827;
       overflow: hidden;
     }
 
+    .source-video-overlay {
+      position: absolute;
+      top: 58px;
+      left: 24px;
+      z-index: 4;
+      width: clamp(150px, 15vw, 260px);
+      overflow: hidden;
+      border: 1px solid rgba(158, 228, 147, 0.5);
+      border-radius: 8px;
+      background: rgba(8, 15, 13, 0.86);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    .source-video-overlay strong {
+      display: block;
+      padding: 6px 8px;
+      color: var(--accent-2);
+      font-size: 12px;
+    }
+
+    #trainingSourceVideoOverlay {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: contain;
+      background: #050807;
+    }
+
+    .bone-quick-editor {
+      position: absolute;
+      z-index: 20;
+      display: none;
+      width: 230px;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid rgba(158, 228, 147, 0.58);
+      border-radius: 8px;
+      background: rgba(8, 15, 13, 0.9);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(8px);
+      pointer-events: auto;
+    }
+
+    .bone-quick-editor.visible {
+      display: grid;
+    }
+
+    .bone-quick-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .bone-quick-title button {
+      width: 28px;
+      min-height: 28px;
+      padding: 0;
+    }
+
+    .bone-mini-slider {
+      display: grid;
+      grid-template-columns: 18px 1fr 46px;
+      gap: 6px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .bone-mini-slider output {
+      color: var(--accent-2);
+      font-family: Consolas, monospace;
+      text-align: right;
+    }
+
+    .bone-quick-slider {
+      touch-action: none;
+    }
+
     .preview-controls {
       display: grid;
-      grid-template-columns: 1fr auto auto;
+      grid-template-columns: minmax(90px, auto) repeat(3, minmax(120px, 1fr));
       gap: 8px;
       margin-top: 10px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(8, 15, 13, 0.92);
       align-items: center;
+    }
+
+    .skeleton-display-slider {
+      display: grid;
+      grid-template-columns: 18px 1fr 44px;
+      align-items: center;
+      gap: 6px;
+      min-height: 38px;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: rgba(8, 15, 13, 0.35);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .skeleton-display-slider output {
+      color: var(--accent-2);
+      font-family: Consolas, monospace;
+      text-align: right;
+    }
+
+    .source-panel {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .json-panel {
+      grid-column: 2;
+      grid-row: 2;
+      min-width: 0;
+    }
+
+    html.pose-db-mode main,
+    body.pose-db-mode main {
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 430px);
+      grid-template-rows: minmax(0, 1fr);
+    }
+
+    html.pose-db-mode .source-panel,
+    body.pose-db-mode .source-panel {
+      display: none;
+    }
+
+    html.pose-db-mode .preview-wrap,
+    html.pose-db-mode .json-panel,
+    body.pose-db-mode .preview-wrap,
+    body.pose-db-mode .json-panel {
+      grid-row: 1;
+    }
+
+    html.pose-db-mode .step,
+    body.pose-db-mode .step {
+      display: none;
+    }
+
+    html.pose-db-mode .panel-title,
+    body.pose-db-mode .panel-title {
+      margin-bottom: 10px;
+    }
+
+    html.pose-db-mode .json-panel,
+    body.pose-db-mode .json-panel {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+      overflow: auto;
+    }
+
+    html.pose-db-mode .maintenance-group,
+    body.pose-db-mode .maintenance-group {
+      margin-top: auto;
     }
 
     .switch-row {
@@ -344,7 +587,7 @@
 
     .slider-row {
       display: grid;
-      grid-template-columns: 24px 1fr 54px;
+      grid-template-columns: 28px minmax(0, 1fr) 46px;
       align-items: center;
       gap: 8px;
       margin-bottom: 8px;
@@ -361,7 +604,7 @@
 
     .metric {
       display: grid;
-      grid-template-columns: 1fr auto;
+      grid-template-columns: minmax(0, 1fr) minmax(0, auto);
       gap: 8px;
       padding: 8px 0;
       border-bottom: 1px solid rgba(157, 175, 159, 0.14);
@@ -373,6 +616,58 @@
       color: var(--text);
       font-family: Consolas, monospace;
       font-weight: 700;
+      overflow-wrap: anywhere;
+      text-align: right;
+    }
+
+    .bone-map {
+      position: absolute;
+      top: 58px;
+      right: 24px;
+      z-index: 4;
+      display: block;
+      width: clamp(108px, 8vw, 148px);
+      height: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(8, 15, 13, 0.72);
+    }
+
+    .bone-map [data-bone] {
+      cursor: pointer;
+      stroke: rgba(203, 213, 225, 0.82);
+      stroke-width: 9;
+      stroke-linecap: round;
+      fill: none;
+      opacity: 0.82;
+      transition: opacity 0.12s ease, stroke 0.12s ease;
+    }
+
+    .bone-map [data-bone]:hover,
+    .bone-map [data-bone].active {
+      stroke: var(--accent-2);
+      opacity: 1;
+    }
+
+    .bone-map text {
+      pointer-events: none;
+      fill: var(--muted);
+      font: 10px "Segoe UI", sans-serif;
+    }
+
+    #trainingRecommendedKeyframes {
+      max-height: 150px;
+      overflow: auto;
+    }
+
+    #trainingRecommendedKeyframes .switch-row {
+      min-height: 34px;
+      padding: 6px 8px;
+    }
+
+    html.pose-db-mode #aliciaPreview,
+    body.pose-db-mode #aliciaPreview {
+      height: clamp(460px, 62vh, 720px);
     }
 
     textarea {
@@ -393,11 +688,19 @@
 
     @media (max-width: 1200px) {
       main {
-        grid-template-columns: 360px minmax(520px, 1fr);
+        grid-template-columns: 1fr;
+        overflow: auto;
       }
 
+      .source-panel,
+      .preview-wrap,
       .json-panel {
-        grid-column: 1 / -1;
+        grid-column: auto;
+        grid-row: auto;
+      }
+
+      #aliciaPreview {
+        height: 58vh;
       }
     }
   </style>
@@ -412,11 +715,11 @@
       <h1>Alicia GVHMR 姿勢校正台</h1>
       <div class="subtitle">GVHMR 骨架 - Alicia 對齊 - 可重用修正參數</div>
     </div>
-    <div id="trainingStatus" role="status">就緒。先載入 YouTube 或本機影片。</div>
+    <div id="trainingStatus" role="status">就緒。</div>
   </header>
 
   <main>
-    <section class="panel">
+    <section class="panel source-panel">
       <div class="panel-title">
         <span class="step">1</span>
         <h2>影片與 GVHMR</h2>
@@ -465,54 +768,101 @@
           <button id="btnTrainingSetEnd" type="button" class="secondary">設為結束</button>
         </div>
         <button id="btnTrainingRunGvhmr" type="button" class="full">執行 GVHMR 動作重建</button>
-        <div id="gvhmrProgress" class="progress-panel" hidden>
-          <div class="progress-head">
-            <span id="gvhmrProgressLabel">等待執行</span>
-            <span id="gvhmrProgressPercent">0%</span>
-          </div>
-          <div class="progress-track">
-            <div id="gvhmrProgressBar"></div>
-          </div>
-          <div id="gvhmrProgressLog"></div>
-        </div>
       </div>
 
-      <div class="group">
-        <h3>影格</h3>
-        <label for="gvhmrFrameSlider">
-          對齊影格
-          <input id="gvhmrFrameSlider" type="range" min="0" max="0" value="0" step="1">
-        </label>
-        <output id="gvhmrFrameLabel" class="readout">0 / 0 - 0.00 秒</output>
-        <button id="btnTrainingApplyCalibration" type="button" class="secondary">套用修正</button>
-      </div>
     </section>
 
     <section class="panel preview-wrap">
       <div class="panel-title">
         <span class="step">2</span>
-        <h2>對齊預覽</h2>
+        <h2>動畫師工作台</h2>
       </div>
       <div id="aliciaPreview"></div>
+      <div id="trainingSourceVideoBox" class="source-video-overlay">
+        <strong>原片</strong>
+        <video id="trainingSourceVideoOverlay" muted playsinline></video>
+      </div>
+      <svg id="trainingBoneMap" class="bone-map" viewBox="0 0 240 360" role="img" aria-label="骨頭快速選擇圖">
+        <g transform="translate(240 0) scale(-1 1)">
+          <line data-bone="neck" x1="120" y1="48" x2="120" y2="72"></line>
+          <line data-bone="upperChest" x1="132" y1="78" x2="120" y2="96"></line>
+          <line data-bone="chest" x1="108" y1="98" x2="120" y2="128"></line>
+          <line data-bone="spine" x1="132" y1="130" x2="120" y2="162"></line>
+          <line data-bone="hips" x1="86" y1="166" x2="154" y2="166"></line>
+          <line data-bone="leftShoulder" x1="120" y1="82" x2="78" y2="90"></line>
+          <line data-bone="leftUpperArm" x1="78" y1="90" x2="58" y2="146"></line>
+          <line data-bone="leftLowerArm" x1="58" y1="146" x2="52" y2="206"></line>
+          <line data-bone="leftHand" x1="52" y1="206" x2="48" y2="226"></line>
+          <line data-bone="rightShoulder" x1="120" y1="82" x2="162" y2="90"></line>
+          <line data-bone="rightUpperArm" x1="162" y1="90" x2="182" y2="146"></line>
+          <line data-bone="rightLowerArm" x1="182" y1="146" x2="188" y2="206"></line>
+          <line data-bone="rightHand" x1="188" y1="206" x2="192" y2="226"></line>
+          <line data-bone="leftUpperLeg" x1="100" y1="168" x2="88" y2="240"></line>
+          <line data-bone="leftLowerLeg" x1="88" y1="240" x2="80" y2="314"></line>
+          <line data-bone="leftFoot" x1="80" y1="314" x2="58" y2="322"></line>
+          <line data-bone="rightUpperLeg" x1="140" y1="168" x2="152" y2="240"></line>
+          <line data-bone="rightLowerLeg" x1="152" y1="240" x2="160" y2="314"></line>
+          <line data-bone="rightFoot" x1="160" y1="314" x2="182" y2="322"></line>
+          <circle data-bone="head" cx="120" cy="30" r="19"></circle>
+        </g>
+        <text x="137" y="87">upperChest</text>
+        <text x="70" y="104">chest</text>
+        <text x="137" y="143">spine</text>
+        <text x="158" y="173">hips</text>
+      </svg>
+      <div id="boneQuickEditor" class="bone-quick-editor" aria-live="polite">
+        <div class="bone-quick-title">
+          <span id="boneQuickTitle">骨頭</span>
+          <button id="btnCloseBoneQuickEditor" type="button" class="secondary" aria-label="關閉">×</button>
+        </div>
+        <div id="boneQuickSliders"></div>
+      </div>
       <div class="preview-controls">
         <label class="switch-row" for="trainingOverlayEnabled">
           顯示骨架
           <input id="trainingOverlayEnabled" type="checkbox" checked>
         </label>
-        <label class="switch-row" for="trainingMirrorX">
-          X 軸鏡像
-          <input id="trainingMirrorX" type="checkbox">
+        <label class="skeleton-display-slider" for="trainingSkeletonViewOffsetX">
+          <span>X</span>
+          <input id="trainingSkeletonViewOffsetX" type="range" min="-2" max="2" value="0" step="0.01">
+          <output id="trainingSkeletonViewOffsetXValue">0.00</output>
         </label>
+        <label class="skeleton-display-slider" for="trainingSkeletonViewOffsetY">
+          <span>Y</span>
+          <input id="trainingSkeletonViewOffsetY" type="range" min="-2" max="2" value="0" step="0.01">
+          <output id="trainingSkeletonViewOffsetYValue">0.00</output>
+        </label>
+        <label class="skeleton-display-slider" for="trainingSkeletonViewOffsetZ">
+          <span>Z</span>
+          <input id="trainingSkeletonViewOffsetZ" type="range" min="-2" max="2" value="0" step="0.01">
+          <output id="trainingSkeletonViewOffsetZValue">0.00</output>
+        </label>
+      </div>
+      <div class="group range-stack">
+        <h3>影格控制</h3>
+        <label for="gvhmrFrameSlider">
+          對齊影格
+          <input id="gvhmrFrameSlider" type="range" min="0" max="0" value="0" step="1">
+        </label>
+        <output id="gvhmrFrameLabel" class="readout">0 / 0 - 0.00 秒</output>
+        <div class="actions">
+          <button id="btnTrainingApplyCalibration" type="button" hidden>套用修正</button>
+          <button id="btnTrainingDeleteCurrentKeyframe" type="button" class="secondary">刪除本格校正</button>
+        </div>
+      </div>
+      <div id="trainingRecommendedKeyframes" class="group">
+        <h3>推薦校正影格</h3>
+        <p class="hint">GVHMR 完成後會列出腳接地、轉身、手腳變化大的影格。</p>
       </div>
     </section>
 
     <section class="panel json-panel">
       <div class="panel-title">
         <span class="step">3</span>
-        <h2>GVHMR → Alicia 修正參數</h2>
+        <h2>骨頭校正</h2>
       </div>
 
-      <div class="group">
+      <div class="group" hidden>
         <h3>預設參數</h3>
         <div class="actions">
           <button id="btnTrainingSaveDefaultProfile" type="button">存成預設</button>
@@ -521,8 +871,8 @@
         </div>
       </div>
 
-      <div class="group">
-        <h3>全域對齊</h3>
+      <details class="group">
+        <summary>全域對齊</summary>
         <div class="slider-row">
           <span>縮</span>
           <input id="trainingScale" type="range" min="0.3" max="2.5" value="1" step="0.01">
@@ -548,14 +898,10 @@
           <input id="trainingYaw" type="range" min="-180" max="180" value="0" step="1">
           <output id="trainingYawValue">0°</output>
         </div>
-        <label for="trainingTimeOffsetMs">
-          時間偏移 ms
-          <input id="trainingTimeOffsetMs" type="number" value="0" step="10">
-        </label>
-      </div>
+      </details>
 
       <div class="group">
-        <h3>骨頭偏移</h3>
+        <h3>目前選取骨頭</h3>
         <label for="trainingBoneSelect">
           骨頭
           <select id="trainingBoneSelect"></select>
@@ -566,9 +912,12 @@
       <div class="group">
         <h3>姿勢校正軌</h3>
         <div id="trainingCalibrationFrameStatus" class="hint">目前影格：--</div>
+        <p class="hint">單格校正用來記住目前影格；整套 pose_json 會套用校正軌輸出完整動作。</p>
         <div class="actions">
           <button id="btnTrainingInferCalibration" type="button">自動姿勢推論</button>
-          <button id="btnTrainingCaptureKeyframe" type="button" class="secondary">儲存目前影格校正</button>
+          <button id="btnTrainingRestoreInference" type="button" class="secondary">還原推論前</button>
+          <button id="btnTrainingCaptureKeyframe" type="button" class="secondary">儲存本格</button>
+          <button id="btnTrainingDownloadCorrectedJson" type="button">輸出整段修正版</button>
         </div>
         <div id="trainingCalibrationTrackList" class="group"></div>
       </div>
@@ -578,10 +927,16 @@
         <div class="metric"><span>來源</span><strong id="trainingSourceSummary">--</strong></div>
         <div class="metric"><span>GVHMR 影格</span><strong id="trainingFrameSummary">0</strong></div>
         <div class="metric"><span>對齊影格</span><strong id="trainingKeyframeSummary">0</strong></div>
-        <div class="metric"><span>預設參數</span><strong id="trainingProfileSummary">未儲存</strong></div>
+        <div class="metric" hidden><span>預設參數</span><strong id="trainingProfileSummary">未儲存</strong></div>
       </div>
 
-      <div class="group">
+      <details class="group maintenance-group">
+        <summary>維護 / 重建</summary>
+        <p class="hint">重跑 GVHMR 會覆蓋素材庫內這筆素材的骨架與 pose_json 路徑。</p>
+        <button id="btnTrainingRunGvhmrInline" type="button" class="secondary full">重跑 GVHMR</button>
+      </details>
+
+      <div class="group" hidden>
         <h3>校正 JSON</h3>
         <div class="actions">
           <button id="btnTrainingDownloadJson" type="button">匯出 JSON</button>
@@ -593,6 +948,25 @@
       </div>
     </section>
   </main>
+
+  <div id="gvhmrProgressModal" class="gvhmr-progress-modal" role="dialog" aria-modal="true" aria-labelledby="gvhmrProgressTitle">
+    <div class="gvhmr-progress-dialog">
+      <div class="gvhmr-progress-title">
+        <h3 id="gvhmrProgressTitle">GVHMR 轉檔進度</h3>
+        <button id="btnCloseGvhmrProgress" type="button" class="secondary">關閉</button>
+      </div>
+      <div id="gvhmrProgress" class="progress-panel" hidden>
+        <div class="progress-head">
+          <span id="gvhmrProgressLabel">等待執行</span>
+          <span id="gvhmrProgressPercent">0%</span>
+        </div>
+        <div class="progress-track">
+          <div id="gvhmrProgressBar"></div>
+        </div>
+        <div id="gvhmrProgressLog"></div>
+      </div>
+    </div>
+  </div>
 
   <script type="module">
     import { VrmMascot } from './js/VrmMascot.js';
@@ -667,21 +1041,46 @@
     ]);
     const BONE_PICK_NAMES = Object.freeze(BONE_PICK_ITEMS.map((item) => item.value));
     const BONE_LABELS = Object.freeze(Object.fromEntries(BONE_PICK_ITEMS.map((item) => [item.value, item.label])));
-    const CALIBRATION_NUMERIC_FIELDS = Object.freeze(['scale', 'offsetX', 'offsetY', 'offsetZ', 'yawDegrees', 'timeOffsetMs']);
+    const BONE_PICK_SEGMENTS = Object.freeze({
+      neck: ['neck', 'head'],
+      spine: ['spine', 'chest'],
+      chest: ['chest', 'upperChest'],
+      upperChest: ['upperChest', 'neck'],
+      leftShoulder: ['leftShoulder', 'leftUpperArm'],
+      leftUpperArm: ['leftUpperArm', 'leftLowerArm'],
+      leftLowerArm: ['leftLowerArm', 'leftHand'],
+      rightShoulder: ['rightShoulder', 'rightUpperArm'],
+      rightUpperArm: ['rightUpperArm', 'rightLowerArm'],
+      rightLowerArm: ['rightLowerArm', 'rightHand'],
+      leftUpperLeg: ['leftUpperLeg', 'leftLowerLeg'],
+      leftLowerLeg: ['leftLowerLeg', 'leftFoot'],
+      leftFoot: ['leftFoot', 'leftToes'],
+      rightUpperLeg: ['rightUpperLeg', 'rightLowerLeg'],
+      rightLowerLeg: ['rightLowerLeg', 'rightFoot'],
+      rightFoot: ['rightFoot', 'rightToes']
+    });
+    const CALIBRATION_NUMERIC_FIELDS = Object.freeze(['scale', 'offsetX', 'offsetY', 'offsetZ', 'yawDegrees']);
 
     const state = {
       source: null,
       currentVideoUrl: '',
       captureRange: { startMs: 0, endMs: 0, durationMs: 0 },
       worldMotion: null,
+      poseMotion: null,
       frames: [],
       keyframes: [],
+      recommendedKeyframes: [],
       boneOffsets: {},
       mascot: null,
       previewAdapter: null,
       skeletonGroup: null,
       jointMeshes: {},
       boneLine: null,
+      hoverMarker: null,
+      selectedMarker: null,
+      selectedBone: '',
+      inferenceBackup: null,
+      basePosePreset: null,
       objectUrl: null,
       jsonRefreshTimer: 0,
       boneOffsetApplyRaf: 0,
@@ -692,6 +1091,12 @@
     function setStatus(message, tone = 'ok') {
       $('trainingStatus').textContent = message;
       $('trainingStatus').style.color = tone === 'error' ? 'var(--danger)' : 'var(--accent)';
+    }
+
+    function assetUrl(path) {
+      if (!path) return '';
+      if (/^https?:\/\//.test(path) || path.startsWith('/')) return path;
+      return encodeURI(path).replace(/#/g, '%23');
     }
 
     function formatRuntime(ms) {
@@ -707,6 +1112,14 @@
       $('gvhmrProgressLabel').textContent = label;
     }
 
+    function showGvhmrProgressModal() {
+      $('gvhmrProgressModal').classList.add('active');
+    }
+
+    function hideGvhmrProgressModal() {
+      $('gvhmrProgressModal').classList.remove('active');
+    }
+
     function addGvhmrProgressLog(text, className = '') {
       const line = document.createElement('div');
       line.className = `log-line ${className}`.trim();
@@ -717,6 +1130,7 @@
 
     function startGvhmrProgressLog(captureRange) {
       if (state.gvhmrProgressTimer) clearInterval(state.gvhmrProgressTimer);
+      showGvhmrProgressModal();
       $('gvhmrProgress').hidden = false;
       $('gvhmrProgress').classList.add('running');
       $('gvhmrProgressLog').textContent = '';
@@ -744,6 +1158,9 @@
         addGvhmrProgressLog(`${index + 1}. ${step.label}：${formatRuntime(step.runtimeMs)}`, 'done');
       }
       setGvhmrProgress(100, '完成');
+      if (body.backupUrl) {
+        addGvhmrProgressLog(`已備份舊成果：${body.backupUrl}`, 'done');
+      }
       addGvhmrProgressLog(`完成：${state.frames.length} 個影格 / ${formatRuntime(body.runtimeMs)}`, 'done');
     }
 
@@ -834,6 +1251,16 @@
       if (Number.isFinite(video.duration)) {
         video.currentTime = clamp(finiteNumber(ms) / 1000, 0, video.duration);
       }
+      syncSourceVideoOverlay(ms);
+    }
+
+    function syncSourceVideoOverlay(ms = currentVideoTimeMs()) {
+      const video = $('trainingSourceVideoOverlay');
+      if (!video?.src) return;
+      const target = finiteNumber(ms) / 1000;
+      if (Number.isFinite(video.duration) && Math.abs(video.currentTime - target) > 0.08) {
+        video.currentTime = clamp(target, 0, video.duration);
+      }
     }
 
     function readCalibration() {
@@ -842,9 +1269,7 @@
         offsetX: finiteNumber($('trainingOffsetX').value),
         offsetY: finiteNumber($('trainingOffsetY').value),
         offsetZ: finiteNumber($('trainingOffsetZ').value),
-        yawDegrees: finiteNumber($('trainingYaw').value),
-        mirrorX: $('trainingMirrorX').checked,
-        timeOffsetMs: finiteNumber($('trainingTimeOffsetMs').value)
+        yawDegrees: finiteNumber($('trainingYaw').value)
       };
     }
 
@@ -854,17 +1279,13 @@
         offsetX: finiteNumber(calibration.offsetX),
         offsetY: finiteNumber(calibration.offsetY),
         offsetZ: finiteNumber(calibration.offsetZ),
-        yawDegrees: finiteNumber(calibration.yawDegrees ?? calibration.yaw),
-        mirrorX: calibration.mirrorX === true,
-        timeOffsetMs: finiteNumber(calibration.timeOffsetMs)
+        yawDegrees: finiteNumber(calibration.yawDegrees ?? calibration.yaw)
       };
       $('trainingScale').value = String(values.scale);
       $('trainingOffsetX').value = String(values.offsetX);
       $('trainingOffsetY').value = String(values.offsetY);
       $('trainingOffsetZ').value = String(values.offsetZ);
       $('trainingYaw').value = String(values.yawDegrees);
-      $('trainingMirrorX').checked = values.mirrorX;
-      $('trainingTimeOffsetMs').value = String(values.timeOffsetMs);
       updateCalibrationLabels();
       return values;
     }
@@ -876,6 +1297,21 @@
       $('trainingOffsetYValue').textContent = c.offsetY.toFixed(2);
       $('trainingOffsetZValue').textContent = c.offsetZ.toFixed(2);
       $('trainingYawValue').textContent = `${Math.round(c.yawDegrees)}°`;
+    }
+
+    function readSkeletonViewOffset() {
+      return {
+        x: finiteNumber($('trainingSkeletonViewOffsetX')?.value),
+        y: finiteNumber($('trainingSkeletonViewOffsetY')?.value),
+        z: finiteNumber($('trainingSkeletonViewOffsetZ')?.value)
+      };
+    }
+
+    function updateSkeletonViewOffsetLabels() {
+      const offset = readSkeletonViewOffset();
+      $('trainingSkeletonViewOffsetXValue').textContent = offset.x.toFixed(2);
+      $('trainingSkeletonViewOffsetYValue').textContent = offset.y.toFixed(2);
+      $('trainingSkeletonViewOffsetZValue').textContent = offset.z.toFixed(2);
     }
 
     function worldMotionFrames(payload = state.worldMotion) {
@@ -925,6 +1361,17 @@
         : '0 / 0 - 0.00 秒';
       $('trainingFrameSummary').textContent = String(state.frames.length);
       renderCalibrationTrack();
+      updateWorkbenchStatus(frame);
+    }
+
+    function updateWorkbenchStatus(frame = frameBySlider()) {
+      const isPoseDbMode = document.body.classList.contains('pose-db-mode') ||
+        document.documentElement.classList.contains('pose-db-mode');
+      if (!isPoseDbMode) return;
+      const postId = state.source?.postId ? `素材 #${state.source.postId}` : '素材';
+      const frameText = frame ? `frame ${frame.frameIndex ?? $('gvhmrFrameSlider').value} / ${formatSeconds(frame.timeMs)}` : 'frame -- / 0.00 秒';
+      const calibrated = findCalibrationNeighbors(frame).exact ? '已校正' : '未校正';
+      setStatus(`${postId} / ${frameText} / ${calibrated}`);
     }
 
     function buildGvhmrSkeletonOverlay() {
@@ -1029,28 +1476,179 @@
         return false;
       }
       select.value = boneName;
+      state.selectedBone = boneName;
       renderBoneOffsetSliders();
+      renderBoneQuickEditor();
+      updateBoneMapActive();
+      updateSelectedBoneMarker();
       setStatus(`已切換到 ${BONE_LABELS[boneName] || boneName}。`);
       return true;
+    }
+
+    function updateBoneMapActive() {
+      const selected = state.selectedBone || $('trainingBoneSelect')?.value || '';
+      document.querySelectorAll('#trainingBoneMap [data-bone]').forEach((item) => {
+        item.classList.toggle('active', item.dataset.bone === selected);
+      });
+    }
+
+    function markerMesh(color, radius) {
+      const mesh = new THREE.Mesh(
+        new THREE.SphereGeometry(radius, 18, 18),
+        new THREE.MeshBasicMaterial({ color, depthTest: false, transparent: true, opacity: 0.82 })
+      );
+      mesh.renderOrder = 1600;
+      mesh.visible = false;
+      return mesh;
+    }
+
+    function ensureBoneMarkers() {
+      const context = state.mascot?.getSceneContext?.();
+      if (!state.mascot || !context?.scene) return;
+      if (!state.hoverMarker) {
+        state.hoverMarker = markerMesh(0x9ee493, 0.045);
+        state.mascot.addSceneObject(state.hoverMarker);
+      }
+      if (!state.selectedMarker) {
+        state.selectedMarker = markerMesh(0xf0c86a, 0.06);
+        state.mascot.addSceneObject(state.selectedMarker);
+      }
+    }
+
+    function nodeWorldPosition(vrm, boneName) {
+      const node = getHumanoidBoneNode(vrm, boneName);
+      if (!node) return null;
+      const point = new THREE.Vector3();
+      node.getWorldPosition(point);
+      return point;
+    }
+
+    function pointSegmentDistanceSquared(point, start, end) {
+      const segment = end.clone().sub(start);
+      const lengthSq = segment.lengthSq();
+      if (lengthSq <= 0.000001) return point.distanceToSquared(start);
+      const ratio = clamp(point.clone().sub(start).dot(segment) / lengthSq, 0, 1);
+      return point.distanceToSquared(start.clone().add(segment.multiplyScalar(ratio)));
+    }
+
+    function bonePickTarget(vrm, boneName) {
+      const segment = BONE_PICK_SEGMENTS[boneName];
+      if (segment) {
+        const start = nodeWorldPosition(vrm, segment[0]);
+        const end = nodeWorldPosition(vrm, segment[1]);
+        if (start && end) {
+          return {
+            boneName,
+            point: start.clone().lerp(end, 0.5),
+            start,
+            end
+          };
+        }
+      }
+      const point = nodeWorldPosition(vrm, boneName);
+      return point ? { boneName, point, start: null, end: null } : null;
+    }
+
+    function boneWorldPosition(boneName) {
+      const context = state.mascot?.getSceneContext?.();
+      return bonePickTarget(context?.vrm, boneName)?.point || null;
     }
 
     function pickNearestAliciaBone(hitPoint) {
       const context = state.mascot?.getSceneContext?.();
       const vrm = context?.vrm;
-      const temp = new THREE.Vector3();
       let best = null;
       for (const boneName of BONE_PICK_NAMES) {
-        const node = getHumanoidBoneNode(vrm, boneName);
-        if (!node) {
-          continue;
-        }
-        node.getWorldPosition(temp);
-        const distance = temp.distanceToSquared(hitPoint);
+        const target = bonePickTarget(vrm, boneName);
+        if (!target) continue;
+        const distance = target.start && target.end
+          ? pointSegmentDistanceSquared(hitPoint, target.start, target.end)
+          : target.point.distanceToSquared(hitPoint);
         if (!best || distance < best.distance) {
           best = { boneName, distance };
         }
       }
       return best?.boneName || null;
+    }
+
+    function moveMarkerToBone(marker, boneName) {
+      const point = boneWorldPosition(boneName);
+      if (!marker || !point) {
+        if (marker) marker.visible = false;
+        return false;
+      }
+      marker.position.copy(point);
+      marker.visible = true;
+      return true;
+    }
+
+    function updateSelectedBoneMarker(options = {}) {
+      ensureBoneMarkers();
+      moveMarkerToBone(state.selectedMarker, state.selectedBone);
+      if (!options.keepQuickEditorPosition) {
+        positionBoneQuickEditor();
+      }
+    }
+
+    function renderBoneQuickEditor(options = {}) {
+      const bone = state.selectedBone || $('trainingBoneSelect').value;
+      const editor = $('boneQuickEditor');
+      if (!bone || !BONE_PICK_NAMES.includes(bone)) {
+        editor.classList.remove('visible');
+        return;
+      }
+      state.selectedBone = bone;
+      const offsets = state.boneOffsets[bone] || { x: 0, y: 0, z: 0 };
+      $('boneQuickTitle').textContent = `${BONE_LABELS[bone] || bone} ${bone}`;
+      $('boneQuickSliders').innerHTML = BONE_OFFSET_AXES.map((axis) => `
+        <div class="bone-mini-slider">
+          <span>${axis.toUpperCase()}</span>
+          <input class="bone-quick-slider" data-axis="${axis}" type="range" min="-180" max="180" value="${finiteNumber(offsets[axis])}" step="1">
+          <output>${Math.round(finiteNumber(offsets[axis]))}°</output>
+        </div>
+      `).join('');
+      $('boneQuickSliders').querySelectorAll('.bone-quick-slider').forEach((slider) => {
+        slider.addEventListener('input', () => {
+          const axis = slider.dataset.axis;
+          state.boneOffsets[bone] = {
+            ...(state.boneOffsets[bone] || { x: 0, y: 0, z: 0 }),
+            [axis]: finiteNumber(slider.value)
+          };
+          slider.nextElementSibling.textContent = `${Math.round(finiteNumber(slider.value))}°`;
+          scheduleBoneOffsetApply({ keepQuickEditorPosition: true });
+          scheduleTrainingJsonRefresh();
+        });
+        slider.addEventListener('change', () => {
+          renderBoneOffsetSliders({ keepQuickEditorPosition: true });
+          applyTrainingCalibration({ keepQuickEditorPosition: true });
+        });
+      });
+      editor.classList.add('visible');
+      if (!options.keepPosition) {
+        positionBoneQuickEditor();
+      }
+    }
+
+    function positionBoneQuickEditor() {
+      const editor = $('boneQuickEditor');
+      const point = boneWorldPosition(state.selectedBone);
+      const context = state.mascot?.getSceneContext?.();
+      const camera = context?.camera;
+      const preview = $('aliciaPreview');
+      if (!editor.classList.contains('visible') || !point || !camera) return;
+      const projected = point.clone().project(camera);
+      const width = preview.clientWidth;
+      const height = preview.clientHeight;
+      const screenX = preview.offsetLeft + ((projected.x + 1) / 2) * width;
+      const screenY = preview.offsetTop + ((-projected.y + 1) / 2) * height;
+      const safeGap = 96;
+      const rightX = screenX + safeGap;
+      const leftX = screenX - editor.offsetWidth - safeGap;
+      const maxX = preview.offsetLeft + width - editor.offsetWidth - 10;
+      const x = rightX <= maxX ? rightX : leftX;
+      const y = screenY - editor.offsetHeight - 36;
+      editor.style.left = `${clamp(x, 10, Math.max(10, maxX))}px`;
+      editor.style.top = `${clamp(y, 52, Math.max(52, preview.offsetTop + height - editor.offsetHeight - 10))}px`;
     }
 
     function bindAliciaBonePicker() {
@@ -1066,17 +1664,33 @@
       }
       const raycaster = new THREE.Raycaster();
       const pointer = new THREE.Vector2();
-      canvas.style.cursor = 'pointer';
-      canvas.addEventListener('click', (event) => {
+      const pickBoneFromEvent = (event) => {
         const rect = canvas.getBoundingClientRect();
         pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
         raycaster.setFromCamera(pointer, camera);
         const hits = raycaster.intersectObject(vrmRoot, true).filter((hit) => hit.object?.isMesh);
-        if (!hits.length) {
-          return;
+        return hits.length ? pickNearestAliciaBone(hits[0].point) : '';
+      };
+      canvas.style.cursor = 'pointer';
+      ensureBoneMarkers();
+      canvas.addEventListener('mousemove', (event) => {
+        const boneName = pickBoneFromEvent(event);
+        if (boneName) {
+          moveMarkerToBone(state.hoverMarker, boneName);
+          canvas.title = `${BONE_LABELS[boneName] || boneName} ${boneName}`;
+        } else if (state.hoverMarker) {
+          state.hoverMarker.visible = false;
+          canvas.title = '';
         }
-        const boneName = pickNearestAliciaBone(hits[0].point);
+        positionBoneQuickEditor();
+      });
+      canvas.addEventListener('mouseleave', () => {
+        if (state.hoverMarker) state.hoverMarker.visible = false;
+        canvas.title = '';
+      });
+      canvas.addEventListener('click', (event) => {
+        const boneName = pickBoneFromEvent(event);
         selectTrainingBone(boneName);
       });
       state.bonePickerBound = true;
@@ -1104,10 +1718,14 @@
         return;
       }
       const c = readCalibration();
+      const displayOffset = readSkeletonViewOffset();
       group.visible = $('trainingOverlayEnabled').checked && state.frames.length > 0;
-      const sx = c.mirrorX ? -c.scale : c.scale;
-      group.scale.set(sx, c.scale, c.scale);
-      group.position.set(c.offsetX, c.offsetY, c.offsetZ);
+      group.scale.set(c.scale, c.scale, c.scale);
+      group.position.set(
+        c.offsetX + displayOffset.x,
+        c.offsetY + displayOffset.y,
+        c.offsetZ + displayOffset.z
+      );
       group.rotation.y = c.yawDegrees * DEG;
     }
 
@@ -1145,8 +1763,9 @@
       updateSkeletonOverlayTransform();
     }
 
-    function renderBoneOffsetSliders() {
+    function renderBoneOffsetSliders(options = {}) {
       const bone = $('trainingBoneSelect').value;
+      state.selectedBone = bone;
       const offsets = state.boneOffsets[bone] || { x: 0, y: 0, z: 0 };
       $('trainingBoneOffsetSliders').innerHTML = BONE_OFFSET_AXES.map((axis) => `
         <div class="slider-row">
@@ -1164,20 +1783,22 @@
             [axis]: finiteNumber(slider.value)
           };
           slider.nextElementSibling.textContent = `${Math.round(finiteNumber(slider.value))}°`;
-          scheduleBoneOffsetApply();
+          renderBoneQuickEditor({ keepPosition: true });
+          scheduleBoneOffsetApply({ keepQuickEditorPosition: true });
           scheduleTrainingJsonRefresh();
         });
-        slider.addEventListener('change', () => applyTrainingCalibration());
+        slider.addEventListener('change', () => applyTrainingCalibration({ keepQuickEditorPosition: true }));
       });
+      updateSelectedBoneMarker({ keepQuickEditorPosition: options.keepQuickEditorPosition });
     }
 
-    function scheduleBoneOffsetApply() {
+    function scheduleBoneOffsetApply(options = {}) {
       if (state.boneOffsetApplyRaf) {
         return;
       }
       state.boneOffsetApplyRaf = requestAnimationFrame(() => {
         state.boneOffsetApplyRaf = 0;
-        applyTrainingCalibration({ refreshJson: false });
+        applyTrainingCalibration({ refreshJson: false, keepQuickEditorPosition: options.keepQuickEditorPosition });
       });
     }
 
@@ -1198,6 +1819,12 @@
       });
     }
 
+    function loadBasePoseIntoMascot() {
+      if (state.basePosePreset && state.mascot?.motion?.loadPosePreset) {
+        state.mascot.motion.loadPosePreset(state.basePosePreset);
+      }
+    }
+
     function findNearestFrame(timeMs) {
       if (!state.frames.length) return null;
       return state.frames.reduce((nearest, frame) => (
@@ -1209,9 +1836,6 @@
       const { refreshJson = true, syncBoneOffsets = true } = options;
       updateCalibrationLabels();
       updateSkeletonOverlayFrame(frameBySlider());
-      if (syncBoneOffsets) {
-        loadBoneOffsetsIntoMascot();
-      }
 
       if (!state.previewAdapter || !state.frames.length) {
         if (refreshJson) {
@@ -1221,8 +1845,24 @@
       }
 
       const frame = frameBySlider();
+      const targetTimeMs = frame.timeMs;
+      if (state.poseMotion && typeof state.mascot.motion?.holdCustomPose === 'function') {
+        loadBasePoseIntoMascot();
+        state.mascot.motion.holdCustomPose(state.poseMotion, {
+          timeMs: targetTimeMs,
+          additiveRotation: state.boneOffsets
+        });
+        if (refreshJson) {
+          refreshTrainingJson();
+        }
+        updateSelectedBoneMarker({ keepQuickEditorPosition: options.keepQuickEditorPosition });
+        return { ok: true, adapter: 'pose_json_baked_motion', requestedTimeMs: targetTimeMs };
+      }
+
       const c = readCalibration();
-      const targetTimeMs = frame.timeMs + c.timeOffsetMs;
+      if (syncBoneOffsets) {
+        loadBoneOffsetsIntoMascot();
+      }
       const targetFrame = findNearestFrame(targetTimeMs) || frame;
 
       const result = state.previewAdapter.previewPoseAtTimeMs(targetTimeMs, [targetFrame], {
@@ -1230,13 +1870,13 @@
         kind: 'pose_copier_v1',
         retargetHints: {
           directSkeletonPose: true,
-          mirrorX: c.mirrorX,
           normalizationYawDegrees: c.yawDegrees
         }
       });
       if (refreshJson) {
         refreshTrainingJson();
       }
+      updateSelectedBoneMarker({ keepQuickEditorPosition: options.keepQuickEditorPosition });
       return result;
     }
 
@@ -1303,12 +1943,10 @@
         0,
         1
       );
-      const nearestForBool = nearestCalibrationKeyframe(frame, previous, next);
       const calibration = {};
       for (const field of CALIBRATION_NUMERIC_FIELDS) {
         calibration[field] = lerpNumber(previous.calibration?.[field], next.calibration?.[field], ratio);
       }
-      calibration.mirrorX = nearestForBool?.calibration?.mirrorX === true;
 
       const boneOffsets = {};
       const boneNames = new Set([
@@ -1354,6 +1992,56 @@
       setStatus(`已跳到 ${formatSeconds(keyframe.timeMs)}。`);
     }
 
+    function renderRecommendedKeyframes() {
+      const box = $('trainingRecommendedKeyframes');
+      if (!box) return;
+      box.querySelectorAll('.recommended-keyframe-row, .recommended-empty').forEach((item) => item.remove());
+      if (!state.recommendedKeyframes.length) {
+        const empty = document.createElement('p');
+        empty.className = 'hint recommended-empty';
+        empty.textContent = '尚無推薦影格。';
+        box.appendChild(empty);
+        return;
+      }
+      state.recommendedKeyframes.forEach((item, index) => {
+        const row = document.createElement('div');
+        row.className = 'switch-row recommended-keyframe-row';
+        const label = document.createElement('span');
+        label.textContent = `${index + 1}. ${formatSeconds(item.timeMs)} / frame ${item.frame} / ${item.reason}`;
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.dataset.recommendedKeyframeIndex = String(index);
+        button.textContent = '跳到';
+        row.append(label, button);
+        box.appendChild(row);
+      });
+    }
+
+    function jumpToRecommendedKeyframe(index) {
+      const item = state.recommendedKeyframes[finiteNumber(index)];
+      const frame = item ? nearestFrameAtMs(item.timeMs) : null;
+      if (!item || !frame) return;
+      updateFrameSlider(state.frames.indexOf(frame));
+      seekVideoToMs(frame.timeMs);
+      applyTrainingCalibration({ refreshJson: false, syncBoneOffsets: false });
+      renderCalibrationTrack();
+      setStatus(`已跳到推薦影格：${formatSeconds(frame.timeMs)} / ${item.reason}`);
+    }
+
+    async function loadRecommendedKeyframes(url) {
+      state.recommendedKeyframes = [];
+      renderRecommendedKeyframes();
+      if (!url) return;
+      try {
+        const response = await fetch(url, { cache: 'no-store' });
+        const report = await response.json();
+        state.recommendedKeyframes = Array.isArray(report?.recommendedFrames) ? report.recommendedFrames : [];
+      } catch (error) {
+        state.recommendedKeyframes = [];
+      }
+      renderRecommendedKeyframes();
+    }
+
     function deleteCalibrationKeyframe(index) {
       if (!state.keyframes[finiteNumber(index)]) {
         return;
@@ -1364,6 +2052,38 @@
       setStatus('已刪除校正影格。');
     }
 
+    function deleteCurrentCalibrationKeyframe() {
+      const frame = frameBySlider();
+      const index = state.keyframes.findIndex((keyframe) => keyframeMatchesFrame(keyframe, frame));
+      if (index < 0) {
+        setStatus('目前影格沒有已儲存的校正可刪除。', 'error');
+        return;
+      }
+      deleteCalibrationKeyframe(index);
+    }
+
+    function rememberInferenceBackup(frame) {
+      state.inferenceBackup = {
+        timeMs: frame?.timeMs ?? null,
+        frameIndex: frame?.frameIndex ?? null,
+        calibration: readCalibration(),
+        boneOffsets: cloneJson(state.boneOffsets)
+      };
+    }
+
+    function restoreInferenceBackup() {
+      if (!state.inferenceBackup) {
+        setStatus('目前沒有可還原的推論前狀態。', 'error');
+        return;
+      }
+      state.boneOffsets = cloneJson(state.inferenceBackup.boneOffsets || {});
+      writeCalibration(state.inferenceBackup.calibration || {});
+      renderBoneOffsetSliders();
+      applyTrainingCalibration();
+      renderCalibrationTrack();
+      setStatus(`已還原推論前狀態：frame ${state.inferenceBackup.frameIndex ?? '--'}。`);
+    }
+
     function applyInferredCalibration() {
       const frame = frameBySlider();
       const inferred = inferCalibrationForFrame(frame);
@@ -1371,6 +2091,7 @@
         setStatus('目前沒有可用的校正影格可以推論。', 'error');
         return;
       }
+      rememberInferenceBackup(frame);
       state.boneOffsets = cloneJson(inferred.boneOffsets || {});
       writeCalibration(inferred.calibration || {});
       renderBoneOffsetSliders();
@@ -1455,6 +2176,106 @@
       renderCalibrationTrack();
       refreshTrainingJson();
       setStatus(`已儲存 ${formatSeconds(frame.timeMs)} 的對齊影格。`);
+    }
+
+    function correctedFrameForExport(frame, index) {
+      const inferred = inferCalibrationForFrame(frame);
+      const correction = inferred.ok
+        ? inferred
+        : {
+            ok: true,
+            mode: 'current',
+            calibration: readCalibration(),
+            boneOffsets: cloneJson(state.boneOffsets)
+          };
+      return {
+        frameIndex: frame.frameIndex ?? index,
+        timeMs: finiteNumber(frame.timeMs),
+        correctionMode: correction.mode,
+        interpolationRatio: correction.ratio ?? null,
+        calibration: cloneJson(correction.calibration || {}),
+        boneOffsets: cloneJson(correction.boneOffsets || {}),
+        landmarks: cloneJson(frame.landmarks || {})
+      };
+    }
+
+    function buildCorrectedPoseJson() {
+      const captureRange = readCaptureRange();
+      return {
+        kind: 'gvhmr_alicia_corrected_pose_json_v1',
+        schemaVersion: 1,
+        createdAt: new Date().toISOString(),
+        source: {
+          id: state.source?.id || 'pose_training_session',
+          type: state.source?.type || 'unknown',
+          title: state.source?.title || '',
+          youtubeUrl: state.source?.youtubeUrl || $('trainingYoutubeUrl').value.trim(),
+          videoUrl: state.currentVideoUrl || '',
+          captureRange
+        },
+        frameCount: state.frames.length,
+        durationMs: state.frames.length
+          ? Math.max(0, finiteNumber(state.frames.at(-1).timeMs) - finiteNumber(state.frames[0].timeMs))
+          : 0,
+        keyframes: cloneJson(state.keyframes),
+        frames: state.frames.map(correctedFrameForExport)
+      };
+    }
+
+    function downloadCorrectedPoseJson() {
+      if (!state.frames.length) {
+        setStatus('目前沒有可輸出的 GVHMR 影格。', 'error');
+        return;
+      }
+      const documentData = buildCorrectedPoseJson();
+      const slug = (documentData.source.title || documentData.source.id || 'gvhmr_alicia')
+        .replace(/[^\w.-]+/g, '_')
+        .replace(/^_+|_+$/g, '')
+        .slice(0, 80) || 'gvhmr_alicia';
+      const blob = new Blob([JSON.stringify(documentData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${slug}_corrected_pose.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setStatus(`已輸出修正版 pose_json：${a.download}。`);
+    }
+
+    async function saveGvhmrResultToPoseDb(body, captureRange) {
+      const postId = state.source?.postId;
+      if (!postId) return;
+      const times = state.frames.map((frame) => finiteNumber(frame.timeMs)).filter(Number.isFinite);
+      const payload = {
+        status: 2,
+        progress: 100,
+        frames: state.frames.length,
+        source_start_ms: captureRange.startMs,
+        source_end_ms: captureRange.endMs,
+        pose_json_path: body.motionUrl || '',
+        skeleton_json_path: body.skeletonUrl || '',
+        hand_pose_json_path: body.handPoseUrl || '',
+        preview_path: body.videoUrl || state.currentVideoUrl || '',
+        duration_ms: times.length ? Math.max(...times) - Math.min(...times) : null,
+        error_message: '',
+        progress_log: `GVHMR rerun from pose_training_lab: ${new Date().toISOString()}`
+      };
+      const response = await fetch(`api/pose-db/items/${encodeURIComponent(postId)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok || !result?.ok) {
+        throw new Error(result?.error || `HTTP ${response.status}`);
+      }
+      Object.assign(state.source, {
+        videoUrl: payload.preview_path,
+        poseJsonPath: payload.pose_json_path,
+        skeletonJsonPath: payload.skeleton_json_path
+      });
     }
 
     function buildGvhmrAliciaProfile() {
@@ -1584,6 +2405,7 @@
       state.currentVideoUrl = documentData.source?.videoUrl || '';
       state.worldMotion = documentData.worldMotion || null;
       state.keyframes = Array.isArray(documentData.keyframes) ? documentData.keyframes : [];
+      state.recommendedKeyframes = [];
       const profile = documentData.profile || {};
       state.boneOffsets = profile.boneOffsets || documentData.boneOffsets || state.keyframes.at(-1)?.boneOffsets || {};
       writeCalibration(profile.calibration || documentData.calibration || state.keyframes.at(-1)?.calibration || {});
@@ -1596,8 +2418,90 @@
       updateFrameSlider(0);
       renderBoneOffsetSliders();
       applyTrainingCalibration();
+      renderRecommendedKeyframes();
       refreshTrainingJson();
       setStatus(`已載入校正 JSON，共 ${state.frames.length} 個 GVHMR 影格。`);
+    }
+
+    function keyframesReportUrlFromItem(item) {
+      const path = item?.skeleton_json_path || '';
+      return path ? assetUrl(path.replace(/[^/\\]+$/, 'keyframes_report.json')) : '';
+    }
+
+    function applyPostCaptureRange(item) {
+      const startMs = finiteNumber(item?.source_start_ms);
+      const endMs = finiteNumber(item?.source_end_ms);
+      if (endMs > startMs) {
+        setCaptureRange(startMs, endMs);
+        seekVideoToMs(startMs);
+      }
+    }
+
+    async function loadPoseTrainingPost(postId) {
+      if (!postId) return;
+      setStatus(`正在載入素材 #${postId}...`);
+      const itemBody = await fetch(`api/pose-db/items/${encodeURIComponent(postId)}`, { cache: 'no-store' }).then((res) => res.json());
+      if (!itemBody?.ok || !itemBody.item) {
+        throw new Error(itemBody?.error || `素材 #${postId} 不存在`);
+      }
+      const item = itemBody.item;
+      const videoUrl = assetUrl(item.preview_path || (item.source_kind === 'local_mp4' ? item.source_url : ''));
+      if (videoUrl) {
+        applyTrainingVideoSource({
+          id: `pose_db_${item.id}`,
+          type: item.source_kind || 'pose_db',
+          title: item.title || `素材 #${item.id}`,
+          sourceUrl: item.source_url || '',
+          url: videoUrl
+        }, item.source_kind || 'pose_db');
+        $('trainingVideoPreview').addEventListener('loadedmetadata', () => applyPostCaptureRange(item), { once: true });
+      }
+      state.source = {
+        ...(state.source || {}),
+        id: `pose_db_${item.id}`,
+        type: item.source_kind || 'pose_db',
+        title: item.title || `素材 #${item.id}`,
+        postId: item.id,
+        sourceUrl: item.source_url || '',
+        videoUrl
+      };
+      state.poseMotion = null;
+      const poseJsonUrl = assetUrl(item.pose_json_path || (item.source_kind === 'pose_json' ? item.source_url : ''));
+      if (poseJsonUrl) {
+        try {
+          state.poseMotion = await fetch(poseJsonUrl, { cache: 'no-store' }).then((res) => res.json());
+          state.source.poseJsonPath = poseJsonUrl;
+        } catch (error) {
+          console.warn(error);
+        }
+      }
+
+      const skeletonUrl = assetUrl(item.skeleton_json_path);
+      if (!skeletonUrl) {
+        applyPostCaptureRange(item);
+        setStatus(`素材 #${postId} 尚未產生骨架，請確認截取範圍後執行 GVHMR。`, 'error');
+        return;
+      }
+      const skeleton = await fetch(skeletonUrl, { cache: 'no-store' }).then((res) => res.json());
+      if (!Array.isArray(skeleton?.frames) || !skeleton.frames.length) {
+        applyPostCaptureRange(item);
+        setStatus(`素材 #${postId} 的骨架是空的，請重新執行 GVHMR。${skeleton?.reason ? `原因：${skeleton.reason}` : ''}`, 'error');
+        return;
+      }
+
+      state.worldMotion = skeleton;
+      state.frames = trainingFramesFromWorldMotion(state.worldMotion, { startMs: 0, endMs: Number.MAX_SAFE_INTEGER });
+      if (state.frames.length) {
+        const startMs = finiteNumber(state.frames[0].timeMs);
+        const endMs = finiteNumber(state.frames.at(-1).timeMs);
+        state.captureRange.durationMs = endMs;
+        setCaptureRange(startMs, endMs);
+      }
+      updateFrameSlider(0);
+      applyTrainingCalibration();
+      await loadRecommendedKeyframes(keyframesReportUrlFromItem(item));
+      refreshTrainingJson();
+      setStatus(`已載入素材 #${item.id}：${state.frames.length} 個 GVHMR 影格。`);
     }
 
     function syncFrameToVideo() {
@@ -1605,11 +2509,12 @@
         return;
       }
       const c = readCalibration();
-      const targetMs = currentVideoTimeMs() + c.timeOffsetMs;
+      const targetMs = currentVideoTimeMs();
       const nearest = nearestFrameAtMs(targetMs);
       const index = Math.max(0, state.frames.indexOf(nearest));
       updateFrameSlider(index);
       applyTrainingCalibration({ refreshJson: false, syncBoneOffsets: false });
+      syncSourceVideoOverlay(targetMs);
     }
 
     function applyTrainingVideoSource(source, fallbackType = 'video') {
@@ -1624,11 +2529,14 @@
       state.currentVideoUrl = source.url;
       $('trainingVideoPreview').src = source.url;
       $('trainingVideoPreview').load();
+      $('trainingSourceVideoOverlay').src = source.url;
+      $('trainingSourceVideoOverlay').load();
       $('gvhmrProgress').hidden = true;
       $('gvhmrProgressLog').textContent = '';
       $('gvhmrProgressBar').style.width = '0%';
       $('gvhmrProgressPercent').textContent = '0%';
       $('gvhmrProgressLabel').textContent = '等待執行';
+      hideGvhmrProgressModal();
       refreshTrainingJson();
     }
 
@@ -1699,10 +2607,12 @@
         return;
       }
       const captureRange = readCaptureRange();
-      const button = $('btnTrainingRunGvhmr');
-      const label = button.textContent;
-      button.disabled = true;
-      button.textContent = 'GVHMR 執行中...';
+      const buttons = [$('btnTrainingRunGvhmr'), $('btnTrainingRunGvhmrInline')].filter(Boolean);
+      const labels = buttons.map((button) => button.textContent);
+      buttons.forEach((button) => {
+        button.disabled = true;
+        button.textContent = 'GVHMR 執行中...';
+      });
       setStatus(`正在執行 GVHMR：${formatSeconds(captureRange.startMs)} - ${formatSeconds(captureRange.endMs)}。`);
       startGvhmrProgressLog(captureRange);
       try {
@@ -1729,15 +2639,25 @@
         state.frames = trainingFramesFromWorldMotion(state.worldMotion, captureRange);
         updateFrameSlider(0);
         applyTrainingCalibration();
+        await loadRecommendedKeyframes(body.keyframesUrl);
         refreshTrainingJson();
         finishGvhmrProgressLog(body);
-        setStatus(`GVHMR 已載入 ${state.frames.length} 個選取範圍內的影格。`);
+        try {
+          await saveGvhmrResultToPoseDb(body, captureRange);
+        } catch (saveError) {
+          addGvhmrProgressLog(`寫回素材庫失敗：${saveError.message}`, 'error');
+          setStatus(`GVHMR 已完成，但寫回素材庫失敗：${saveError.message}`, 'error');
+          return;
+        }
+        setStatus(`GVHMR 已載入 ${state.frames.length} 個影格，並已寫回素材庫。`);
       } catch (error) {
         failGvhmrProgressLog(error);
         setStatus(`GVHMR 失敗：${error.message}`, 'error');
       } finally {
-        button.disabled = false;
-        button.textContent = label;
+        buttons.forEach((button, index) => {
+          button.disabled = false;
+          button.textContent = labels[index];
+        });
       }
     }
 
@@ -1750,6 +2670,7 @@
         state.mascot = new VrmMascot($('aliciaPreview'), { orbitControls: true, grid: true });
         state.previewAdapter = new AliciaMotionPreviewAdapter({ mascot: state.mascot });
         await state.mascot.load(DEFAULT_VRM_MODEL_URL);
+        state.basePosePreset = state.mascot.motion?.getPosePreset?.() || null;
         placeAliciaOnGround(state.mascot);
         configureTrainingCamera(state.mascot);
         bindAliciaBonePicker();
@@ -1765,9 +2686,14 @@
       $('btnTrainingLoadYoutube').addEventListener('click', loadYoutubeSource);
       $('btnTrainingUploadVideo').addEventListener('click', uploadLocalVideoSource);
       $('btnTrainingRunGvhmr').addEventListener('click', runGvhmrWorldMotion);
+      $('btnTrainingRunGvhmrInline').addEventListener('click', runGvhmrWorldMotion);
+      $('btnCloseGvhmrProgress').addEventListener('click', hideGvhmrProgressModal);
       $('btnTrainingApplyCalibration').addEventListener('click', applyTrainingCalibration);
       $('btnTrainingCaptureKeyframe').addEventListener('click', captureTrainingKeyframe);
       $('btnTrainingInferCalibration').addEventListener('click', applyInferredCalibration);
+      $('btnTrainingRestoreInference').addEventListener('click', restoreInferenceBackup);
+      $('btnTrainingDeleteCurrentKeyframe').addEventListener('click', deleteCurrentCalibrationKeyframe);
+      $('btnTrainingDownloadCorrectedJson').addEventListener('click', downloadCorrectedPoseJson);
       $('btnTrainingDownloadJson').addEventListener('click', downloadPoseTrainingJson);
       $('btnTrainingLoadJson').addEventListener('click', () => $('trainingJsonInput').click());
       $('btnTrainingSaveDefaultProfile').addEventListener('click', saveDefaultGvhmrProfile);
@@ -1812,6 +2738,8 @@
 
       $('gvhmrFrameSlider').addEventListener('input', () => {
         updateFrameSlider($('gvhmrFrameSlider').value);
+        const frame = frameBySlider();
+        if (frame) syncSourceVideoOverlay(frame.timeMs);
         applyTrainingCalibration({ refreshJson: false, syncBoneOffsets: false });
         scheduleTrainingJsonRefresh();
       });
@@ -1831,10 +2759,25 @@
         });
         $(id).addEventListener('change', applyTrainingCalibration);
       }
-      $('trainingTimeOffsetMs').addEventListener('change', () => applyTrainingCalibration());
       $('trainingOverlayEnabled').addEventListener('change', () => applyTrainingCalibration());
-      $('trainingMirrorX').addEventListener('change', () => applyTrainingCalibration());
-      $('trainingBoneSelect').addEventListener('change', renderBoneOffsetSliders);
+      for (const id of ['trainingSkeletonViewOffsetX', 'trainingSkeletonViewOffsetY', 'trainingSkeletonViewOffsetZ']) {
+        $(id).addEventListener('input', () => {
+          updateSkeletonViewOffsetLabels();
+          updateSkeletonOverlayFrame(frameBySlider());
+        });
+      }
+      $('trainingBoneSelect').addEventListener('change', () => {
+        renderBoneOffsetSliders();
+        renderBoneQuickEditor();
+        updateBoneMapActive();
+      });
+      $('trainingBoneMap').addEventListener('click', (event) => {
+        const item = event.target.closest('[data-bone]');
+        if (item) selectTrainingBone(item.dataset.bone);
+      });
+      $('btnCloseBoneQuickEditor').addEventListener('click', () => {
+        $('boneQuickEditor').classList.remove('visible');
+      });
       $('trainingCalibrationTrackList').addEventListener('click', (event) => {
         const button = event.target.closest('button[data-calibration-action]');
         if (!button) {
@@ -1849,18 +2792,38 @@
           deleteCalibrationKeyframe(index);
         }
       });
+      $('trainingRecommendedKeyframes').addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-recommended-keyframe-index]');
+        if (button) {
+          jumpToRecommendedKeyframe(button.dataset.recommendedKeyframeIndex);
+        }
+      });
     }
 
     async function init() {
+      const postId = new URLSearchParams(location.search).get('postId') || new URLSearchParams(location.search).get('id');
+      if (postId) {
+        document.body.classList.add('pose-db-mode');
+      }
       bindEvents();
       updateCalibrationLabels();
+      updateSkeletonViewOffsetLabels();
       renderTrainingBoneSelect();
       renderBoneOffsetSliders();
+      updateBoneMapActive();
       setCaptureRange(0, 0);
       updateDefaultProfileSummary();
       renderCalibrationTrack();
+      renderRecommendedKeyframes();
       refreshTrainingJson();
       await bootAliciaPreview();
+      if (postId) {
+        try {
+          await loadPoseTrainingPost(postId);
+        } catch (error) {
+          setStatus(`載入素材失敗：${error.message}`, 'error');
+        }
+      }
     }
 
     window.poseTrainingLab = {
@@ -1870,8 +2833,10 @@
       buildGvhmrAliciaProfile,
       loadPoseTrainingJson,
       loadDefaultGvhmrProfile,
+      loadPoseTrainingPost,
       runGvhmrWorldMotion,
       inferCalibrationForFrame,
+      buildCorrectedPoseJson,
       syncFrameToVideo
     };
 
